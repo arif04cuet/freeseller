@@ -1,5 +1,8 @@
 <?php
 
+use App\Enum\BusinessType;
+use App\Models\User;
+use App\Notifications\NewSignupAdminNotification;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,6 +16,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('/mail', function () {
+    return BusinessType::array();
+});
+
 Route::get('/', function () {
+    return redirect()->to(config('filament.path'));
     return view('welcome');
 });

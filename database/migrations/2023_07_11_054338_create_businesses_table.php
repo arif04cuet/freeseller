@@ -1,5 +1,7 @@
 <?php
 
+use App\Enum\BusinessType;
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,17 +13,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('businesses', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
-            $table->string('mobile')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->text('address');
+            $table->string('estd_year');
+            $table->string('number')->unique();
+            $table->enum('type', ['manufacturer', 'wholesaler', 'reseller']);
+            $table->foreignIdFor(User::class);
             $table->timestamp('approved_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
             $table->timestamps();
-            $table->boolean('is_active')->default(false);
         });
     }
 
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('businesses');
     }
 };
