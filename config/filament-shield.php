@@ -4,7 +4,7 @@ return [
     'shield_resource' => [
         'should_register_navigation' => true,
         'slug' => 'shield/roles',
-        'navigation_sort' => -1,
+        'navigation_sort' => 2,
         'navigation_badge' => true,
         'navigation_group' => true,
         'is_globally_searchable' => false,
@@ -18,12 +18,12 @@ return [
     'super_admin' => [
         'enabled' => true,
         'name' => 'super_admin',
-        'define_via_gate' => false,
+        'define_via_gate' => true,
         'intercept_gate' => 'before', // after
     ],
 
     'filament_user' => [
-        'enabled' => true,
+        'enabled' => false,
         'name' => 'filament_user',
     ],
 

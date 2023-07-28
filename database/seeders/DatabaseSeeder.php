@@ -13,5 +13,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(SuperAdminSeeder::class);
+        $this->call(UserRoleSeeder::class);
+        $this->call(AddressSeeder::class);
+        $this->call(OptionSeeder::class);
     }
 }

@@ -2,6 +2,7 @@
 // config for JeffGreco13/FilamentBreezy
 
 use App\Http\Livewire\Register;
+use Illuminate\Support\Facades\App;
 
 return [
     /*
@@ -97,7 +98,7 @@ return [
     |--------------------------------------------------------------------------
     | Path to email verification Controller component.
     */
-    "email_verification_controller_path" => \JeffGreco13\FilamentBreezy\Http\Controllers\EmailVerificationController::class,
+    "email_verification_controller_path" => \App\Http\Controllers\EmailVerificationController::class,
     /*
     |--------------------------------------------------------------------------
     | Path to Profile page component.

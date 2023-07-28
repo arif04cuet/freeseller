@@ -12,7 +12,6 @@ class Business extends Model
 
     protected $fillable = [
         'name',
-        'address',
         'estd_year',
         'type',
     ];

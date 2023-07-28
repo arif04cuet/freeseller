@@ -16,7 +16,6 @@ return new class extends Migration
         Schema::create('businesses', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('address');
             $table->string('estd_year');
             $table->string('number')->unique();
             $table->enum('type', ['manufacturer', 'wholesaler', 'reseller']);

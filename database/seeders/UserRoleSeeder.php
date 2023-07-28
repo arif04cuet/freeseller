@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enum\BusinessType;
+use App\Enum\SystemRole;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -18,9 +19,9 @@ class UserRoleSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        foreach (BusinessType::array() as $key => $name) {
+        foreach (SystemRole::array() as $key => $name) {
 
-            $role = Role::create(['name' => $name]);
+            Role::create(['name' => $key]);
         }
     }
 }

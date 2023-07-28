@@ -27,7 +27,14 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
+    protected static ?string $navigationGroup = 'Settings';
     protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?int $navigationSort = 1;
+
+    protected static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 
     public static function form(Form $form): Form
     {
@@ -77,10 +84,7 @@ class UserResource extends Resource
                 TextColumn::make('mobile')
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('roles')
-                    ->getStateUsing(function (Model $record) {
-                        return $record->roles()->pluck('name')->implode(',');
-                    }),
+                Tables\Columns\TagsColumn::make('roles.name'),
                 TextColumn::make('created_at')->datetime(),
                 ToggleColumn::make('is_active')
             ])
