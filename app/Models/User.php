@@ -60,16 +60,40 @@ class User extends Authenticatable implements MustVerifyEmail, HasName
     ];
 
 
+    public static function booted()
+    {
+        static::deleting(function ($user) {
+            $user->address()->delete();
+        });
+    }
+
+
     //scopes
 
+    public function scopeMine(Builder $builder): void
+    {
+        $loggedInUser = auth()->user();
+        $builder->when(!$loggedInUser->isSuperAdmin(), function ($q) use ($loggedInUser) {
+            return $q->whereHas('address', function ($addressable) use ($loggedInUser) {
+                return $addressable->where('address_id', $loggedInUser->address->address_id);
+            });
+        });
+    }
+    public function scopeHubUsers(Builder $builder)
+    {
+        $builder->role([
+            SystemRole::HubManager->value,
+            SystemRole::HubMember->value,
+        ]);
+    }
     public function scopeResellers(Builder $builder): void
     {
-        $builder->role(SystemRole::Reseller->name);
+        $builder->role(SystemRole::Reseller->value);
     }
 
     public function scopeWholesalers(Builder $builder): void
     {
-        $builder->role(SystemRole::Wholesaler->name);
+        $builder->role(SystemRole::Wholesaler->value);
     }
 
 
@@ -87,6 +111,11 @@ class User extends Authenticatable implements MustVerifyEmail, HasName
 
 
     //functions
+
+    public function canImpersonate()
+    {
+        return true;
+    }
 
     public function getFilamentName(): string
     {

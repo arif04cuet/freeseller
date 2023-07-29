@@ -14,10 +14,14 @@ use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Collection;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Illuminate\Database\Eloquent\Builder;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Product extends Model
+class Product extends Model implements HasMedia
 {
     use HasFactory;
+    use InteractsWithMedia;
 
     protected $fillable = [
         'name',
@@ -34,17 +38,22 @@ class Product extends Model
     ];
 
 
-    //relations
     protected static function booted()
     {
-
-        static::addGlobalScope('mine', function (Builder $builder) {
-            $builder
-                ->when(!auth()->user()->isSuperAdmin(), function ($query) {
-                    $query->where('owner_id', auth()->user()->id);
-                });
-        });
     }
+
+    //scopes
+
+    public function scopeMine(Builder $builder): void
+    {
+        $builder
+            ->when(!auth()->user()->isSuperAdmin(), function ($query) {
+                $query->where('owner_id', auth()->user()->id);
+            });
+    }
+
+    //relations
+
 
     public function skus(): HasMany
     {
@@ -68,6 +77,30 @@ class Product extends Model
 
 
     //helpers
+
+    public function getAllImages()
+    {
+        $this->loadMissing('skus');
+
+        $images = $this->getMedia("sharees");
+
+        foreach ($this->skus as $sku) {
+            $images = $images->merge($sku->getMedia('sharees'));
+        }
+
+        return $images;
+    }
+    public function isOwner()
+    {
+        return $this->owner_id == auth()->user()->id;
+    }
+
+    public function registerMediaConversions(Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(200)
+            ->height(150);
+    }
 
     public function getQuantities(): Collection
     {

@@ -21,6 +21,6 @@ class ListWholesalers extends ListRecords
 
     protected function getTableQuery(): Builder
     {
-        return parent::getTableQuery()->wholesalers();
+        return parent::getTableQuery()->wholesalers()->mine();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\WholesalerResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
+use App\Models\Address;
 use App\Models\User;
 use Carbon\Carbon;
 use DateTime;
@@ -39,10 +40,14 @@ class WholesalerResource extends Resource
     protected static ?string $slug = 'wholesalers';
 
 
+    public static function getEloquentQuery(): Builder
+    {
+        return static::getModel()::query()->with('address');
+    }
 
     protected static function getNavigationBadge(): ?string
     {
-        return static::getEloquentQuery()->wholesalers()->count();
+        return static::getEloquentQuery()->wholesalers()->mine()->count();
     }
 
     public static function form(Form $form): Form
@@ -94,8 +99,8 @@ class WholesalerResource extends Resource
                 TextColumn::make('mobile')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TagsColumn::make('roles.name')
-                    ->label('User Type'),
+                TextColumn::make('hub')
+                    ->getStateUsing(fn (Model $record) => Address::find($record->address->address_id)->name),
                 TextColumn::make('created_at')->datetime(),
                 ToggleColumn::make('is_active')
             ])
@@ -109,6 +114,7 @@ class WholesalerResource extends Resource
             ])
             ->actions([
                 Impersonate::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 //Tables\Actions\DeleteBulkAction::make(),

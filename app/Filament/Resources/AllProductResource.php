@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ProductResource\Pages;
-use App\Filament\Resources\ProductResource\RelationManagers;
+use App\Filament\Resources\AllProductResource\Pages;
+use App\Filament\Resources\AllProductResource\RelationManagers;
 use App\Filament\Resources\ProductResource\RelationManagers\SkusRelationManager;
 use App\Models\Category;
 use App\Models\Product;
@@ -19,27 +19,17 @@ use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class ProductResource extends Resource
+class AllProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
     protected static ?string $navigationGroup = 'Catalog';
     protected static ?string $navigationIcon = 'heroicon-o-collection';
     protected static ?int $navigationSort = 1;
-    protected static ?string $navigationLabel = 'My Products';
-
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()->mine();
-    }
-
-    protected static function getNavigationBadge(): ?string
-    {
-        return static::getEloquentQuery()->count();
-    }
-
+    protected static ?string $navigationLabel = 'All Products';
+    protected static ?string $slug = 'explore-products';
 
     public static function form(Form $form): Form
     {
@@ -109,19 +99,49 @@ class ProductResource extends Resource
                     ->label('Total')
                     ->sum('skus', 'quantity'),
                 Tables\Columns\TextColumn::make('category.name'),
-                Tables\Columns\TextColumn::make('owner.name'),
+
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('owner')
+                    ->label('Wholesaler')
+                    ->relationship('owner', 'name', fn (Builder $query) => $query->wholesalers()),
+
                 Tables\Filters\SelectFilter::make('category')
-                    ->relationship('category', 'name')
+                    ->relationship('category', 'name'),
+
+                Tables\Filters\Filter::make('price')
+                    ->form([
+                        Forms\Components\Grid::make('price_range')
+                            ->columns(2)
+                            ->schema([
+
+                                Forms\Components\TextInput::make('from')->label('Price From')->numeric(),
+                                Forms\Components\TextInput::make('to')->numeric(),
+                            ])
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['from'],
+                                fn (Builder $query, $from): Builder => $query->where('price', '>=', $from),
+                            )
+                            ->when(
+                                $data['to'],
+                                fn (Builder $query, $to): Builder => $query->where('price', '<=', $to),
+                            );
+                    })
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('gallery')
+                    ->modalActions(fn (Model $record) => [])
+                    ->action(fn (Model $record) => dd($record->getAllImages()->toArray()))
+                    ->modalHeading(fn (Model $record) => 'All images of product - ' . $record->name)
+                    ->modalContent(fn (Model $record) => view('products.gallery', compact('record')))
+
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
-            ]);
+            ->bulkActions([]);
     }
+
 
     public static function getRelations(): array
     {
@@ -133,9 +153,8 @@ class ProductResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListProducts::route('/'),
-            'create' => Pages\CreateProduct::route('/create'),
-            'edit' => Pages\EditProduct::route('/{record}/edit'),
+            'index' => Pages\ListAllProducts::route('/'),
+            'view' => Pages\ViewProduct::route('/{record}')
         ];
     }
 }

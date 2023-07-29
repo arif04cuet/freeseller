@@ -16,14 +16,29 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
+use STS\FilamentImpersonate\Tables\Actions\Impersonate;
 
 class UsersRelationManager extends RelationManager
 {
-    protected static string $relationship = 'users';
+    protected static string $relationship = 'addresses';
 
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $title = 'Hub Manager & Members';
+
+
+    protected function getTableQuery(): Builder
+    {
+        return parent::getTableQuery()->whereHas('addressable', function ($query) {
+            return $query->hubUsers();
+        });
+    }
+
+    public static function canViewForRecord(Model $ownerRecord): bool
+    {
+        return $ownerRecord->type->value == AddressType::Hub->value;
+    }
+
 
     public static function form(Form $form): Form
     {
@@ -62,16 +77,16 @@ class UsersRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
+                Tables\Columns\TextColumn::make('addressable.name')
                     ->label('Name'),
-                Tables\Columns\TextColumn::make('user.email')
+                Tables\Columns\TextColumn::make('addressable.email')
                     ->label('Email'),
-                Tables\Columns\TextColumn::make('user.mobile')
+                Tables\Columns\TextColumn::make('addressable.mobile')
                     ->label('Mobile'),
-                Tables\Columns\TextColumn::make('role.name')
-                    ->formatStateUsing(fn ($state) => str()->headline($state))
-                    ->label('Role Name'),
-                Tables\Columns\IconColumn::make('user.is_active')
+                // Tables\Columns\TagsColumn::make('roles')
+                //     ->getStae(fn ($state) => str()->headline($state))
+                //     ->label('Role Name'),
+                Tables\Columns\IconColumn::make('addressable.is_active')
                     ->options([
                         'heroicon-o-x-circle' => false,
                         'heroicon-o-check-circle' => true,
@@ -99,28 +114,33 @@ class UsersRelationManager extends RelationManager
                             'password' => Hash::make($data['password'])
                         ]);
 
+                        //assign role
                         $role = Role::find($data['role_id']);
                         $user->assignRole($role);
 
-                        event(new Registered($user));
-
-                        $hubUser = $livewire->getRelationship()->create([
-                            'user_id' => $user->id,
-                            'role_id' => $data['role_id'],
+                        //create address
+                        $addressable = $user->address()->create([
+                            'address_id' => $livewire->ownerRecord->id
                         ]);
 
+                        event(new Registered($user));
 
-                        return $hubUser;
+
+                        return $addressable;
                     }),
             ])
             ->actions([
+                // Impersonate::make()
+                //     ->impersonate(fn (Model $record) => $record->addressable),
+
                 Tables\Actions\EditAction::make()
                     ->mutateRecordDataUsing(function (Model $record, array $data): array {
 
-                        $user = $record->user;
+                        $user = $record->addressable;
                         $data['name'] = $user->name;
                         $data['email'] = $user->email;
                         $data['mobile'] = $user->mobile;
+                        $data['role_id'] = $user->roles->first()->id;
 
                         return $data;
                     })->using(function (Model $record, array $data): Model {
@@ -134,19 +154,18 @@ class UsersRelationManager extends RelationManager
                         if (!empty($data['password']))
                             $userData['password'] = Hash::make($data['password']);
 
+                        $user = $record->addressable;
+                        $user->save($userData);
 
-                        $record->user->save($userData);
-
-                        $record->update([
-                            'role_id' => $data['role_id'],
-                        ]);
 
                         return $record;
                     }),
                 Tables\Actions\DeleteAction::make()
-                    ->after(function (array $data) {
-                        logger($data);
+                    ->using(function (Model $record) {
+                        $record->addressable()->delete();
+                        $record->delete();
                     }),
+
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

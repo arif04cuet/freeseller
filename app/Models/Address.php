@@ -26,9 +26,9 @@ class Address extends Model
         return $this->belongsTo(Address::class, 'parent_id');
     }
 
-    public function users(): HasMany
+    public function addresses(): HasMany
     {
-        return $this->hasMany(HubUser::class, 'hub_id');
+        return $this->hasMany(Addressable::class);
     }
 
     //helpers

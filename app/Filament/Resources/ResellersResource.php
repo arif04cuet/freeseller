@@ -18,6 +18,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use STS\FilamentImpersonate\Tables\Actions\Impersonate;
 
 class ResellersResource extends Resource
 {
@@ -96,6 +97,7 @@ class ResellersResource extends Resource
                 TernaryFilter::make('is_active'),
             ])
             ->actions([
+                Impersonate::make(),
                 Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([]);

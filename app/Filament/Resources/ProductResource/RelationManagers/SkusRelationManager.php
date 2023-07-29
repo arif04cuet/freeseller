@@ -58,6 +58,7 @@ class SkusRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
+                    ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner())
                     ->using(function (HasRelationshipTable $livewire, array $data): Model {
 
                         $product = $livewire->ownerRecord;
@@ -79,6 +80,7 @@ class SkusRelationManager extends RelationManager
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
+                    ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner())
                     ->mutateRecordDataUsing(function (Model $record, array $data): array {
 
                         $data['1'] = $record->getColorAttributeValue()->id;
@@ -92,10 +94,12 @@ class SkusRelationManager extends RelationManager
 
                         return $record;
                     }),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner()),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make()
+                    ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner()),
             ]);
     }
 }
