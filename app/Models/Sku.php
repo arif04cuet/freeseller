@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enum\SystemRole;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +18,7 @@ class Sku extends Model implements HasMedia
     use InteractsWithMedia;
 
     protected $fillable = [
+        'name',
         'product_id',
         'sku',
         'quantity',
@@ -33,8 +36,33 @@ class Sku extends Model implements HasMedia
         return $this->belongsToMany(AttributeValue::class);
     }
 
+
+
+    //accessors
+
+
+    public function price(): Attribute
+    {
+        $product = $this->product;
+        $isVarientPrice = $product->productType->is_varient_price;
+
+        return Attribute::make(
+            get: fn ($value) => (int) ($isVarientPrice ? $value : $product->price)
+        );
+    }
+
     //helpers
 
+    public static function getQuantity($productId, $attributeValueId)
+    {
+        list($sku, $valueId) = explode('-', $attributeValueId);
+
+        return self::query()
+            ->where('product_id', $productId)
+            ->whereHas('attributeValues', fn ($q) => $q->where('attribute_value_id', $valueId))
+            ->first()
+            ->quantity;
+    }
     public function registerMediaConversions(Media $media = null): void
     {
         $this->addMediaConversion('thumb')

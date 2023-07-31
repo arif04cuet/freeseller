@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enum\OptionValueType;
+use App\Enum\SystemRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,7 @@ use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Collection;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -54,6 +56,10 @@ class Product extends Model implements HasMedia
 
     //relations
 
+    public function resellerLists(): BelongsToMany
+    {
+        return $this->belongsToMany(ResellerList::class);
+    }
 
     public function skus(): HasMany
     {
@@ -75,6 +81,13 @@ class Product extends Model implements HasMedia
         return $this->belongsTo(Category::class);
     }
 
+    //accessors
+    public function price(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => (int) $value
+        );
+    }
 
     //helpers
 
@@ -127,21 +140,23 @@ class Product extends Model implements HasMedia
                 return Forms\Components\Select::make($attribute->id)
                     ->label($attribute->name)
                     ->disabledOn('edit')
+                    ->required()
                     ->options($attribute->values->pluck('label', 'id'));
             })
             ->toArray();
 
 
         $fields = array_merge($varients, [
-            Forms\Components\TextInput::make('quantity')->numeric()
+            Forms\Components\TextInput::make('quantity')->numeric()->required()
         ]);
 
 
         if ($productType->is_varient_price)
-            $fields[] =  Forms\Components\TextInput::make('price')->numeric();
+            $fields[] =  Forms\Components\TextInput::make('price')->numeric()->required();
 
         $fields[] = SpatieMediaLibraryFileUpload::make('images')
             ->multiple()
+            ->required()
             ->enableReordering()
             ->panelLayout('grid')
             ->image()

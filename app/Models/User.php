@@ -11,7 +11,9 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -99,6 +101,33 @@ class User extends Authenticatable implements MustVerifyEmail, HasName
 
     //relations
 
+    public function customers(): BelongsToMany
+    {
+        return $this->belongsToMany(Customer::class, 'customer_reseller', 'reseller_id', 'customer_id')
+            ->withTimestamps();
+    }
+
+    public function skus(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Sku::class,
+            Product::class,
+            'owner_id',
+            'product_id',
+            'id',
+            'id'
+        );
+    }
+
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class, 'owner_id');
+    }
+    public function lists(): HasMany
+    {
+        return $this->hasMany(ResellerList::class);
+    }
+
     public function address(): MorphOne
     {
         return $this->morphOne(Addressable::class, 'addressable');
@@ -109,9 +138,17 @@ class User extends Authenticatable implements MustVerifyEmail, HasName
         return $this->hasMany(Business::class);
     }
 
-
     //functions
 
+    public static function getHubManagerByAddress($addressId)
+    {
+        return self::query()
+            ->whereHas('address', function ($q) use ($addressId) {
+                return $q->where('address_id', $addressId);
+            })
+            ->role(SystemRole::HubManager->value)
+            ->first();
+    }
     public function canImpersonate()
     {
         return true;
@@ -126,6 +163,19 @@ class User extends Authenticatable implements MustVerifyEmail, HasName
     {
         return $this->hasRole('super_admin');
     }
+    public function isWholesaler()
+    {
+        return $this->hasRole(SystemRole::Wholesaler->value);
+    }
+    public function isReseller()
+    {
+        return $this->hasRole(SystemRole::Reseller->value);
+    }
+    public function isHubManager()
+    {
+        return $this->hasRole(SystemRole::HubManager->value);
+    }
+
     public function color()
     {
         if (!$this->roles->count())

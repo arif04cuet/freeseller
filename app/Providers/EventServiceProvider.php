@@ -2,7 +2,11 @@
 
 namespace App\Providers;
 
+use App\Events\NewOrderCreated;
+use App\Events\OrderItemApproved;
 use App\Listeners\ActivateUser;
+use App\Listeners\ChangeOrderStatusWhenItemApproved;
+use App\Listeners\SendNewOrderNotifications;
 use App\Listeners\SendNewSignupEmailNotificationToAdmins;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
@@ -21,6 +25,12 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
             // SendNewSignupEmailNotificationToAdmins::class
+        ],
+        NewOrderCreated::class => [
+            SendNewOrderNotifications::class
+        ],
+        OrderItemApproved::class => [
+            ChangeOrderStatusWhenItemApproved::class
         ]
     ];
 

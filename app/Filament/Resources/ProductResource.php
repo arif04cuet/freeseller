@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enum\SystemRole;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Filament\Resources\ProductResource\RelationManagers\SkusRelationManager;
@@ -24,11 +25,16 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static ?string $navigationGroup = 'Catalog';
+    protected static ?string $navigationGroup = 'Wholesaler';
     protected static ?string $navigationIcon = 'heroicon-o-collection';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
     protected static ?string $navigationLabel = 'My Products';
 
+
+    protected static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()->hasRole(SystemRole::Wholesaler->value);
+    }
 
     public static function getEloquentQuery(): Builder
     {

@@ -13,13 +13,11 @@ class ListAllProducts extends ListRecords
 
     protected function getActions(): array
     {
-        return [
-            Actions\CreateAction::make(),
-        ];
+        return [];
     }
 
     protected function getTableFiltersLayout(): ?string
     {
-        return Layout::AboveContent;
+        return Layout::AboveContentCollapsible;
     }
 }

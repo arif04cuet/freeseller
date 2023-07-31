@@ -93,6 +93,9 @@ class WholesalerResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
+                TextColumn::make('skus_sum_quantity')
+                    ->label('Total Products')
+                    ->sum('skus', 'quantity'),
                 TextColumn::make('email')
                     ->sortable()
                     ->searchable(),

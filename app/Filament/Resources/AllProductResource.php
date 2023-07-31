@@ -2,12 +2,16 @@
 
 namespace App\Filament\Resources;
 
+use App\Enum\SystemRole;
 use App\Filament\Resources\AllProductResource\Pages;
 use App\Filament\Resources\AllProductResource\RelationManagers;
 use App\Filament\Resources\ProductResource\RelationManagers\SkusRelationManager;
+use App\Models\AttributeValue;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductType;
+use App\Models\ResellerList;
+use Attribute;
 use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -18,6 +22,7 @@ use Filament\Resources\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -109,6 +114,22 @@ class AllProductResource extends Resource
                 Tables\Filters\SelectFilter::make('category')
                     ->relationship('category', 'name'),
 
+                Tables\Filters\SelectFilter::make('color')
+                    ->options(AttributeValue::whereHas('attribute', function ($query) {
+                        return $query->whereName('Color');
+                    })->pluck('label', 'id'))
+                    ->query(function (Builder $query, array $data) {
+                        $query->when($data['value'], function ($q) use ($data) {
+                            return $q->whereHas('skus', function ($q) use ($data) {
+                                return $q->whereHas('attributeValues', function ($q) use ($data) {
+                                    return $q->where('attribute_value_id', $data['value']);
+                                });
+                            });
+                        });
+                    }),
+
+
+
                 Tables\Filters\Filter::make('price')
                     ->form([
                         Forms\Components\Grid::make('price_range')
@@ -139,7 +160,28 @@ class AllProductResource extends Resource
                     ->modalContent(fn (Model $record) => view('products.gallery', compact('record')))
 
             ])
-            ->bulkActions([]);
+            ->bulkActions([
+                Tables\Actions\BulkAction::make('add_to_lilst')
+                    ->visible(auth()->user()->hasRole(SystemRole::Reseller->value))
+                    ->label('Add to List')
+                    ->icon('heroicon-o-plus')
+                    ->successNotificationTitle('Products added to specified list')
+                    ->action(function (Tables\Actions\BulkAction $action, Collection $records, array $data): void {
+
+                        ResellerList::find($data['list'])
+                            ->products()
+                            ->syncWithoutDetaching($records->pluck('id')->toArray());
+
+                        $action->success();
+                    })
+                    ->deselectRecordsAfterCompletion()
+                    ->form([
+                        Forms\Components\Select::make('list')
+                            ->label('List')
+                            ->options(auth()->user()->lists->pluck('name', 'id'))
+                            ->required(),
+                    ])
+            ]);
     }
 
 

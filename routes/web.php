@@ -1,8 +1,13 @@
 <?php
 
 use App\Enum\BusinessType;
+use App\Listeners\SendNewOrderNotificationToHub;
+use App\Models\Customer;
+use App\Models\Order;
 use App\Models\User;
 use App\Notifications\NewSignupAdminNotification;
+use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,7 +22,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/mail', function () {
-    return BusinessType::array();
+
+
+
+
+    return $order;
 });
 
 Route::get('/', function () {

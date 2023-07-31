@@ -7,6 +7,7 @@ use App\Models\Sku;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Tabs;
+use Filament\Notifications\Notification;
 use Filament\Resources\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Table;
@@ -16,6 +17,8 @@ use Filament\Tables\Contracts\HasRelationshipTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class SkusRelationManager extends RelationManager
 {
@@ -45,8 +48,7 @@ class SkusRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('color')
-                    ->getStateUsing(fn (Model $record) => $record->getColorAttributeValue()->label),
+                Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('quantity'),
                 Tables\Columns\TextColumn::make('price')->hidden(true),
                 Tables\Columns\TextColumn::make('images')
@@ -59,23 +61,40 @@ class SkusRelationManager extends RelationManager
             ->headerActions([
                 Tables\Actions\CreateAction::make()
                     ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner())
-                    ->using(function (HasRelationshipTable $livewire, array $data): Model {
+                    ->using(function (Tables\Actions\CreateAction $action, HasRelationshipTable $livewire, array $data): Model {
 
-                        $product = $livewire->ownerRecord;
-                        $data['sku'] = uniqid($product->id);
+                        DB::beginTransaction();
 
-                        $dataForSku = collect($data)->only('sku', 'quantity', 'price')->toArray();
-                        $sku = $livewire->getRelationship()->create($dataForSku);
+                        try {
 
-                        //save data to attribute_value_sku table
-                        $attributes = collect($data)->except('sku', 'quantity')
-                            ->each(function ($value, $attribute) use ($sku) {
-                                $attributeValue = AttributeValue::find($value);
-                                $sku->attributeValues()->save($attributeValue);
-                            });
+                            $product = $livewire->ownerRecord;
+                            $data['sku'] = uniqid($product->id);
+                            $data['name'] = static::generateSkuName($product, $data);
 
+                            $dataForSku = collect($data)->only(static::getSkuFields())->toArray();
 
-                        return $sku;
+                            $sku = $livewire->getRelationship()->create($dataForSku);
+
+                            //save data to attribute_value_sku table
+                            collect($data)->except(static::getSkuFields())
+                                ->each(function ($value, $attribute) use ($sku) {
+                                    $attributeValue = AttributeValue::find($value);
+                                    $sku->attributeValues()->save($attributeValue);
+                                });
+
+                            DB::commit();
+
+                            return $sku;
+                        } catch (\Exception $e) {
+                            DB::rollback();
+                            Notification::make()
+                                ->danger()
+                                ->title('Something went wrong!')
+                                ->persistent()
+                                ->send();
+
+                            $action->cancel();
+                        }
                     }),
             ])
             ->actions([
@@ -87,7 +106,7 @@ class SkusRelationManager extends RelationManager
                         $data['images'] = $record->getMedia();
 
                         return $data;
-                    })->using(function (Model $record, array $data): Model {
+                    })->using(function (Tables\Actions\EditAction $action, Model $record, array $data): Model {
 
                         $dataForSku = collect($data)->only('quantity', 'price')->toArray();
                         $record->update($dataForSku);
@@ -101,5 +120,27 @@ class SkusRelationManager extends RelationManager
                 Tables\Actions\DeleteBulkAction::make()
                     ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner()),
             ]);
+    }
+
+    public static function getSkuFields()
+    {
+        return ['name', 'sku', 'quantity', 'price'];
+    }
+
+    public static function generateSkuName($product, $data)
+    {
+        $attributes = collect($data)->except('sku', 'quantity', 'price')->toArray();
+
+        $names = [$product->name];
+
+        foreach ($attributes as $attributeId => $valueId) {
+
+            if ($value = AttributeValue::find($valueId))
+                $names[] = $value->label;
+        }
+
+        //$names[] = (int)($product->is_varient_price ? $data['price'] : $product->price);
+
+        return collect($names)->implode("-");
     }
 }
