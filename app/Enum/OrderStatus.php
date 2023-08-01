@@ -14,6 +14,8 @@ enum OrderStatus: string
 
     case WaitingForHubCollection = 'waiting_for_hub_collection';
 
+    case ProcessingForHandOverToCourier = 'processing_for_handover_to_courier';
+
     case HandOveredToCourier = 'hand_overed_to_courier';
 
     case Cancelled = 'cacelled';

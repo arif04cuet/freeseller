@@ -18,7 +18,7 @@ class OrderPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->can('view_any_order');
+        return $user->can('view_any_wholesaler::order');
     }
 
     /**
@@ -30,7 +30,7 @@ class OrderPolicy
      */
     public function view(User $user, Order $order)
     {
-        return $user->can('view_order');
+        return $user->can('view_wholesaler::order');
     }
 
     /**
@@ -41,7 +41,7 @@ class OrderPolicy
      */
     public function create(User $user)
     {
-        return $user->can('create_order');
+        return $user->can('create_wholesaler::order');
     }
 
     /**
@@ -53,7 +53,7 @@ class OrderPolicy
      */
     public function update(User $user, Order $order)
     {
-        return $user->can('update_order');
+        return $user->can('update_wholesaler::order');
     }
 
     /**
@@ -65,7 +65,7 @@ class OrderPolicy
      */
     public function delete(User $user, Order $order)
     {
-        return $user->can('delete_order');
+        return $user->can('delete_wholesaler::order');
     }
 
     /**
@@ -76,7 +76,7 @@ class OrderPolicy
      */
     public function deleteAny(User $user)
     {
-        return $user->can('delete_any_order');
+        return $user->can('delete_any_wholesaler::order');
     }
 
     /**
@@ -88,7 +88,7 @@ class OrderPolicy
      */
     public function forceDelete(User $user, Order $order)
     {
-        return $user->can('force_delete_order');
+        return $user->can('force_delete_wholesaler::order');
     }
 
     /**
@@ -99,7 +99,7 @@ class OrderPolicy
      */
     public function forceDeleteAny(User $user)
     {
-        return $user->can('force_delete_any_order');
+        return $user->can('force_delete_any_wholesaler::order');
     }
 
     /**
@@ -111,7 +111,7 @@ class OrderPolicy
      */
     public function restore(User $user, Order $order)
     {
-        return $user->can('restore_order');
+        return $user->can('restore_wholesaler::order');
     }
 
     /**
@@ -122,7 +122,7 @@ class OrderPolicy
      */
     public function restoreAny(User $user)
     {
-        return $user->can('restore_any_order');
+        return $user->can('restore_any_wholesaler::order');
     }
 
     /**
@@ -134,7 +134,7 @@ class OrderPolicy
      */
     public function replicate(User $user, Order $order)
     {
-        return $user->can('replicate_order');
+        return $user->can('replicate_wholesaler::order');
     }
 
     /**
@@ -145,6 +145,7 @@ class OrderPolicy
      */
     public function reorder(User $user)
     {
-        return $user->can('reorder_order');
+        return $user->can('reorder_wholesaler::order');
     }
+
 }

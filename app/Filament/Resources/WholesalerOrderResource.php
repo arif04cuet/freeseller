@@ -4,12 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
+use App\Enum\SystemRole;
 use App\Filament\Resources\WholesalerOrderResource\Pages;
 use App\Filament\Resources\WholesalerOrderResource\RelationManagers;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\WholesalerOrder;
 use Filament\Forms;
+use Filament\Notifications\Notification;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
@@ -28,6 +30,14 @@ class WholesalerOrderResource extends Resource
     protected static ?string $navigationLabel = 'Orders';
     protected static ?string $slug = 'wholesaler/orders';
 
+
+    protected static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()->hasAnyRole([
+            SystemRole::Wholesaler->value,
+            'super_admin'
+        ]);
+    }
 
     public static function getEloquentQuery(): Builder
     {
@@ -77,8 +87,38 @@ class WholesalerOrderResource extends Resource
             ])
             ->actions([
                 Tables\Actions\Action::make('items')
-                    ->action(fn (Tables\Actions\Action $action, $data) => empty($data) ? $action->cancel() :  OrderItem::whereIn('id', $data['items'])->get()->each->markAsApproved())
-                    ->modalButton('Approve')
+                    ->action(
+                        function (Tables\Actions\Action $action, $data, Order $record) {
+
+                            if (empty($data))
+                                $action->cancel();
+
+                            if (isset($data['items'])) {
+                                OrderItem::whereIn('id', $data['items'])->get()->each->markAsApproved();
+                            } elseif (isset($data['collector_code'])) {
+
+                                $collection = $record->collections->filter(fn ($item) => $item->wholesaler_id == auth()->user()->id)->first();
+
+                                if (!$collection || ($collection->collector_code != $data['collector_code'])) {
+
+                                    Notification::make()
+                                        ->title('Code mismatch')
+                                        ->danger()
+                                        ->send();
+
+                                    $action->halt();
+                                }
+
+                                $record->deliverToCollector($collection);
+                            }
+                        }
+                    )
+                    ->modalButton(
+                        fn (Order $record) => match ($record->status) {
+                            OrderStatus::WaitingForWholesalerApproval => 'Approve',
+                            OrderStatus::WaitingForHubCollection => 'Match OTP',
+                        }
+                    )
                     ->modalHeading('Items details')
                     ->modalContent(fn (Model $record) => view('orders.items-status', [
                         'items' => $record->loadMissing('items.wholesaler')->getItemsByWholesaler(auth()->user())
@@ -101,7 +141,21 @@ class WholesalerOrderResource extends Resource
                                     ->pluck('name', 'id')
                             )
                             ->required(),
-                    ])
+
+                        Forms\Components\TextInput::make('collector_code')
+                            ->numeric()
+                            ->required()
+                            ->helperText('Ask 6 digits code from collector')
+                            ->minLength(6)
+                            ->maxLength(6)
+                            ->visible(
+                                fn (Order $record) => $record->collector->id &&
+                                    is_null($record->collections->filter(fn ($item) => $item->wholesaler_id == auth()->user()->id)->first()?->collected_at) &&
+                                    auth()->user()->isWholesaler()
+                            )
+                    ]),
+
+
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

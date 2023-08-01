@@ -20,14 +20,14 @@ class CustomerResource extends Resource
 
     protected static ?string $navigationGroup = 'Reseller';
     protected static ?string $navigationIcon = 'heroicon-o-collection';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
     protected static ?string $navigationLabel = 'My Customers';
 
 
-    protected static function shouldRegisterNavigation(): bool
-    {
-        return auth()->user()->hasRole(SystemRole::Reseller->value);
-    }
+    // protected static function shouldRegisterNavigation(): bool
+    // {
+    //     return auth()->user()->isReseller() || auth()->user()->isReseller();
+    // }
 
     public static function getEloquentQuery(): Builder
     {

@@ -12,5 +12,7 @@ enum OrderItemStatus: string
 
     case Approved = 'approved';
 
+    case DeliveredToHub = 'delivered_to_hub';
+
     case Cancelled = 'cancelled';
 }

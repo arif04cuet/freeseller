@@ -23,16 +23,16 @@ class ListResource extends Resource
 
     protected static ?string $navigationGroup = 'Reseller';
     protected static ?string $navigationIcon = 'heroicon-o-collection';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
     protected static ?string $navigationLabel = 'My Lists';
     protected static ?string $slug = 'my-lists';
     protected static ?string $pluralModelLabel = 'List';
 
 
-    protected static function shouldRegisterNavigation(): bool
-    {
-        return auth()->user()->hasAnyRole([SystemRole::Reseller->value]);
-    }
+    // protected static function shouldRegisterNavigation(): bool
+    // {
+    //     return auth()->user()->hasAnyRole([SystemRole::Reseller->value]);
+    // }
 
     public static function getEloquentQuery(): Builder
     {

@@ -175,6 +175,10 @@ class User extends Authenticatable implements MustVerifyEmail, HasName
     {
         return $this->hasRole(SystemRole::HubManager->value);
     }
+    public function isHubMember()
+    {
+        return $this->hasRole(SystemRole::HubMember->value);
+    }
 
     public function color()
     {

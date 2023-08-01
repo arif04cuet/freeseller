@@ -35,7 +35,7 @@ class SendNewOrderNotifications implements ShouldQueue
                     ->actions([
                         Action::make('view')
                             ->button()
-                            ->url("/hub/orders")
+                            ->url(route('filament.resources.hub/orders.index', ['tableSearchQuery' => $order->id]))
                     ])
                     ->sendToDatabase($manager);
 
@@ -47,7 +47,7 @@ class SendNewOrderNotifications implements ShouldQueue
                     ->actions([
                         Action::make('view')
                             ->button()
-                            ->url("/")
+                            ->url(route('filament.resources.wholesaler/orders.index', ['tableSearchQuery' => $order->id]))
                     ])
                     ->sendToDatabase($wholesalers);
         }

@@ -25,6 +25,7 @@ class UsersRelationManager extends RelationManager
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $title = 'Hub Manager & Members';
+    protected static ?string $modelLabel = 'User';
 
 
     protected function getTableQuery(): Builder

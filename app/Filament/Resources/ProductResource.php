@@ -33,7 +33,10 @@ class ProductResource extends Resource
 
     protected static function shouldRegisterNavigation(): bool
     {
-        return auth()->user()->hasRole(SystemRole::Wholesaler->value);
+        return auth()->user()->hasAnyRole([
+            SystemRole::Wholesaler->value,
+            'super_admin'
+        ]);
     }
 
     public static function getEloquentQuery(): Builder

@@ -30,10 +30,10 @@ class AllProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static ?string $navigationGroup = 'Catalog';
+
     protected static ?string $navigationIcon = 'heroicon-o-collection';
     protected static ?int $navigationSort = 1;
-    protected static ?string $navigationLabel = 'All Products';
+    protected static ?string $navigationLabel = 'Explore Products';
     protected static ?string $slug = 'explore-products';
 
     public static function form(Form $form): Form

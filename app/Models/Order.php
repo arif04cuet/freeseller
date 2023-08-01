@@ -2,7 +2,11 @@
 
 namespace App\Models;
 
+use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
+use App\Enum\SystemRole;
+use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,7 +29,8 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'status' => OrderStatus::class
+        'status' => OrderStatus::class,
+        'collected_at' => 'datetime'
     ];
 
     //scopes
@@ -50,6 +55,15 @@ class Order extends Model
     }
     //relations
 
+    public function collections(): HasMany
+    {
+        return $this->hasMany(OrderCollection::class);
+    }
+
+    public function collector(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'collector_id');
+    }
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
@@ -64,6 +78,7 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
 
     //accessors
 
@@ -87,7 +102,77 @@ class Order extends Model
     }
 
     // helpers
+    public function deliverToCollector($collection)
+    {
+        $collection->forceFill(['collected_at' => now()])->save();
 
+        Notification::make()
+            ->title('Success. please send products to collector')
+            ->success()
+            ->send();
+
+        //update items status for a wholesaler
+        $this->items
+            ->filter(fn ($item) => $item->wholesaler_id == $collection->wholesaler_id)
+            ->each(
+                fn ($item) => $item->forceFill(['status' => OrderItemStatus::DeliveredToHub->value])->save()
+            );
+
+        //check all items collected?
+        $notDelivered = $this->refresh()
+            ->items
+            ->filter(fn ($item) => $item->status->value != OrderItemStatus::DeliveredToHub->value);
+
+        if ($notDelivered->count() == 0)
+            $this->forceFill(['status' => OrderStatus::ProcessingForHandOverToCourier->value])->save();
+    }
+    public function getWholesalerWiseItems()
+    {
+        $wholesalers = [];
+
+        foreach ($this->items as $item) {
+            $wholesalers[$item->wholesaler_id][] = $item->sku_id;
+        }
+
+        //wholesalerId=>SkuId
+
+        return $wholesalers;
+    }
+    public function addCollector($userId)
+    {
+        $user = User::find($userId);
+
+        if (($user->isHubManager() || $user->isHubMember()) && ($this->status == OrderStatus::WaitingForHubCollection)) {
+
+            $this->forceFill(['collector_id' => $user->id])->save();
+
+            $code = random_int(100000, 999999);
+
+            Notification::make()
+                ->title('New order # ' . $this->id . ' assigned. please collect')
+                ->body('Order OTP is ' . $code)
+                ->actions([
+                    Action::make('view')
+                        ->button()
+                        ->url(route('filament.resources.hub/orders.index', ['tableSearchQuery' => $this->id]))
+                ])
+                ->sendToDatabase($user);
+
+
+
+            //order collections table
+            if ($this->collections->count() == 0) {
+
+                foreach ($this->getWholesalerWiseItems() as $wholesalerId => $skuIds) {
+
+                    $this->collections()->create([
+                        'wholesaler_id' => $wholesalerId,
+                        'collector_code' => $code
+                    ]);
+                }
+            }
+        }
+    }
     public function getItemsByWholesaler(User $wholesaler, $status = "all"): Collection
     {
         $this->loadMissing('items');

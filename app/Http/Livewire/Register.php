@@ -13,6 +13,7 @@ use JeffGreco13\FilamentBreezy\FilamentBreezy;
 use Illuminate\Auth\Events\Registered;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 
 class Register extends FilamentBreezyRegister
@@ -135,7 +136,7 @@ class Register extends FilamentBreezyRegister
             $preparedData["address"]['address_id'] = $this->hub;
         else {
 
-            $preparedData["address"]['address_id'] = !is_null($this->union) ? $this->union : (!is_null($this->upazila) ? $this->upazila : (!is_null($this->district) ? $this->district : $this->division));
+            $preparedData["address"]['address_id'] = $this->getAddressId();
             $preparedData["address"]['address'] = $this->address;
         }
 
@@ -151,24 +152,43 @@ class Register extends FilamentBreezyRegister
     public function register()
     {
         $preparedData = $this->prepareModelData($this->form->getState());
-        $user = config('filament-breezy.user_model')::create($preparedData);
 
-        event(new Registered($user));
-        Filament::auth()->login($user, true);
+        DB::transaction(function () use ($preparedData) {
 
-        //create address
-        $user->address()->create($preparedData['address']);
 
-        //create business
-        $user->business()->create($preparedData['business']);
+            $user = config('filament-breezy.user_model')::create($preparedData);
 
-        //add roles to user
-        $roleName = BusinessType::array()[$this->business_type];
-        $role = Role::whereName($roleName)->first();
-        $user->assignRole($role);
+            event(new Registered($user));
+            Filament::auth()->login($user, true);
 
+            //create address
+            $user->address()->create($preparedData['address']);
+
+            //create business
+            $user->business()->create($preparedData['business']);
+
+            //add roles to user
+            $roleName = BusinessType::array()[$this->business_type];
+            $role = Role::whereName($roleName)->first();
+            $user->assignRole($role);
+        });
         // Notification::make()->title(__('filament-breezy::default.verification.before_proceeding'),)->success()->send();
 
         return redirect()->to(config('filament-breezy.registration_redirect_url'));
+    }
+
+    public function getAddressId()
+    {
+        if ($this->union)
+            return $this->union;
+
+        if ($this->upazila)
+            return $this->upazila;
+
+        if ($this->district)
+            return $this->district;
+
+        if ($this->division)
+            return $this->division;
     }
 }

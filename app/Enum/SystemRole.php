@@ -8,6 +8,8 @@ enum SystemRole: string
 {
     use EnumToArray;
 
+    case Admin = 'admin';
+
     case Wholesaler = 'wholesaler';
 
     case Reseller = 'reseller';

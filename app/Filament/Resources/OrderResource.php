@@ -36,7 +36,10 @@ class OrderResource extends Resource
 
     protected static function shouldRegisterNavigation(): bool
     {
-        return auth()->user()->hasAnyRole([SystemRole::Reseller->value]);
+        return auth()->user()->hasAnyRole([
+            SystemRole::Reseller->value,
+            'super_admin'
+        ]);
     }
 
     public static function getEloquentQuery(): Builder
