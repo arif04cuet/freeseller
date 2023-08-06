@@ -6,10 +6,14 @@ namespace App\Models;
 
 use App\Enum\BusinessType;
 use App\Enum\SystemRole;
+use App\Notifications\PushMessage;
 use Filament\Models\Contracts\HasName;
+use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Notification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,14 +22,18 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Notification as FacadesNotification;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Str;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 
 class User extends Authenticatable implements MustVerifyEmail, HasName
 {
     use HasApiTokens, HasFactory, Notifiable;
     use HasRoles;
+    use HasPushSubscriptions;
 
     /**
      * The attributes that are mass assignable.
@@ -140,6 +148,29 @@ class User extends Authenticatable implements MustVerifyEmail, HasName
 
     //functions
 
+    public static function sendMessage(
+        Model | Authenticatable | Collection | array $users,
+        string $title,
+        string $body = '',
+        string $url = '/'
+    ): void {
+
+        Notification::make()
+            ->title($title)
+            ->body($body)
+            ->actions([
+                Action::make('view')
+                    ->button()
+                    ->url($url)
+            ])
+            ->sendToDatabase($users);
+
+        //send push Message
+        if ($users instanceof Model)
+            $users->notify(new PushMessage($title, $body, $url));
+        else
+            FacadesNotification::send($users, new PushMessage($title, $body, $url));
+    }
     public static function getHubManagerByAddress($addressId)
     {
         return self::query()
@@ -186,7 +217,6 @@ class User extends Authenticatable implements MustVerifyEmail, HasName
             return '';
 
         return match ($this->roles->first()->name) {
-            BusinessType::Manufacturer->name => 'secondary',
             BusinessType::Wholesaler->name => 'primary',
             BusinessType::Reseller->name => 'success',
             default => ''

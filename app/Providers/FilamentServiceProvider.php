@@ -30,8 +30,8 @@ class FilamentServiceProvider extends ServiceProvider
             ]);
 
             Filament::registerScripts([
-                asset('js/index.js'),
-            ]);
+                asset('js/enable-push.js'),
+            ], true);
 
             Filament::registerNavigationGroups([
                 'Reseller',

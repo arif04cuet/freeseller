@@ -30,26 +30,20 @@ class SendNewOrderNotifications implements ShouldQueue
         foreach ($hubs as $addressId => $items) {
 
             if ($manager = User::getHubManagerByAddress($addressId))
-                Notification::make()
-                    ->title('New Order submitted. Order id =' . $order->id)
-                    ->actions([
-                        Action::make('view')
-                            ->button()
-                            ->url(route('filament.resources.hub/orders.index', ['tableSearchQuery' => $order->id]))
-                    ])
-                    ->sendToDatabase($manager);
+                User::sendMessage(
+                    users: $manager,
+                    title: 'New Order submitted. Order id =' . $order->id,
+                    url: route('filament.resources.hub/orders.index', ['tableSearchQuery' => $order->id])
+                );
 
             $wholesalerIds = array_keys($items);
 
             if ($wholesalers = User::whereIn('id', $wholesalerIds)->get())
-                Notification::make()
-                    ->title('New Order submitted. Order id =' . $order->id)
-                    ->actions([
-                        Action::make('view')
-                            ->button()
-                            ->url(route('filament.resources.wholesaler/orders.index', ['tableSearchQuery' => $order->id]))
-                    ])
-                    ->sendToDatabase($wholesalers);
+                User::sendMessage(
+                    users: $wholesalers,
+                    title: 'New Order submitted. Order id =' . $order->id,
+                    url: route('filament.resources.wholesaler/orders.index', ['tableSearchQuery' => $order->id])
+                );
         }
     }
 }

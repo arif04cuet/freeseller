@@ -148,16 +148,12 @@ class Order extends Model
 
             $code = random_int(100000, 999999);
 
-            Notification::make()
-                ->title('New order # ' . $this->id . ' assigned. please collect')
-                ->body('Order OTP is ' . $code)
-                ->actions([
-                    Action::make('view')
-                        ->button()
-                        ->url(route('filament.resources.hub/orders.index', ['tableSearchQuery' => $this->id]))
-                ])
-                ->sendToDatabase($user);
-
+            User::sendMessage(
+                users: $user,
+                title: 'New order # ' . $this->id . ' assigned to you. please collect',
+                body: 'OTP is ' . $code,
+                url: route('filament.resources.hub/orders.index', ['tableSearchQuery' => $this->id])
+            );
 
 
             //order collections table

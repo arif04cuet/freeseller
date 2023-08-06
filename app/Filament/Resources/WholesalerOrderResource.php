@@ -149,7 +149,7 @@ class WholesalerOrderResource extends Resource
                             ->minLength(6)
                             ->maxLength(6)
                             ->visible(
-                                fn (Order $record) => $record->collector->id &&
+                                fn (Order $record) => $record->collector?->id &&
                                     is_null($record->collections->filter(fn ($item) => $item->wholesaler_id == auth()->user()->id)->first()?->collected_at) &&
                                     auth()->user()->isWholesaler()
                             )

@@ -32,14 +32,12 @@ class ChangeOrderStatusWhenItemApproved
             $addressId = $item->wholesaler->address->address_id;
 
             if ($manager = User::getHubManagerByAddress($addressId))
-                Notification::make()
-                    ->title('Order no =' . $order->id . ' has been awaiting for collection. please collect')
-                    ->actions([
-                        Action::make('view')
-                            ->button()
-                            ->url("/hub/orders")
-                    ])
-                    ->sendToDatabase($manager);
+
+                User::sendMessage(
+                    users: $manager,
+                    title: 'Order no =' . $order->id . ' has been awaiting for collection. please collect',
+                    url: route('filament.resources.hub/orders.index', ['tableSearchQuery' => $order->id])
+                );
         }
     }
 }
