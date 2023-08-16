@@ -26,7 +26,10 @@ class OrderItem extends Model
     ];
 
     protected $casts = [
-        'status' => OrderItemStatus::class
+        'status' => OrderItemStatus::class,
+        'wholesaler_price' => 'int',
+        'reseller_price' => 'int',
+        'total_amount' => 'int'
     ];
 
     //relations

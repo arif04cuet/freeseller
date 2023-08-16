@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use App\Enum\AddressType;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers;
+use App\Models\Address;
 use App\Models\AttributeValue;
 use App\Models\Customer;
 use App\Models\Order;
@@ -44,7 +46,7 @@ class OrderResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->mine();
+        return parent::getEloquentQuery()->with('items')->mine()->latest();
     }
 
     public static function form(Form $form): Form
@@ -55,7 +57,13 @@ class OrderResource extends Resource
                     ->options(auth()->user()->lists->pluck('name', 'id'))
                     ->reactive(),
 
-
+                Forms\Components\Select::make('hub_id')
+                    ->label('Select Hub')
+                    ->required()
+                    ->visible(fn (Closure $get) => !empty($get('list')))
+                    ->options(fn (Closure $get) => ResellerList::hubsInList($get('list')))
+                    ->disabledOn('edit')
+                    ->reactive(),
 
                 Repeater::make('items')
                     ->columnSpanFull()
@@ -65,8 +73,9 @@ class OrderResource extends Resource
                     ->disableItemCreation(fn (?Model $record) => $record?->status?->value != OrderStatus::WaitingForWholesalerApproval->value)
                     ->schema([
                         Forms\Components\Select::make('product')
+                            ->visible(fn (Closure $get) => $get('../../hub_id') && $get('../../list'))
                             ->options(
-                                fn (Closure $get) => !$get('../../list') ? [] : auth()->user()
+                                fn (Closure $get) => auth()->user()
                                     ->lists()
                                     ->where('id', $get('../../list'))
                                     ->first()
@@ -124,6 +133,70 @@ class OrderResource extends Resource
                     ]),
 
 
+
+                Forms\Components\Grid::make('total')
+                    ->columns(5)
+                    ->schema([
+                        Forms\Components\TextInput::make('courier_charge')
+                            ->required()
+                            ->label('Tentative courier charge')
+                            ->disabled()
+                            ->helperText(function (Closure $get, Closure $set, ?Model $record, $state) {
+
+                                $charge = Order::courierCharge($get('items'));
+
+                                $set('courier_charge', $charge);
+                                $set('packaging_charge', Order::packgingCost());
+
+                                return 'It would be adjusted according to exact rate of courier service';
+                            }),
+
+                        Forms\Components\TextInput::make('packaging_charge')
+                            ->required()
+                            ->disabled(),
+                        Forms\Components\TextInput::make('total_payable')
+                            ->required()
+                            ->disabled()
+                            ->helperText(function (Closure $get, Closure $set, ?Model $record, $state) {
+
+                                $total_payable = Order::totalPayable($get('items'));
+
+                                $set('total_payable', $total_payable);
+
+                                return 'wholesale price + courier + packaging cost';
+                            }),
+                        Forms\Components\TextInput::make('total_saleable')
+                            ->required()
+                            ->disabled()
+                            ->helperText(function (Closure $get, Closure $set, ?Model $record, $state) {
+
+                                $subtotals = Order::totalSubtotals($get('items'));
+                                $set('total_saleable', $subtotals);
+
+                                //profit
+                                $profit = $subtotals - $get('total_payable');
+                                $set('profit', $profit);
+
+
+                                return '';
+                            }),
+
+                        Forms\Components\TextInput::make('profit')
+                            ->label('Your Profit')
+                            ->disabled(),
+                    ]),
+
+
+                Forms\Components\TextInput::make('cod_update')
+                    ->default(1)
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->hidden(),
+                Forms\Components\TextInput::make('error')
+                    ->default(0)
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->hidden(),
                 Forms\Components\Select::make('customer_id')
                     ->required()
                     ->searchable()
@@ -157,17 +230,42 @@ class OrderResource extends Resource
                     ]),
 
 
-                Forms\Components\TextInput::make('total_amount')
-                    ->label('COD')
-                    ->placeholder(function (Closure $get, Closure $set, ?Model $record) {
+                Forms\Components\TextInput::make('cod')
+                    ->default(1)
+                    ->label('COD (total saleable + courier)')
+                    ->reactive()
+                    ->afterStateUpdated(function (Closure $set, $state) {
+                        $set('cod_update', 2);
+                    })
+                    ->hint(function (Closure $get, $state, Closure $set, string $context) {
 
-                        $cod = collect($get('items'))->sum('subtotal');
-                        $set('total_amount', $cod);
-                        return $cod;
-                    }),
 
-                Forms\Components\Textarea::make('note')
+                        //cod
+                        if ($get('cod_update') == 1) {
+
+                            $subtotals = Order::totalSubtotals($get('items'));
+                            $courierCharge = Order::courierCharge($get('items'));
+                            $cod = $subtotals + $courierCharge;
+                            $set('cod', $cod);
+                        }
+                        $balance = auth()->user()->balanceInt;
+                        $cod = (int) $get('cod');
+                        $amount = ($balance + $cod) - Order::totalPayable($get('items'));
+                        logger($amount);
+                        if ($amount < 0) {
+                            $set('error', 1);
+                            return 'Please recharge your wallet with TK = ' . abs($amount);
+                        } else {
+                            $set('error', 0);
+                            return '';
+                        };
+                    })
+                    ->hintColor('danger'),
+
+                Forms\Components\Textarea::make('note_for_wholesaler')
                     ->label('Message for manufacturer if any'),
+                Forms\Components\Textarea::make('note_for_courier')
+                    ->label('Message for Courier if any'),
 
             ]);
     }
@@ -179,9 +277,12 @@ class OrderResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')->dateTime(),
-                Tables\Columns\TextColumn::make('items_count')
-                    ->counts('items'),
-                Tables\Columns\TextColumn::make('total_amount'),
+                Tables\Columns\TextColumn::make('items_sum_quantity')
+                    ->label('Product counts')
+                    ->sum('items', 'quantity'),
+                Tables\Columns\TextColumn::make('total_payable'),
+                Tables\Columns\TextColumn::make('total_saleable'),
+                Tables\Columns\TextColumn::make('profit'),
                 Tables\Columns\TextColumn::make('customer.name')->label('Customer Name'),
                 Tables\Columns\TextColumn::make('customer.mobile')->label('Mobile'),
                 Tables\Columns\TextColumn::make('customer.address')->label('Address'),
@@ -218,7 +319,7 @@ class OrderResource extends Resource
                                     'sku' => $item->sku_id,
                                     'quantity' => $item->quantity,
                                     'reseller_price' => $item->reseller_price,
-                                    'subtotal' => $item->total_amount,
+                                    'subtotal' => $item->total_saleable,
                                     'status' => $item->status
                                 ];
                             })->toArray();

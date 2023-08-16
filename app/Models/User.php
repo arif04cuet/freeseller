@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Enum\AddressType;
 use App\Enum\BusinessType;
 use App\Enum\SystemRole;
 use App\Notifications\PushMessage;
@@ -28,12 +29,15 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Str;
 use NotificationChannels\WebPush\HasPushSubscriptions;
+use Bavix\Wallet\Traits\HasWallet;
+use Bavix\Wallet\Interfaces\Wallet;
 
-class User extends Authenticatable implements MustVerifyEmail, HasName
+class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
 {
     use HasApiTokens, HasFactory, Notifiable;
     use HasRoles;
     use HasPushSubscriptions;
+    use HasWallet;
 
     /**
      * The attributes that are mass assignable.
@@ -46,6 +50,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasName
         'password',
         'is_active',
         'mobile',
+        'hub_id'
     ];
 
     /**
@@ -109,6 +114,10 @@ class User extends Authenticatable implements MustVerifyEmail, HasName
 
     //relations
 
+    public function hub(): BelongsTo
+    {
+        return $this->belongsTo(Address::class, 'hub_id')->where('type', AddressType::Hub->value);
+    }
     public function customers(): BelongsToMany
     {
         return $this->belongsToMany(Customer::class, 'customer_reseller', 'reseller_id', 'customer_id')

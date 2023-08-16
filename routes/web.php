@@ -1,7 +1,9 @@
 <?php
 
+use App\Enum\AddressType;
 use App\Enum\BusinessType;
 use App\Listeners\SendNewOrderNotificationToHub;
+use App\Models\Address;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\User;
@@ -24,8 +26,28 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/mail', function () {
 
-    auth()->user()->notify(new PushDemo());
-    return 'ok';
+    return Address::find(75)->wholesalers;
+    // $url = 'http://bulksms.smsbuzzbd.com/smsapi';
+
+    // $data = [
+    //     "api_key" => 'C20025575f54634cae95e4.11508141',
+    //     "type" => "text",
+    //     "contacts" => '01717348147',
+    //     "senderid" => "8801847169884",
+    //     "msg" => 'hello arif',
+    // ];
+
+    // $ch = curl_init();
+    // curl_setopt($ch, CURLOPT_URL, $url);
+    // curl_setopt($ch, CURLOPT_POST, 1);
+    // curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    // $response = curl_exec($ch);
+    // curl_close($ch);
+
+
+    // return $response;
 });
 
 Route::post('/push', function () {

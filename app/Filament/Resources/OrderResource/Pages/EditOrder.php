@@ -55,10 +55,27 @@ class EditOrder extends EditRecord
         return DB::transaction(function () use ($data, $record) {
 
 
+            $items = $data['items'];
+
+            $totalPaypable = Order::totalPayable($items);
+            $totalSalable = Order::totalSubtotals($items);
+            $profit = (int) $totalSalable - (int) $totalPaypable;
+
             $orderData = [
-                'customer_id' => $data['customer_id'],
-                'total_amount' => $data['total_amount'],
-                'note' => $data['note']
+                "courier_charge" => Order::courierCharge($items),
+                "packaging_charge" => Order::packgingCost(),
+                "total_payable" => Order::totalPayable($items),
+                "total_saleable" => $totalSalable,
+                "profit" => $profit,
+                ...collect($data)->except([
+                    'list',
+                    'items',
+                    'courier_charge',
+                    'packaging_charge',
+                    'total_payable',
+                    'total_saleable',
+                    'profit',
+                ])->toArray()
             ];
 
             $record->update($orderData);
@@ -107,5 +124,12 @@ class EditOrder extends EditRecord
 
             return $record;
         });
+    }
+
+    protected function getFormActions(): array
+    {
+        $formData = $this->form->getRawState();
+
+        return $formData['error'] ? [$this->getCancelFormAction()] : parent::getFormActions();
     }
 }

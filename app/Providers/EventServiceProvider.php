@@ -6,6 +6,7 @@ use App\Events\NewOrderCreated;
 use App\Events\OrderItemApproved;
 use App\Listeners\ActivateUser;
 use App\Listeners\ChangeOrderStatusWhenItemApproved;
+use App\Listeners\CreateWallet;
 use App\Listeners\SendNewOrderNotifications;
 use App\Listeners\SendNewSignupEmailNotificationToAdmins;
 use Illuminate\Auth\Events\Registered;
@@ -31,6 +32,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         OrderItemApproved::class => [
             ChangeOrderStatusWhenItemApproved::class
+        ],
+        Verified::class => [
+            CreateWallet::class
         ]
     ];
 

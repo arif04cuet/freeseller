@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\AddressType;
 use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
@@ -23,14 +24,24 @@ class Order extends Model
         'tracking_no',
         'reseller_id',
         'customer_id',
-        'total_amount',
-        'note',
+        'total_payable',
+        'total_saleable',
+        'note_for_wholesaler',
+        'note_for_courier',
         'status',
+        'courier_charge',
+        'packaging_charge',
+        'profit',
+        'hub_id',
+        'cod'
+
     ];
 
     protected $casts = [
         'status' => OrderStatus::class,
-        'collected_at' => 'datetime'
+        'collected_at' => 'datetime',
+        'total_payable' => 'int',
+        'total_saleable' => 'int'
     ];
 
     //scopes
@@ -55,6 +66,10 @@ class Order extends Model
     }
     //relations
 
+    public function hub(): BelongsTo
+    {
+        return $this->belongsTo(Address::class, 'hub_id')->where('type', AddressType::Hub->value);
+    }
     public function collections(): HasMany
     {
         return $this->hasMany(OrderCollection::class);
@@ -102,6 +117,68 @@ class Order extends Model
     }
 
     // helpers
+
+    public static function totalPayable(Collection | array $items): int
+    {
+        if (empty($items)) return 0;
+
+        return (int) (self::totalWholesaleAmount($items) + self::courierCharge($items) + self::packgingCost());
+    }
+    public static function courierCharge(Collection | array $items): int
+    {
+
+
+        if (is_array($items))
+            $items = collect($items);
+
+        $quantity = $items
+            ->filter(fn ($item) => !empty($item['sku']) && !empty($item['quantity']))
+            ->sum('quantity');
+
+        if (empty($quantity)) return 0;
+
+        $kg = ($quantity * 600) / 1000;
+        $charge = (int) (110 + ($kg - 1) * 20);
+
+        return $charge;
+    }
+
+    public static function totalSubtotals(Collection | array $items): int
+    {
+        if (empty($items)) return 0;
+
+        if (is_array($items))
+            $items = collect($items);
+
+        return (int) $items->sum('subtotal');
+    }
+
+
+    public static function totalWholesaleAmount(Collection | array $items): int
+    {
+
+
+        if (is_array($items))
+            $items = collect($items);
+
+        $amount = $items
+            ->filter(fn ($item) => !empty($item['sku']) && !empty($item['quantity']))
+            ->map(function ($item) {
+                $sku = Sku::find($item['sku']);
+                return [
+                    'price' => $sku->price * $item['quantity']
+                ];
+            })->sum('price');
+
+
+        return $amount;
+    }
+
+    public static function packgingCost()
+    {
+        return 5;
+    }
+
     public function deliverToCollector($collection)
     {
         $collection->forceFill(['collected_at' => now()])->save();

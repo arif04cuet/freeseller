@@ -81,7 +81,7 @@ class HubOrderResource extends Resource
                     ->label('Name'),
                 Tables\Columns\TextColumn::make('reseller.mobile')
                     ->label('Mobile'),
-                Tables\Columns\TextColumn::make('total_amount'),
+                Tables\Columns\TextColumn::make('total_saleable'),
                 Tables\Columns\TextColumn::make('items_count')
                     ->label('Total Items')
                     ->counts('items'),

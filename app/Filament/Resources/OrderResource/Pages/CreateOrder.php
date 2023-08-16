@@ -6,9 +6,11 @@ use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Events\NewOrderCreated;
 use App\Filament\Resources\OrderResource;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Sku;
 use Filament\Pages\Actions;
+use Filament\Pages\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -22,17 +24,33 @@ class CreateOrder extends CreateRecord
 
         return DB::transaction(function () use ($data) {
 
-
             $prefix = $data['list'] . '-';
+            $items = $data['items'];
+
+            $totalPaypable = Order::totalPayable($items);
+            $totalSalable = Order::totalSubtotals($items);
+            $profit = (int) $totalSalable - (int) $totalPaypable;
 
             $orderData = [
                 'tracking_no' => uniqid($prefix),
                 'reseller_id' => auth()->user()->id,
-                'customer_id' => $data['customer_id'],
-                'total_amount' => $data['total_amount'],
-                'note' => $data['note'],
-                'status' => OrderStatus::WaitingForWholesalerApproval->value
+                'status' => OrderStatus::WaitingForWholesalerApproval->value,
+                "courier_charge" => Order::courierCharge($items),
+                "packaging_charge" => Order::packgingCost(),
+                "total_payable" => Order::totalPayable($items),
+                "total_saleable" => $totalSalable,
+                "profit" => $profit,
+                ...collect($data)->except([
+                    'list',
+                    'items',
+                    'courier_charge',
+                    'packaging_charge',
+                    'total_payable',
+                    'total_saleable',
+                    'profit',
+                ])->toArray()
             ];
+
 
             $order = $this->getModel()::create($orderData);
 
@@ -61,5 +79,12 @@ class CreateOrder extends CreateRecord
 
             return $order;
         });
+    }
+
+    protected function getFormActions(): array
+    {
+        $formData = $this->form->getRawState();
+
+        return $formData['error'] ? [$this->getCancelFormAction()] : parent::getFormActions();
     }
 }

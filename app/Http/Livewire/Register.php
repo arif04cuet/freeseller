@@ -132,9 +132,10 @@ class Register extends FilamentBreezyRegister
         $preparedData['is_active'] = 0;
         $preparedData['mobile'] = $this->mobile;
 
-        if ($this->business_type == BusinessType::Wholesaler->value)
+        if ($this->business_type == BusinessType::Wholesaler->value) {
             $preparedData["address"]['address_id'] = $this->hub;
-        else {
+            $preparedData['hub_id'] = $this->hub;
+        } else {
 
             $preparedData["address"]['address_id'] = $this->getAddressId();
             $preparedData["address"]['address'] = $this->address;

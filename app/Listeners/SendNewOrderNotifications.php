@@ -22,7 +22,7 @@ class SendNewOrderNotifications implements ShouldQueue
 
         $order->items->each(function ($item) use (&$hubs) {
             $wholesaler = $item->wholesaler;
-            $hubs[$wholesaler->address->address_id][$wholesaler->id][] = $item;
+            $hubs[$wholesaler->hub_id][$wholesaler->id][] = $item;
         });
 
         //send notifications

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\AddressType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,5 +28,21 @@ class ResellerList extends Model
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class);
+    }
+
+    //helpers
+
+    public static function hubsInList($listId)
+    {
+        return Address::query()
+            ->whereHas('wholesalers', function ($q) use ($listId) {
+                return $q->whereHas('products', function ($q) use ($listId) {
+                    return $q->whereHas('resellerLists', function ($q) use ($listId) {
+                        return $q->where('reseller_lists.id', $listId);
+                    });
+                });
+            })
+            ->whereType(AddressType::Hub->value)
+            ->pluck('name', 'id');
     }
 }
