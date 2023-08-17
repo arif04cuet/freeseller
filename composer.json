@@ -11,6 +11,7 @@
         "filament/filament": "^2.0",
         "filament/spatie-laravel-media-library-plugin": "^2.0",
         "guzzlehttp/guzzle": "^7.2",
+        "intervention/image": "^2.7",
         "jeffgreco13/filament-breezy": "^1.5",
         "konnco/filament-import": "^1.6",
         "laravel-notification-channels/webpush": "^7.1",

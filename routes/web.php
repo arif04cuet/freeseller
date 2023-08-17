@@ -6,12 +6,16 @@ use App\Listeners\SendNewOrderNotificationToHub;
 use App\Models\Address;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\Product;
+use App\Models\Sku;
 use App\Models\User;
 use App\Notifications\NewSignupAdminNotification;
 use App\Notifications\PushDemo;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Route;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -26,7 +30,18 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/mail', function () {
 
-    return Address::find(75)->wholesalers;
+    $sku = Sku::find(5);
+
+    return $images = $sku->getMedia('sharees')->toArray();
+
+    foreach ($images as $image) {
+
+        // $imagePath = $image->getPath();
+        // $img = Image::make($imagePath);
+        // $img->text($sku->sku, 0, 10);
+        // $img->save($imagePath);
+    }
+    return 'ok';
     // $url = 'http://bulksms.smsbuzzbd.com/smsapi';
 
     // $data = [

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enum\SystemRole;
+use App\Events\SkuCreated;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +25,12 @@ class Sku extends Model implements HasMedia
         'quantity',
         'price'
     ];
+
+
+    protected $dispatchesEvents = [
+        'created' => SkuCreated::class
+    ];
+
 
     //relations
 
@@ -53,6 +60,10 @@ class Sku extends Model implements HasMedia
 
     //helpers
 
+    public function waterMarkText()
+    {
+        return $this->sku;
+    }
     public static function getQuantity($productId, $attributeValueId)
     {
         list($sku, $valueId) = explode('-', $attributeValueId);

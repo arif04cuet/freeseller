@@ -4,21 +4,26 @@ namespace App\Models;
 
 use App\Enum\OptionValueType;
 use App\Enum\SystemRole;
+use App\Filament\Resources\ProductResource\RelationManagers\SkusRelationManager;
+use Closure;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Filament\Forms;
+use Filament\Forms\ComponentContainer;
 use Filament\Forms\Components\FileUpload;
 use Filament\Pages\Page;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Collection;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Livewire\Component as Livewire;
 
 class Product extends Model implements HasMedia
 {
@@ -141,6 +146,24 @@ class Product extends Model implements HasMedia
                     ->label($attribute->name)
                     ->disabledOn('edit')
                     ->required()
+                    ->reactive()
+                    ->hint(function (Closure $get, $state, Livewire $livewire, Closure $set) use ($attribute) {
+
+                        if ($state) {
+                            $product = $livewire->ownerRecord;
+                            $data = [$state => $state];
+                            $skuName = SkusRelationManager::generateSkuName($product, $data);
+                            $sku = $product->skus()->where('name', $skuName)->first();
+                            if ($sku) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('You already added this variation. please update quantity instead of create')
+                                    ->send();
+                                $set($attribute->id, 0);
+                            }
+                            return $state;
+                        }
+                    })
                     ->options($attribute->values->pluck('label', 'id'));
             })
             ->toArray();

@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use App\Events\NewOrderCreated;
 use App\Events\OrderItemApproved;
+use App\Events\SkuCreated;
 use App\Listeners\ActivateUser;
+use App\Listeners\AddSkuNumnerToImage;
 use App\Listeners\ChangeOrderStatusWhenItemApproved;
 use App\Listeners\CreateWallet;
 use App\Listeners\SendNewOrderNotifications;
@@ -14,6 +16,7 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use Spatie\MediaLibrary\MediaCollections\Events\MediaHasBeenAdded;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -35,7 +38,12 @@ class EventServiceProvider extends ServiceProvider
         ],
         Verified::class => [
             CreateWallet::class
-        ]
+        ],
+
+        MediaHasBeenAdded::class => [
+            AddSkuNumnerToImage::class
+        ],
+
     ];
 
     /**

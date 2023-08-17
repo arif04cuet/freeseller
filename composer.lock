@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "026d1db20720ed4d6a32221a28a9b719",
+    "content-hash": "e9b2c470b13a79cdf7a5b96ac8412753",
     "packages": [
         {
             "name": "akaunting/laravel-money",

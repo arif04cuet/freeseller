@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Intervention\Image\ImageManagerStatic as Image;
 
 class SkusRelationManager extends RelationManager
 {
@@ -63,6 +64,7 @@ class SkusRelationManager extends RelationManager
                     ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner())
                     ->using(function (Tables\Actions\CreateAction $action, HasRelationshipTable $livewire, array $data): Model {
 
+
                         DB::beginTransaction();
 
                         try {
@@ -83,6 +85,10 @@ class SkusRelationManager extends RelationManager
                                 });
 
                             DB::commit();
+
+                            //add watermark
+
+                            //static::addTextToImage($sku);
 
                             return $sku;
                         } catch (\Exception $e) {
