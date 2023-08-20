@@ -67,32 +67,23 @@ class OrderResource extends Resource
 
                 Repeater::make('items')
                     ->columnSpanFull()
-                    ->columns(6)
+                    ->columns(5)
                     ->cloneable()
                     ->reactive()
                     ->disableItemCreation(fn (?Model $record) => $record?->status?->value != OrderStatus::WaitingForWholesalerApproval->value)
                     ->schema([
-                        Forms\Components\Select::make('product')
-                            ->visible(fn (Closure $get) => $get('../../hub_id') && $get('../../list'))
-                            ->options(
-                                fn (Closure $get) => auth()->user()
-                                    ->lists()
-                                    ->where('id', $get('../../list'))
-                                    ->first()
-                                    ->products
-                                    ->pluck('name', 'id')
-                            )
-                            ->reactive()
-                            ->required(),
+
                         Forms\Components\Select::make('sku')
-                            ->label('Item')
+                            ->label('Product')
+                            ->visible(fn (Closure $get) => $get('../../hub_id') && $get('../../list'))
                             ->reactive()
                             ->required()
-                            ->visible(fn (Closure $get) => $get('product'))
-                            ->options(fn (Closure $get) => Sku::query()
-                                ->where('product_id', $get('product'))
-                                ->where('quantity', '>', 0)
-                                ->pluck('name', 'id')),
+                            ->searchable()
+                            ->getSearchResultsUsing(
+                                fn (string $search) => Sku::query()->where('id', $search)->pluck('name', 'id')
+                            )
+                            ->getOptionLabelUsing(fn ($value): ?string => Sku::find($value)?->name),
+
 
                         Forms\Components\TextInput::make('quantity')
                             ->reactive()

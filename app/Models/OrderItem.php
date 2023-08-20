@@ -65,9 +65,12 @@ class OrderItem extends Model
 
     //helpers
 
-    public function markAsApproved()
+    public function markAsApproved(): void
     {
-        $this->forceFill(['status' => OrderItemStatus::Approved->value])->save();
-        OrderItemApproved::dispatch($this);
+        if ($this->status == OrderItemStatus::WaitingForWholesalerApproval) {
+            logger('ok');
+            $this->forceFill(['status' => OrderItemStatus::Approved->value])->save();
+            OrderItemApproved::dispatch($this);
+        }
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Enum\AddressType;
 use App\Enum\BusinessType;
+use App\Http\Controllers\PrintOrderLabel;
 use App\Listeners\SendNewOrderNotificationToHub;
 use App\Models\Address;
 use App\Models\Customer;
@@ -85,3 +86,5 @@ Route::get('/', function () {
     return redirect()->to(config('filament.path'));
     return view('welcome');
 });
+
+Route::get('/orders/{order}/print', PrintOrderLabel::class)->name('order.print.label');

@@ -183,10 +183,10 @@ class Order extends Model
     {
         $collection->forceFill(['collected_at' => now()])->save();
 
-        Notification::make()
-            ->title('Success. please send products to collector')
-            ->success()
-            ->send();
+        // Notification::make()
+        //     ->title('Success. please send products to collector')
+        //     ->success()
+        //     ->send();
 
         //update items status for a wholesaler
         $this->items
@@ -200,8 +200,11 @@ class Order extends Model
             ->items
             ->filter(fn ($item) => $item->status->value != OrderItemStatus::DeliveredToHub->value);
 
-        if ($notDelivered->count() == 0)
+        if ($notDelivered->count() == 0) {
             $this->forceFill(['status' => OrderStatus::ProcessingForHandOverToCourier->value])->save();
+            // add order to steadfast as a parcel
+            logger('order has been added to steadfast');
+        }
     }
     public function getWholesalerWiseItems()
     {

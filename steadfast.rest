@@ -1,0 +1,20 @@
+# POST https://portal.steadfast.com.bd/api/v1/create_order HTTP/1.1
+# Content-Type: application/json
+# Api-Key:ldz4iwkjacazpxmarwpygvtked1n0san
+# Secret-Key:gjmypwoli1ag8twn8b4bk8ff
+
+# {
+#     "invoice":"1234r5t6yu7",
+#     "recipient_name":"Arif",
+#     "recipient_phone":"01717348147",
+#     "recipient_address":"test address",
+#     "cod_amount":800,
+#     "note":" this is api testing"
+# }
+
+
+
+# GET https://portal.steadfast.com.bd/api/v1/status_by_trackingcode/2D25C04FF HTTP/1.1
+# Content-Type: application/json
+# Api-Key:ldz4iwkjacazpxmarwpygvtked1n0san
+# Secret-Key:gjmypwoli1ag8twn8b4bk8ff

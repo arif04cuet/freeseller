@@ -69,9 +69,10 @@ class WholesalerOrderResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->since(),
-                Tables\Columns\TextColumn::make('totalAmountForWholesaler'),
+                Tables\Columns\TextColumn::make('totalAmountForWholesaler')
+                    ->label('Total amount'),
                 Tables\Columns\TextColumn::make('total_items')
-                    ->label('Total Items')
+                    ->label('Total Products')
                     ->getStateUsing(fn (Model $record) => $record->getItemsByWholesaler(auth()->user())->sum('quantity')),
                 Tables\Columns\BadgeColumn::make('status')
                     ->enum(OrderStatus::array())
@@ -90,12 +91,7 @@ class WholesalerOrderResource extends Resource
                     ->action(
                         function (Tables\Actions\Action $action, $data, Order $record) {
 
-                            if (empty($data))
-                                $action->cancel();
-
-                            if (isset($data['items'])) {
-                                OrderItem::whereIn('id', $data['items'])->get()->each->markAsApproved();
-                            } elseif (isset($data['collector_code'])) {
+                            if (isset($data['collector_code'])) {
 
                                 $collection = $record->collections->filter(fn ($item) => $item->wholesaler_id == auth()->user()->id)->first();
 
@@ -110,13 +106,15 @@ class WholesalerOrderResource extends Resource
                                 }
 
                                 $record->deliverToCollector($collection);
+                            } else {
+                                $record->getItemsByWholesaler(auth()->user())->each->markAsApproved();
                             }
                         }
                     )
                     ->modalButton(
                         fn (Order $record) => match ($record->status) {
-                            OrderStatus::WaitingForWholesalerApproval => 'Approve',
-                            OrderStatus::WaitingForHubCollection => 'Match OTP',
+                            OrderStatus::WaitingForWholesalerApproval => 'Approve All',
+                            OrderStatus::WaitingForHubCollection => 'Verify OTP',
                         }
                     )
                     ->modalHeading('Items details')
@@ -124,23 +122,23 @@ class WholesalerOrderResource extends Resource
                         'items' => $record->loadMissing('items.wholesaler')->getItemsByWholesaler(auth()->user())
                     ]))
                     ->form([
-                        Forms\Components\CheckboxList::make('items')
-                            ->visible(
-                                fn (Model $record) => $record->loadMissing('items.sku')
-                                    ->getItemsByWholesaler(auth()->user(), OrderItemStatus::WaitingForWholesalerApproval->value)
-                                    ->count()
-                            )
-                            ->label('Approve or Reject Items')
-                            ->options(
-                                fn (Model $record) => $record->loadMissing('items.sku')
-                                    ->getItemsByWholesaler(auth()->user(), OrderItemStatus::WaitingForWholesalerApproval->value)
-                                    ->map(fn ($item) => [
-                                        'id' => $item->id,
-                                        'name' => $item->sku->name,
-                                    ])
-                                    ->pluck('name', 'id')
-                            )
-                            ->required(),
+                        // Forms\Components\CheckboxList::make('items')
+                        //     ->visible(
+                        //         fn (Model $record) => $record->loadMissing('items.sku')
+                        //             ->getItemsByWholesaler(auth()->user(), OrderItemStatus::WaitingForWholesalerApproval->value)
+                        //             ->count()
+                        //     )
+                        //     ->label('Approve or Reject Items')
+                        //     ->options(
+                        //         fn (Model $record) => $record->loadMissing('items.sku')
+                        //             ->getItemsByWholesaler(auth()->user(), OrderItemStatus::WaitingForWholesalerApproval->value)
+                        //             ->map(fn ($item) => [
+                        //                 'id' => $item->id,
+                        //                 'name' => $item->sku->name,
+                        //             ])
+                        //             ->pluck('name', 'id')
+                        //     )
+                        //     ->required(),
 
                         Forms\Components\TextInput::make('collector_code')
                             ->numeric()

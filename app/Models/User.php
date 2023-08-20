@@ -196,7 +196,12 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
 
     public function getFilamentName(): string
     {
-        return $this->name . ' (' . Str::headline($this->roles->first()->name) . ')';
+        $name =  $this->name . ' (' . Str::headline($this->roles->first()->name) . ')';
+
+        if ($this->hasRole(SystemRole::Wholesaler->value))
+            $name .= '-' . $this->id;
+
+        return $name;
     }
 
     public function isSuperAdmin()

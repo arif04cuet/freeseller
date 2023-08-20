@@ -14,4 +14,9 @@ class ManageHubOrders extends ManageRecords
     {
         return [];
     }
+
+    public function collect_product()
+    {
+        dd(func_get_args());
+    }
 }

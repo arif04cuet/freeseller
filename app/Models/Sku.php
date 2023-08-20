@@ -62,7 +62,7 @@ class Sku extends Model implements HasMedia
 
     public function waterMarkText()
     {
-        return $this->sku;
+        return $this->id;
     }
     public static function getQuantity($productId, $attributeValueId)
     {
