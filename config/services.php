@@ -13,7 +13,11 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
-
+    'steadfast' => [
+        'base_url' => env('STEADFAST_BASE_URL'),
+        'key' => env('STEADFAST_API_KEY'),
+        'secret' => env('STEADFAST_SECRET_KEY')
+    ],
     'mailgun' => [
         'domain' => env('MAILGUN_DOMAIN'),
         'secret' => env('MAILGUN_SECRET'),

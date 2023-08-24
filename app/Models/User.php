@@ -113,7 +113,10 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
 
 
     //relations
-
+    function lockAmount(): HasMany
+    {
+        return $this->hasMany(UserLockAmount::class);
+    }
     public function hub(): BelongsTo
     {
         return $this->belongsTo(Address::class, 'hub_id')->where('type', AddressType::Hub->value);
@@ -156,6 +159,11 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
     }
 
     //functions
+
+    function platformOwner(): User
+    {
+        return User::find(1);
+    }
 
     public static function sendMessage(
         Model | Authenticatable | Collection | array $users,

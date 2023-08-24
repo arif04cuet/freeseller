@@ -239,10 +239,13 @@ class OrderResource extends Resource
                             $cod = $subtotals + $courierCharge;
                             $set('cod', $cod);
                         }
-                        $balance = auth()->user()->balanceInt;
+
+                        $lockAmount = (int) auth()->user()->lockAmount->sum('amount');
+                        $balance = auth()->user()->balanceInt - $lockAmount;
+
                         $cod = (int) $get('cod');
-                        $amount = ($balance + $cod) - Order::totalPayable($get('items'));
-                        logger($amount);
+                        $amount = ($balance + $cod) - (Order::totalPayable($get('items')));
+
                         if ($amount < 0) {
                             $set('error', 1);
                             return 'Please recharge your wallet with TK = ' . abs($amount);
@@ -293,32 +296,37 @@ class OrderResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('track')
+                    ->label('Track Order')
+                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
+                    ->visible(fn (Order $record) => $record->tracking_code)
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make()
                     ->visible(fn (?Model $record) => $record?->status?->value == OrderStatus::WaitingForWholesalerApproval->value),
-                Tables\Actions\ViewAction::make()
-                    ->visible(fn (?Model $record) => $record?->status?->value != OrderStatus::WaitingForWholesalerApproval->value)
-                    ->mutateRecordDataUsing(function (Model $record, array $data) {
+                // Tables\Actions\ViewAction::make()
+                //     ->visible(fn (?Model $record) => $record?->status?->value != OrderStatus::WaitingForWholesalerApproval->value)
+                //     ->mutateRecordDataUsing(function (Model $record, array $data) {
 
-                        $data['list'] = explode('-', $data['tracking_no'])[0];
+                //         $data['list'] = explode('-', $data['tracking_no'])[0];
 
-                        $items = Order::with('items')->find($data['id'])
-                            ->items
-                            ->map(function ($item) {
+                //         $items = Order::with('items')->find($data['id'])
+                //             ->items
+                //             ->map(function ($item) {
 
-                                return [
-                                    'product' => $item->sku->product->id,
-                                    'sku' => $item->sku_id,
-                                    'quantity' => $item->quantity,
-                                    'reseller_price' => $item->reseller_price,
-                                    'subtotal' => $item->total_saleable,
-                                    'status' => $item->status
-                                ];
-                            })->toArray();
+                //                 return [
+                //                     'product' => $item->sku->product->id,
+                //                     'sku' => $item->sku_id,
+                //                     'quantity' => $item->quantity,
+                //                     'reseller_price' => $item->reseller_price,
+                //                     'subtotal' => $item->total_saleable,
+                //                     'status' => $item->status
+                //                 ];
+                //             })->toArray();
 
-                        $data['items'] = $items;
+                //         $data['items'] = $items;
 
-                        return $data;
-                    }),
+                //         return $data;
+                //     }),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

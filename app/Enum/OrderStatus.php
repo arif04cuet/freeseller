@@ -18,7 +18,11 @@ enum OrderStatus: string
 
     case HandOveredToCourier = 'hand_overed_to_courier';
 
+    case Courier_In_Review = 'in_review';
+
     case Cancelled = 'cacelled';
 
     case Approved = 'approved';
+
+    case Delivered = 'delivered';
 }

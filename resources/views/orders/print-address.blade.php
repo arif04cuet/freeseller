@@ -9,7 +9,7 @@
 
 @section('content')
     <div class="mx-auto p-16" style="max-width: 800px;">
-
+        <div class="mb-8 px-5">Cid# {{ $order->consignment_id }}</div>
         <div class="flex justify-between mb-8 px-5">
             <div>
                 <h4 class="text-xl"> {{ $business->name }}</h4>

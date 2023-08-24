@@ -9,6 +9,7 @@ use App\Listeners\ActivateUser;
 use App\Listeners\AddSkuNumnerToImage;
 use App\Listeners\ChangeOrderStatusWhenItemApproved;
 use App\Listeners\CreateWallet;
+use App\Listeners\LockResellerAmount;
 use App\Listeners\SendNewOrderNotifications;
 use App\Listeners\SendNewSignupEmailNotificationToAdmins;
 use Illuminate\Auth\Events\Registered;
@@ -31,7 +32,8 @@ class EventServiceProvider extends ServiceProvider
             // SendNewSignupEmailNotificationToAdmins::class
         ],
         NewOrderCreated::class => [
-            SendNewOrderNotifications::class
+            SendNewOrderNotifications::class,
+            LockResellerAmount::class
         ],
         OrderItemApproved::class => [
             ChangeOrderStatusWhenItemApproved::class

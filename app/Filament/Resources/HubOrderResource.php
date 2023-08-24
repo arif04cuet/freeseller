@@ -6,6 +6,8 @@ use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
 use App\Filament\Resources\HubOrderResource\Pages;
+use App\Http\Integrations\SteadFast\Requests\AddBulkParcelRequest;
+use App\Jobs\AddParcelToSteadFast;
 use App\Models\Order;
 use App\Models\OrderCollection;
 use App\Models\User;
@@ -16,6 +18,7 @@ use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 class HubOrderResource extends Resource
@@ -103,15 +106,28 @@ class HubOrderResource extends Resource
                     ->options(OrderStatus::array())
             ])
             ->actions([
-
+                Tables\Actions\Action::make('track')
+                    ->label('Track Order')
+                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
+                    ->visible(fn (Order $record) => $record->tracking_code)
+                    ->openUrlInNewTab(),
+                Tables\Actions\Action::make('send_to_courier')
+                    ->label('Send to courier')
+                    ->icon('heroicon-o-arrow-circle-up')
+                    ->iconButton()
+                    ->requiresConfirmation()
+                    ->visible(fn (Order $record) => !$record->consignment_id && ($record->status == OrderStatus::ProcessingForHandOverToCourier))
+                    ->action(fn (Order $record) => AddParcelToSteadFast::dispatchSync($record)),
                 Tables\Actions\Action::make('print_address')
                     ->icon('heroicon-o-printer')
                     ->iconButton()
                     ->url(fn (Order $record): string => route('order.print.label', $record))
                     ->openUrlInNewTab()
-                    ->visible(fn (Model $record) => $record->status == OrderStatus::ProcessingForHandOverToCourier),
+                    ->visible(fn (Model $record) => $record->status == OrderStatus::Courier_In_Review),
                 Tables\Actions\Action::make('items')
                     ->label('Products')
+                    ->icon('heroicon-o-view-list')
+                    ->iconButton()
                     ->action(function (Order $record, array $data, array $arguments) {
 
                         //add collector
@@ -123,7 +139,7 @@ class HubOrderResource extends Resource
 
                         //print label
                         if ($data['print'])
-                            return redirect('/');
+                            return redirect(route('order.print.label', ['order' => $record]));
                     })
                     ->modalActions(
                         fn (Tables\Actions\Action $action, Order $record): array => match ($record->status) {
@@ -142,10 +158,8 @@ class HubOrderResource extends Resource
                             ->reactive()
                             ->afterStateHydrated(
                                 function (Order $record, Closure $set) {
-                                    $wholesalers = $record->loadMissing('items.wholesaler')
-                                        ->items
-                                        ->pluck('wholesaler_id')
-                                        ->unique('wholesaler_id');
+                                    $wholesalers = $record->wholesalers()
+                                        ->pluck('wholesaler_id');
 
                                     if ($wholesalers->count() == 1) {
                                         $set('wholesaler', $wholesalers->first());
@@ -168,14 +182,7 @@ class HubOrderResource extends Resource
                         Forms\Components\Checkbox::make('print')
                             ->label('Print Level')
                             ->visible(
-                                function (Order $record, Closure $set) {
-                                    $wholesalers = $record->loadMissing('items.wholesaler')
-                                        ->items
-                                        ->pluck('wholesaler_id')
-                                        ->unique('wholesaler_id');
-
-                                    return ($wholesalers->count() == 1) && ($record->status == OrderStatus::WaitingForHubCollection);
-                                }
+                                fn (Order $record) => ($record->wholesalers()->count() == 1) && ($record->status == OrderStatus::WaitingForHubCollection)
                             )
                             ->default(1),
                     ])
@@ -189,7 +196,9 @@ class HubOrderResource extends Resource
                     ->iconButton()
                     ->label('Assign Collector')
                     ->visible(
-                        fn (Model $record) => ($record->status == OrderStatus::WaitingForHubCollection) && auth()->user()->isHubManager()
+                        fn (Model $record) => $record->wholesalers()->count() > 1 &&
+                            ($record->status == OrderStatus::WaitingForHubCollection) &&
+                            auth()->user()->isHubManager()
                     )
                     ->action(
                         fn (Order $record, array $data) => $data['self'] ?
@@ -214,7 +223,15 @@ class HubOrderResource extends Resource
                     ]),
 
             ])
-            ->bulkActions([]);
+            ->bulkActions([
+                // Tables\Actions\BulkAction::make('sent_to_courier')
+                //     ->action(function (Collection $records) {
+                //         dd(Order::addToCourier($records));
+                //     })
+                //     ->requiresConfirmation()
+                //     ->deselectRecordsAfterCompletion()
+                //     ->color('danger')
+            ]);
     }
 
     public static function getPages(): array

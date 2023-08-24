@@ -6,10 +6,13 @@ use App\Enum\AddressType;
 use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
+use App\Http\Integrations\SteadFast\Requests\AddBulkParcelRequest;
+use App\Jobs\AddParcelToSteadFast;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,28 +23,14 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'tracking_no',
-        'reseller_id',
-        'customer_id',
-        'total_payable',
-        'total_saleable',
-        'note_for_wholesaler',
-        'note_for_courier',
-        'status',
-        'courier_charge',
-        'packaging_charge',
-        'profit',
-        'hub_id',
-        'cod'
-
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'status' => OrderStatus::class,
         'collected_at' => 'datetime',
         'total_payable' => 'int',
-        'total_saleable' => 'int'
+        'total_saleable' => 'int',
+        'profit' => 'int'
     ];
 
     //scopes
@@ -118,6 +107,38 @@ class Order extends Model
 
     // helpers
 
+    function wholsalersAmount(): array
+    {
+        $wholesalers = [];
+
+        foreach ($this->items as $item) {
+            $wholesalers[$item->wholesaler_id][] = $item->wholesaler_price;
+        }
+
+        foreach ($wholesalers as $id => $amounts) {
+            $wholesalers[$id] = array_sum($amounts);
+        }
+
+        return $wholesalers;
+    }
+    public function disburseAmount(): void
+    {
+        $wholesalerAmount = '';
+        $resellerAmount = '';
+        $platformAmount = '';
+    }
+    public function markAsDelivered(): void
+    {
+        $this->forceFill(['status' => OrderStatus::Delivered->value])->save();
+    }
+
+    function wholesalers(): EloquentCollection
+    {
+        return $this->loadMissing('items.wholesaler')
+            ->items
+            ->map(fn ($item) => $item->wholesaler)
+            ->unique(fn ($item) => $item->id);
+    }
     public static function totalPayable(Collection | array $items): int
     {
         if (empty($items)) return 0;
@@ -176,7 +197,7 @@ class Order extends Model
 
     public static function packgingCost()
     {
-        return 5;
+        return config('freeseller.packaging_fee');
     }
 
     public function deliverToCollector($collection)
@@ -203,7 +224,8 @@ class Order extends Model
         if ($notDelivered->count() == 0) {
             $this->forceFill(['status' => OrderStatus::ProcessingForHandOverToCourier->value])->save();
             // add order to steadfast as a parcel
-            logger('order has been added to steadfast');
+            $order = $this->refresh();
+            AddParcelToSteadFast::dispatchSync($order);
         }
     }
     public function getWholesalerWiseItems()

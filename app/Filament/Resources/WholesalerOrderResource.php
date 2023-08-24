@@ -42,9 +42,9 @@ class WholesalerOrderResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with([
-                'reseller'
-            ])->mine();
+            ->with(['reseller'])
+            ->mine()
+            ->latest();
     }
 
     protected static function getNavigationBadge(): ?string
@@ -87,7 +87,16 @@ class WholesalerOrderResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('track')
+                    ->label('Track Order')
+                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
+                    ->visible(fn (Order $record) => $record->tracking_code)
+                    ->openUrlInNewTab(),
+
                 Tables\Actions\Action::make('items')
+                    ->label('Products')
+                    ->icon('heroicon-o-view-list')
+                    ->iconButton()
                     ->action(
                         function (Tables\Actions\Action $action, $data, Order $record) {
 
