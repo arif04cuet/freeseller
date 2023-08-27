@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Order;
 use App\Models\User;
+use Bavix\Wallet\Models\Transaction;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,29 +31,45 @@ class DisburseOrderAmount implements ShouldQueue
 
             $platformPer = (int)config('freeseller.platform_fee');
             $codPer = (int) config('freeseller.cod_fee');
-            $percentage = $platformPer + $codPer;
+            $ownerAccount = User::platformOwner();
 
-            $ownerAmount = 0;
+            $percentageFn = fn ($amount, $percentage): float => (float) (($percentage / 100) * $amount);
 
             //deduct from wholesalers
             $wholesalers = $order->wholsalersAmount();
             foreach ($wholesalers as $id => $amount) {
 
+                $wholesaler = User::find($id);
                 $amount = (int)$amount;
-                $ownerAmount = ($percentage / 100) * $amount;
-                $depositAmount = $amount - $ownerAmount;
-                $description = 'platform fee + cod fee ' . $percentage . 'percent deducted';
 
-                User::find($id)->deposit($depositAmount, ['description' => $description]);
+                $ownerAccount->forceTransfer($wholesaler, $amount, ['description' => 'Products amount for order #' . $order->id]);
+
+                $wholesaler->forceTransfer($ownerAccount, $percentageFn($amount, $platformPer), ['description' => 'Platform fee for order #' . $order->id]);
+                $wholesaler->forceTransfer($ownerAccount, $percentageFn($amount, $codPer), ['description' => 'Cod fee for order #' . $order->id]);
             }
 
             //deduct from reseller
-            $profit = $order->profit;
 
-            $percentageValue = ($percentage / 100) * $profit;
-            $resellerAmount = $profit - 0;
-            $description = 'platform fee + cod fee ' . $percentage . 'percent deducted';
-            $order->reseller->deposit();
+            $reseller = $order->reseller;
+
+            //release lock amount if any
+            if ($order->lockAmount()->exists()) {
+                $lockAmount = $order->lockAmount->amount;
+                $reseller->forceTransfer($ownerAccount, $lockAmount, ['description' => 'Transfering lock amount for order #' . $order->id]);
+                $order->lockAmount()->delete();
+            }
+
+            $rAmount = $order->cod - $order->total_payable;
+
+            if ($rAmount > 0) {
+                $ownerAccount->forceTransfer($reseller, $rAmount, ['description' => 'Profit for order #' . $order->id]);
+            }
+
+            $reseller->forceTransfer($ownerAccount, $percentageFn($order->profit, $platformPer), ['description' => 'Platform fee for order #' . $order->id]);
+            $reseller->forceTransfer($ownerAccount, $percentageFn($order->profit, $codPer), ['description' => 'Cod fee for order #' . $order->id]);
+
+            //update order
+            $order->forceFill(['delivered_at' => now()])->save();
         });
     }
 }

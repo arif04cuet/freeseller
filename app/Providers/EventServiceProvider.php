@@ -3,12 +3,15 @@
 namespace App\Providers;
 
 use App\Events\NewOrderCreated;
+use App\Events\OrderDelivered;
 use App\Events\OrderItemApproved;
 use App\Events\SkuCreated;
+use App\Jobs\DisburseOrderAmount;
 use App\Listeners\ActivateUser;
 use App\Listeners\AddSkuNumnerToImage;
 use App\Listeners\ChangeOrderStatusWhenItemApproved;
 use App\Listeners\CreateWallet;
+use App\Listeners\DisburseOrderAmountAction;
 use App\Listeners\LockResellerAmount;
 use App\Listeners\SendNewOrderNotifications;
 use App\Listeners\SendNewSignupEmailNotificationToAdmins;
@@ -45,6 +48,9 @@ class EventServiceProvider extends ServiceProvider
         MediaHasBeenAdded::class => [
             AddSkuNumnerToImage::class
         ],
+        OrderDelivered::class => [
+            DisburseOrderAmountAction::class
+        ]
 
     ];
 

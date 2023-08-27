@@ -70,7 +70,11 @@ class OrderResource extends Resource
                     ->columns(5)
                     ->cloneable()
                     ->reactive()
-                    ->disableItemCreation(fn (?Model $record) => $record?->status?->value != OrderStatus::WaitingForWholesalerApproval->value)
+                    ->visible(fn (Closure $get) => $get('hub_id') && $get('list'))
+                    ->disableItemCreation(
+                        fn (?Model $record, $context) => $context == 'edit' &&
+                            $record?->status?->value != OrderStatus::WaitingForWholesalerApproval->value
+                    )
                     ->schema([
 
                         Forms\Components\Select::make('sku')
@@ -130,7 +134,7 @@ class OrderResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('courier_charge')
                             ->required()
-                            ->label('Tentative courier charge')
+                            ->label('Courier charge')
                             ->disabled()
                             ->helperText(function (Closure $get, Closure $set, ?Model $record, $state) {
 
@@ -139,7 +143,7 @@ class OrderResource extends Resource
                                 $set('courier_charge', $charge);
                                 $set('packaging_charge', Order::packgingCost());
 
-                                return 'It would be adjusted according to exact rate of courier service';
+                                return '';
                             }),
 
                         Forms\Components\TextInput::make('packaging_charge')
@@ -162,10 +166,11 @@ class OrderResource extends Resource
                             ->helperText(function (Closure $get, Closure $set, ?Model $record, $state) {
 
                                 $subtotals = Order::totalSubtotals($get('items'));
+                                $totalWholesalerAmount = Order::totalWholesaleAmount($get('items'));
                                 $set('total_saleable', $subtotals);
 
                                 //profit
-                                $profit = $subtotals - $get('total_payable');
+                                $profit = $subtotals - ((int) $get('packaging_charge') + $totalWholesalerAmount);
                                 $set('profit', $profit);
 
 
@@ -272,16 +277,20 @@ class OrderResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')->dateTime(),
                 Tables\Columns\TextColumn::make('items_sum_quantity')
-                    ->label('Product counts')
+                    ->label('Products')
                     ->sum('items', 'quantity'),
-                Tables\Columns\TextColumn::make('total_payable'),
-                Tables\Columns\TextColumn::make('total_saleable'),
+                Tables\Columns\TextColumn::make('total_payable')
+                    ->label('Payable'),
+                Tables\Columns\TextColumn::make('total_saleable')
+                    ->label('Sallable'),
+                Tables\Columns\TextColumn::make('cod')
+                    ->label('COD'),
                 Tables\Columns\TextColumn::make('profit'),
                 Tables\Columns\TextColumn::make('customer.name')->label('Customer Name'),
                 Tables\Columns\TextColumn::make('customer.mobile')->label('Mobile'),
-                Tables\Columns\TextColumn::make('customer.address')->label('Address'),
-                Tables\Columns\TextColumn::make('note')
-                    ->wrap(),
+                // Tables\Columns\TextColumn::make('customer.address')->label('Address'),
+                // Tables\Columns\TextColumn::make('note')
+                //     ->wrap(),
                 Tables\Columns\BadgeColumn::make('status')
                     ->enum(OrderStatus::array())
                     ->colors([

@@ -29,7 +29,9 @@ class CreateOrder extends CreateRecord
 
             $totalPaypable = Order::totalPayable($items);
             $totalSalable = Order::totalSubtotals($items);
-            $profit = (int) $totalSalable - (int) $totalPaypable;
+            $wholesalerAmount = Order::totalWholesaleAmount($items);
+            $packagingCost = Order::packgingCost();
+            $profit = (int) $totalSalable - ((int) $wholesalerAmount + $packagingCost);
 
             $orderData = [
                 'tracking_no' => uniqid($prefix),

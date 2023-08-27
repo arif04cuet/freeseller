@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
 class Order extends Model
@@ -28,9 +29,11 @@ class Order extends Model
     protected $casts = [
         'status' => OrderStatus::class,
         'collected_at' => 'datetime',
+        'delivered_at' => 'datetime',
         'total_payable' => 'int',
         'total_saleable' => 'int',
-        'profit' => 'int'
+        'profit' => 'int',
+        'cod' => 'int'
     ];
 
     //scopes
@@ -53,8 +56,13 @@ class Order extends Model
                 });
             });
     }
+
     //relations
 
+    function lockAmount(): HasOne
+    {
+        return $this->hasOne(UserLockAmount::class);
+    }
     public function hub(): BelongsTo
     {
         return $this->belongsTo(Address::class, 'hub_id')->where('type', AddressType::Hub->value);
@@ -145,9 +153,12 @@ class Order extends Model
 
         return (int) (self::totalWholesaleAmount($items) + self::courierCharge($items) + self::packgingCost());
     }
+
     public static function courierCharge(Collection | array $items): int
     {
 
+        $delivery_charge = (int) config('freeseller.delivery_charge');
+        $per_saree_weight = (int) config('freeseller.per_saree_weight');
 
         if (is_array($items))
             $items = collect($items);
@@ -158,8 +169,8 @@ class Order extends Model
 
         if (empty($quantity)) return 0;
 
-        $kg = ($quantity * 600) / 1000;
-        $charge = (int) (110 + ($kg - 1) * 20);
+        $kg = ($quantity * $per_saree_weight) / 1000;
+        $charge = (int) ($delivery_charge + ($kg - 1) * 20);
 
         return $charge;
     }
@@ -197,7 +208,7 @@ class Order extends Model
 
     public static function packgingCost()
     {
-        return config('freeseller.packaging_fee');
+        return (int) config('freeseller.packaging_fee');
     }
 
     public function deliverToCollector($collection)

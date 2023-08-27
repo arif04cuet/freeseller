@@ -31,6 +31,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/mail', function () {
+    var_dump(-5 > 0);
+
+    return 'ok';
     $request = new GetParcelStatusByTrackingCodeRequest('2D25C04FF');
     $response = $request->send();
     return $response->json('delivery_status');

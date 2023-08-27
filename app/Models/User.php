@@ -160,7 +160,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
 
     //functions
 
-    function platformOwner(): User
+    public static function platformOwner(): User
     {
         return User::find(1);
     }

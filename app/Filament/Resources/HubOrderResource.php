@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
+use App\Events\OrderDelivered;
 use App\Filament\Resources\HubOrderResource\Pages;
 use App\Http\Integrations\SteadFast\Requests\AddBulkParcelRequest;
 use App\Jobs\AddParcelToSteadFast;
@@ -13,6 +14,7 @@ use App\Models\OrderCollection;
 use App\Models\User;
 use Closure;
 use Filament\Forms;
+use Filament\Notifications\Notification;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
@@ -20,6 +22,7 @@ use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class HubOrderResource extends Resource
 {
@@ -87,6 +90,8 @@ class HubOrderResource extends Resource
                 Tables\Columns\TextColumn::make('reseller.mobile')
                     ->label('Mobile'),
                 Tables\Columns\TextColumn::make('total_saleable'),
+                Tables\Columns\TextColumn::make('cod')
+                    ->label('COD'),
                 Tables\Columns\TextColumn::make('items_count')
                     ->label('Total Items')
                     ->counts('items'),
@@ -106,6 +111,39 @@ class HubOrderResource extends Resource
                     ->options(OrderStatus::array())
             ])
             ->actions([
+                Tables\Actions\Action::make('mark_as_delivered')
+                    ->label('Mark as Delivered?')
+                    ->icon('heroicon-o-check')
+                    ->requiresConfirmation()
+                    ->color('success')
+                    ->iconButton()
+                    ->visible(fn (Order $record) => $record->tracking_code && $record->status != OrderStatus::Delivered)
+                    ->action(
+                        function (Order $record) {
+                            try {
+
+                                DB::transaction(function () use ($record) {
+
+                                    User::platformOwner()->deposit($record->cod, ['description' => 'Order amount for order#' . $record->id]);
+
+                                    OrderDelivered::dispatch($record);
+
+                                    $record->update(['status' => OrderStatus::Delivered->value]);
+
+                                    Notification::make()
+                                        ->title('Order marked as delivered successfully')
+                                        ->success()
+                                        ->send();
+                                });
+                            } catch (\Throwable $th) {
+                                Notification::make()
+                                    ->title('Something went wrong')
+                                    ->danger()
+                                    ->send();
+                            }
+                        }
+                    ),
+
                 Tables\Actions\Action::make('track')
                     ->label('Track Order')
                     ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
@@ -138,7 +176,7 @@ class HubOrderResource extends Resource
                         $record->deliverToCollector($collection);
 
                         //print label
-                        if ($data['print'])
+                        if (isset($data['print']))
                             return redirect(route('order.print.label', ['order' => $record]));
                     })
                     ->modalActions(
