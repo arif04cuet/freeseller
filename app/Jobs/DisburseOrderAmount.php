@@ -42,7 +42,7 @@ class DisburseOrderAmount implements ShouldQueue
                 $wholesaler = User::find($id);
                 $amount = (int)$amount;
 
-                $ownerAccount->forceTransfer($wholesaler, $amount, ['description' => 'Products amount for order #' . $order->id]);
+                $ownerAccount->forceTransfer($wholesaler, $amount, ['description' => 'Products amount diposited for order #' . $order->id]);
 
                 $wholesaler->forceTransfer($ownerAccount, $percentageFn($amount, $platformPer), ['description' => 'Platform fee for order #' . $order->id]);
                 $wholesaler->forceTransfer($ownerAccount, $percentageFn($amount, $codPer), ['description' => 'Cod fee for order #' . $order->id]);

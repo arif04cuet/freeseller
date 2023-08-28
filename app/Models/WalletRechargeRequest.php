@@ -66,15 +66,20 @@ class WalletRechargeRequest extends Model implements HasMedia
                 'action_taken_at' => now()
             ])->save();
 
-            $user = $this->user;
+            $reseller = $this->user;
+            $platform = User::platformOwner();
+            $amount = $this->amount;
 
-            // add amount to wallet
-            $user->deposit($this->amount);
+            // diposit to platform account
+            $platform->deposit($amount, ['description' => 'deposited by ' . $reseller->name]);
+
+            //transfer account to reseller
+            $platform->forceTransfer($reseller, $amount, ['description' => 'wallet recharged']);
 
             //send notification
             $tnxId = $this->tnx_id;
             User::sendMessage(
-                users: $user,
+                users: $reseller,
                 title: 'Wallet rechange request has been approved with tnx_id = ' . $tnxId,
                 url: route('filament.resources.wallet-recharge-requests.index', ['tableSearchQuery' => $tnxId])
             );

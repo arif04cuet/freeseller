@@ -64,9 +64,14 @@ class FundWithdrawRequest extends Model
             ])->save();
 
             $user = $this->user;
+            $platform = User::platformOwner();
+            $amount = $this->amount;
 
-            // add amount to wallet
-            $user->withdraw($this->amount);
+            // deduct from user wallet.
+            $user->forceTransfer($platform, $amount, ['description' => 'Fund withdrawn amount transfered to platform account']);
+
+            // deduct from platform account.
+            $platform->withdraw($amount, ['description' => 'Fund transfered to user (' . $user->name . ') bank acount']);
 
             //send notification
 
