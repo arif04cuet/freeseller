@@ -24,6 +24,7 @@ class WalletRechargeRequestResource extends Resource
 
     protected static ?string $navigationGroup = 'Reseller';
     protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $modelLabel = 'Recharge Approval';
     protected static ?int $navigationSort = 5;
 
 
@@ -82,7 +83,7 @@ class WalletRechargeRequestResource extends Resource
                 Tables\Actions\EditAction::make()
                     ->visible(fn (Model $record) => $record->status == WalletRechargeRequestStatus::Pending),
                 Tables\Actions\Action::make('approved')
-                    ->label('approve')
+                    ->label('Approve')
                     ->color('success')
                     ->icon('heroicon-o-check')
                     ->iconButton()

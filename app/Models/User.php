@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enum\AddressType;
 use App\Enum\BusinessType;
 use App\Enum\SystemRole;
+use App\Notifications\EmailNotification;
 use App\Notifications\PushMessage;
 use Filament\Models\Contracts\HasName;
 use Filament\Notifications\Actions\Action;
@@ -169,7 +170,8 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
         Model | Authenticatable | Collection | array $users,
         string $title,
         string $body = '',
-        string $url = '/'
+        string $url = '/',
+        $sent_email = false
     ): void {
 
         Notification::make()
@@ -183,9 +185,12 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
             ->sendToDatabase($users);
 
         //send push Message
-        if ($users instanceof Model)
+        if ($users instanceof Model) {
             $users->notify(new PushMessage($title, $body, $url));
-        else
+            //send email
+            if ($sent_email)
+                $users->notify(new EmailNotification($title, $body, $url));
+        } else
             FacadesNotification::send($users, new PushMessage($title, $body, $url));
     }
     public static function getHubManagerByAddress($addressId)

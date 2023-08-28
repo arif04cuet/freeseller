@@ -1,40 +1,37 @@
 <?php
 
-namespace App\Filament\Resources\WalletRechargeRequestResource\Pages;
+namespace App\Filament\Resources\FundWithdrawRequestResource\Pages;
 
 use App\Enum\WalletRechargeRequestStatus;
-use App\Filament\Resources\WalletRechargeRequestResource;
+use App\Filament\Resources\FundWithdrawRequestResource;
 use App\Models\User;
 use Filament\Pages\Actions;
 use Filament\Resources\Pages\ManageRecords;
 use Illuminate\Database\Eloquent\Model;
 
-class ManageWalletRechargeRequests extends ManageRecords
+class ManageFundWithdrawRequests extends ManageRecords
 {
-    protected static string $resource = WalletRechargeRequestResource::class;
+    protected static string $resource = FundWithdrawRequestResource::class;
 
     protected function getActions(): array
     {
         return [
             Actions\CreateAction::make()
-                ->visible(fn () => auth()->user()->isReseller())
                 ->using(function (array $data): Model {
 
                     $user = auth()->user();
                     $data['user_id'] = $user->id;
-                    $data['wallet_id'] = $user->wallet->id;
                     $data['status'] = WalletRechargeRequestStatus::Pending->value;
 
                     $item = $this->getModel()::create($data);
 
                     // send notification to superadmin
                     $superadmin = User::platformOwner();
-                    $tnxId = $data['tnx_id'];
 
                     User::sendMessage(
                         users: $superadmin,
-                        title: 'New wallet rechange request submitted with tnx_id = ' . $tnxId,
-                        url: route('filament.resources.wallet-recharge-requests.index', ['tableSearchQuery' => $tnxId]),
+                        title: 'New fund withdrawal request submitted from user = ' . $user->name,
+                        url: route('filament.resources.fund-withdraw-requests.index', ['tableSearchQuery' => $item->id]),
                         sent_email: true
                     );
 
