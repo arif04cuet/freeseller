@@ -37,7 +37,14 @@ class Order extends Model
     ];
 
     //scopes
-
+    public function scopePending(Builder $builder): void
+    {
+        $pending = [
+            OrderStatus::Delivered->value,
+            OrderStatus::Cancelled->value,
+        ];
+        $builder->whereNotIn('status', $pending);
+    }
     public function scopeMine(Builder $builder): void
     {
         $loggedInUser = auth()->user();

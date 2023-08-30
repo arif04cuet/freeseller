@@ -15,9 +15,10 @@ use App\Notifications\NewSignupAdminNotification;
 use App\Notifications\PushDemo;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
-
+use function App\Utils\percentange;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,12 +32,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/mail', function () {
-    dd(auth()->user()->transactions->toArray());
-
     return 'ok';
-    $request = new GetParcelStatusByTrackingCodeRequest('2D25C04FF');
-    $response = $request->send();
-    return $response->json('delivery_status');
 });
 
 Route::post('/push', function () {
