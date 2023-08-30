@@ -230,34 +230,36 @@ class OrderResource extends Resource
                     ->default(1)
                     ->label('COD (total saleable + courier)')
                     ->reactive()
-                    ->afterStateUpdated(function (Closure $set, $state) {
+                    ->afterStateUpdated(function (Closure $set, Closure $get, $state) {
+
                         $set('cod_update', 2);
                     })
                     ->hint(function (Closure $get, $state, Closure $set, string $context) {
 
-
+                        $subtotals = Order::totalSubtotals($get('items'));
+                        $courierCharge = Order::courierCharge($get('items'));
+                        $cod = $subtotals + $courierCharge;
                         //cod
-                        if ($get('cod_update') == 1) {
 
-                            $subtotals = Order::totalSubtotals($get('items'));
-                            $courierCharge = Order::courierCharge($get('items'));
-                            $cod = $subtotals + $courierCharge;
+                        if ($get('cod_update') == 1) {
                             $set('cod', $cod);
                         }
 
                         $lockAmount = (int) auth()->user()->lockAmount->sum('amount');
                         $balance = auth()->user()->balanceInt - $lockAmount;
 
-                        $cod = (int) $get('cod');
-                        $amount = ($balance + $cod) - (Order::totalPayable($get('items')));
+                        $amount = ($balance + (int)$state) - (Order::totalPayable($get('items')));
 
                         if ($amount < 0) {
                             $set('error', 1);
                             return 'Please recharge your wallet with TK = ' . abs($amount);
-                        } else {
-                            $set('error', 0);
-                            return '';
-                        };
+                        } else if ($state > $cod) {
+                            $set('error', 1);
+                            return 'COD can\'t be grater than ' . $cod;
+                        }
+
+                        $set('error', 0);
+                        return '';
                     })
                     ->hintColor('danger'),
 

@@ -29,7 +29,8 @@ class OrderItem extends Model
         'status' => OrderItemStatus::class,
         'wholesaler_price' => 'int',
         'reseller_price' => 'int',
-        'total_amount' => 'int'
+        'total_amount' => 'int',
+        'quantity' => 'int'
     ];
 
     //relations

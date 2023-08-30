@@ -33,7 +33,9 @@ class Order extends Model
         'total_payable' => 'int',
         'total_saleable' => 'int',
         'profit' => 'int',
-        'cod' => 'int'
+        'cod' => 'int',
+        'courier_charge' => 'int',
+        'total_amount' => 'int'
     ];
 
     //scopes
@@ -231,7 +233,14 @@ class Order extends Model
         $this->items
             ->filter(fn ($item) => $item->wholesaler_id == $collection->wholesaler_id)
             ->each(
-                fn ($item) => $item->forceFill(['status' => OrderItemStatus::DeliveredToHub->value])->save()
+                function ($item) {
+
+                    //update order item status
+                    $item->forceFill(['status' => OrderItemStatus::DeliveredToHub->value])->save();
+
+                    //deduct item stock
+                    $item->sku->decrement('quantity', $item->quantity);
+                }
             );
 
         //check all items collected?

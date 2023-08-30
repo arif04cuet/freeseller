@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class CurrentBalance extends BaseWidget
 {
-
+    protected static ?int $sort = 1;
     protected function getCards(): array
     {
         /** @var App\Models\User $user */
@@ -27,17 +27,29 @@ class CurrentBalance extends BaseWidget
 
             $percentageFn = fn ($amount, $percentage): float => (float) (($percentage / 100) * $amount);
 
-            $balance = $user->balance;
+            $balance = $user->balanceInt;
             $pendingBalance = 0;
 
-            if ($user->isReseller())
-                $pendingBalance = $percentageFn($this->resellerPendingSum($user), $platformPer + $codPer);
+            if ($user->isReseller()) {
 
-            if ($user->isWholesaler())
-                $pendingBalance = $percentageFn($this->wholesalerPendingSum($user), $platformPer + $codPer);
+                //minus lock ammount from balance
+                $lockAmount = (int) auth()->user()->lockAmount->sum('amount');
+                $balance = $balance - $lockAmount;
 
-            if ($user->isSuperAdmin())
-                $pendingBalance = $percentageFn($this->platforrmPendingSum(), $platformPer + $codPer);;
+
+                $pendingSum = $this->resellerPendingSum($user);
+                $pendingBalance = $pendingSum - $percentageFn($pendingSum, $platformPer + $codPer);
+            }
+
+            if ($user->isWholesaler()) {
+                $pendingSum = $this->wholesalerPendingSum($user);
+                $pendingBalance = $pendingSum - $percentageFn($pendingSum, $platformPer + $codPer);
+            }
+
+            if ($user->isSuperAdmin()) {
+                $pendingSum = $this->platforrmPendingSum($user);
+                $pendingBalance = $percentageFn($pendingSum, $platformPer + $codPer);
+            }
 
 
             $cards[] = Card::make('Available Balance (TK)', $balance)
@@ -75,7 +87,6 @@ class CurrentBalance extends BaseWidget
 
     public  function wholesalerPendingSum(User $user): int
     {
-
         return OrderItem::query()
             ->where('status', OrderItemStatus::Approved->value)
             ->whereHas('order', function ($query) {

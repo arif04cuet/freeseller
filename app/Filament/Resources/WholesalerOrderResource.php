@@ -124,7 +124,7 @@ class WholesalerOrderResource extends Resource
                         fn (Order $record) => match ($record->status) {
                             OrderStatus::WaitingForWholesalerApproval => 'Approve All',
                             OrderStatus::WaitingForHubCollection => 'Verify OTP',
-                            default => 'Approve All'
+                            default => ''
                         }
                     )
                     ->modalHeading('Items details')

@@ -115,7 +115,7 @@ class ProductResource extends Resource
                             ->toArray()
                     ),
                 Tables\Columns\TextColumn::make('skus_sum_quantity')
-                    ->label('Total')
+                    ->label('Total Stock')
                     ->sum('skus', 'quantity'),
                 Tables\Columns\TextColumn::make('category.name'),
                 Tables\Columns\TextColumn::make('owner.name'),

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Transactions extends BaseWidget
 {
-    protected int | string | array $columnSpan = 'full';
+    protected static ?int $sort = 3;
     protected function getTableQuery(): Builder
     {
         return Transaction::query()

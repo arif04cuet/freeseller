@@ -123,8 +123,13 @@ class HubOrderResource extends Resource
                             try {
 
                                 DB::transaction(function () use ($record) {
+                                    $percentageFn = fn ($amount, $percentage): float => (float) (($percentage / 100) * $amount);
 
-                                    User::platformOwner()->deposit($record->cod, ['description' => 'Order amount for order#' . $record->id]);
+                                    //steadfast courier charge and cod 1 % deducted
+                                    $amount = ($record->cod - $record->courier_charge);
+                                    $dipositedAmount = $amount - $percentageFn($amount, 1);
+
+                                    User::platformOwner()->deposit($dipositedAmount, ['description' => 'Order amount for order#' . $record->id]);
 
                                     OrderDelivered::dispatch($record);
 
