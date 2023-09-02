@@ -38,8 +38,8 @@ class EmailNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->line('New recharge request submitted.')
-            ->line($this->title)
+            ->subject($this->title)
+            ->line('Please check details on below link')
             ->action('Check here.', url($this->url))
             ->line('Thank you');
     }

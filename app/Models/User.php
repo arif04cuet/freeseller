@@ -71,7 +71,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        // 'password' => 'hashed',
         'is_active' => 'boolean'
     ];
 
