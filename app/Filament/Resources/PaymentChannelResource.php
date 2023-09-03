@@ -19,7 +19,7 @@ class PaymentChannelResource extends Resource
 {
     protected static ?string $model = PaymentChannel::class;
 
-    protected static ?string $modelLabel = 'Account';
+    protected static ?string $modelLabel = 'Accounts';
     protected static ?string $navigationIcon = 'heroicon-o-collection';
 
     public static function getEloquentQuery(): Builder
