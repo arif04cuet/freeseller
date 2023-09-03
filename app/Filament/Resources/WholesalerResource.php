@@ -15,6 +15,7 @@ use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\Filter;
@@ -91,10 +92,12 @@ class WholesalerResource extends Resource
     {
         return $table
             ->columns([
+                BadgeColumn::make('business.name'),
                 TextColumn::make('name')
+                    ->label('Owner')
                     ->searchable(),
                 TextColumn::make('skus_sum_quantity')
-                    ->label('Total Products')
+                    ->label('Products')
                     ->sum('skus', 'quantity'),
                 TextColumn::make('email')
                     ->sortable()

@@ -101,6 +101,13 @@ class ProductResource extends Resource
             ->columns([
                 SpatieMediaLibraryImageColumn::make('image')
                     ->collection('sharees')
+                    ->action(
+                        Tables\Actions\Action::make('View Image')
+                            ->action(function (Product $record): void {
+                            })
+                            ->modalActions([])
+                            ->modalContent(fn (Product $record) => view('products.single-image', ['url' => $record->getMedia('sharees')->first()->getUrl()])),
+                    )
                     ->conversion('thumb'),
                 Tables\Columns\TextColumn::make('productType.name'),
                 Tables\Columns\TextColumn::make('name')

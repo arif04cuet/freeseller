@@ -2,7 +2,9 @@
 
     @foreach ($record->getAllImages() as $media)
         <div>
-            <img class="h-auto max-w-full rounded-lg" src="{{ $media->getUrl() }}" alt="" srcset="">
+            <a href="{{ $media->getUrl() }}">
+                <img class="h-auto max-w-full rounded-lg" src="{{ $media->getUrl() }}" alt="" srcset="" />
+            </a>
         </div>
     @endforeach
 
