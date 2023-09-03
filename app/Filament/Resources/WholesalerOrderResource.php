@@ -27,8 +27,8 @@ class WholesalerOrderResource extends Resource
     protected static ?string $navigationGroup = 'Wholesaler';
     protected static ?string $navigationIcon = 'heroicon-o-collection';
     protected static ?int $navigationSort = 1;
-    protected static ?string $navigationLabel = 'Orders';
     protected static ?string $slug = 'wholesaler/orders';
+    protected static ?string $modelLabel = 'Wholesale Orders';
 
 
     protected static function shouldRegisterNavigation(): bool

@@ -31,7 +31,7 @@ class HubOrderResource extends Resource
     protected static ?string $navigationGroup = 'Hub';
     protected static ?string $navigationIcon = 'heroicon-o-collection';
     protected static ?int $navigationSort = 1;
-    protected static ?string $navigationLabel = 'Orders';
+    protected static ?string $modelLabel = 'Hub Orders';
     protected static ?string $slug = 'hub/orders';
 
     protected static function shouldRegisterNavigation(): bool
