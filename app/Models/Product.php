@@ -146,6 +146,8 @@ class Product extends Model implements HasMedia
                     ->label($attribute->name)
                     ->disabledOn('edit')
                     ->required()
+                    ->preload()
+                    ->searchable()
                     ->reactive()
                     ->hint(function (Closure $get, $state, Livewire $livewire, Closure $set) use ($attribute) {
 

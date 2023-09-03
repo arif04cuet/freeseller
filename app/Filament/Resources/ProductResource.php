@@ -61,6 +61,9 @@ class ProductResource extends Resource
                     ->reactive(),
 
                 Forms\Components\Select::make('category_id')
+                    ->label('Category')
+                    ->preload()
+                    ->searchable()
                     ->options(fn (Closure $get) => Category::query()
                         ->where('product_type_id', $get('product_type_id'))
                         ->pluck('name', 'id'))
