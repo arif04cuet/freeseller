@@ -25,7 +25,7 @@ class AddSkuNumnerToImage
         $sku = $media->model;
 
         $img = Image::make($imagePath);
-        $img->text($sku->waterMarkText(), 0, 10);
+        $img->text($sku->waterMarkText(), 6, 10);
         $img->save($imagePath);
     }
 }

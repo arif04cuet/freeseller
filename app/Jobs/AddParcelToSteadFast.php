@@ -28,28 +28,32 @@ class AddParcelToSteadFast
     {
         $request = new AddParcelRequest($this->order);
         $response = $request->send();
-        logger($response->json());
-        if ($response->ok()) {
+        $errors = $response->ok() ? $response->json('errors') : ['server' => ['Something went wrong']];
 
-            $consignment = $response->json('consignment');
+        if (collect($errors)->count()) {
 
-            if ($order = Order::find($consignment['invoice'])) {
+            $error = collect(collect($errors)->first())->implode(',');
 
-                $order->update([
-                    'consignment_id' => $consignment['consignment_id'],
-                    'tracking_code' => $consignment['tracking_code'],
-                    'status' => OrderStatus::Courier_In_Review->value
-                ]);
-
-                Notification::make()
-                    ->title('Order successfully sent to Courier')
-                    ->success()
-                    ->send();
-            }
-        } else {
             Notification::make()
-                ->title('Something went wrong!')
+                ->title($error)
                 ->danger()
+                ->send();
+            return;
+        }
+
+
+        $consignment = $response->json('consignment');
+        if ($order = Order::find($consignment['invoice'])) {
+
+            $order->update([
+                'consignment_id' => $consignment['consignment_id'],
+                'tracking_code' => $consignment['tracking_code'],
+                'status' => OrderStatus::Courier_In_Review->value
+            ]);
+
+            Notification::make()
+                ->title('Order successfully sent to Courier')
+                ->success()
                 ->send();
         }
     }

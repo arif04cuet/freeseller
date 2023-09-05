@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ListResource\RelationManagers;
 
+use App\Models\Product;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -34,6 +35,13 @@ class ProductsRelationManager extends RelationManager
             ->columns([
                 SpatieMediaLibraryImageColumn::make('image')
                     ->collection('sharees')
+                    ->action(
+                        Tables\Actions\Action::make('View Image')
+                            ->action(function (Product $record): void {
+                            })
+                            ->modalActions([])
+                            ->modalContent(fn (Model $record) => view('products.gallery', compact('record'))),
+                    )
                     ->conversion('thumb'),
                 Tables\Columns\TextColumn::make('productType.name'),
                 Tables\Columns\TextColumn::make('name')
@@ -60,6 +68,7 @@ class ProductsRelationManager extends RelationManager
             ])
             ->actions([
                 Tables\Actions\DetachAction::make(),
+
             ])
             ->bulkActions([
                 Tables\Actions\DetachBulkAction::make(),

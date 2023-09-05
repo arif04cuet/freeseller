@@ -42,6 +42,7 @@ class WalletRechargeRequestResource extends Resource
                     ->mask(fn (Forms\Components\TextInput\Mask $mask) => $mask->money(prefix: 'BDT', thousandsSeparator: ',', decimalPlaces: 0))
                     ->numeric(),
                 Forms\Components\Select::make('bank')
+                    ->label('Payment Channel')
                     ->required()
                     ->options(PaymentChannel::array()),
 
@@ -66,6 +67,17 @@ class WalletRechargeRequestResource extends Resource
                 Tables\Columns\TextColumn::make('tnx_id')->searchable(),
                 SpatieMediaLibraryImageColumn::make('image')
                     ->label('recept')
+                    ->action(
+                        Tables\Actions\Action::make('View Image')
+                            ->action(function (Model $record): void {
+                            })
+                            ->modalActions([])
+                            ->modalContent(
+                                fn (Model $record) => view('products.single-image', [
+                                    'url' => $record->getMedia('recharge')->first()->getUrl()
+                                ])
+                            ),
+                    )
                     ->collection('recharge'),
                 Tables\Columns\BadgeColumn::make('status')
                     ->enum(WalletRechargeRequestStatus::array())
