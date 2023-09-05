@@ -2,26 +2,23 @@
 
 
     <table class="filament-tables-table w-full table-auto divide-y text-start dark:divide-gray-700">
+
         <thead>
-            <tr>
-                <th
-                    class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+            <tr class="bg-gray-500/5">
+
+                <th class="filament-tables-header-cell p-0 py-2 px-4">
                     Product
                 </th>
-                <th
-                    class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th class="filament-tables-header-cell p-0 py-2 px-4">
                     Item Name
                 </th>
-                <th
-                    class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th class="filament-tables-header-cell p-0 py-2 px-4">
                     Quantity
                 </th>
-                <th
-                    class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th class="filament-tables-header-cell p-0 py-2 px-4">
                     Status
                 </th>
-                <th
-                    class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th class="filament-tables-header-cell p-0 py-2 px-4">
                     Wholesaler
                 </th>
 
@@ -29,45 +26,20 @@
         </thead>
         <tbody>
             @foreach ($items as $item)
-                <tr>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <div class="flex">
-                            {{-- <div class="flex-shrink-0 w-10 h-10">
-                            <img class="shadow responsive" style="max-width: 100px"
-                                src="{{ $item->sku->getMedia('sharees')->first()->getUrl('thumb') }}" alt=""
-                                srcset="" />
-                        </div> --}}
-                            <div class="ml-3">
-                                <p class="text-gray-900 whitespace-no-wrap">
-                                    {{ $item->sku->product->name }}
-                                </p>
+                <tr class="filament-tables-row transition hover:bg-gray-50 dark:hover:bg-gray-500/10">
+                    @include('layout.table-td', ['text' => $item->sku->product->name])
+                    @include('layout.table-td', ['text' => $item->sku->name])
 
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <p class="text-gray-900 whitespace-no-wrap">{{ $item->sku->name }}</p>
+                    @include('layout.table-td', ['text' => $item->quantity])
+                    @include('layout.table-td', ['text' => $item->status->value])
 
-                    </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <p class="text-gray-900 whitespace-no-wrap">{{ $item->quantity }}</p>
-                    </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <span class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
-                            <span aria-hidden class="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span>
-                            <span class="relative">{{ $item->status->value }}</span>
-                        </span>
-                    </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <span class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
-                            <span aria-hidden class="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span>
-                            <span class="relative">{{ $item->wholesaler->business->first()->name }}
-                                ({{ $item->wholesaler->name }}
-                                -
-                                {{ $item->wholesaler->id }})
-                            </span>
-                        </span>
-                    </td>
+                    @php
+                        $businessName = $item->wholesaler->business->first()->name;
+                        $wholesaler = $item->wholesaler;
+                    @endphp
+                    @include('layout.table-td', [
+                        'text' => $businessName . '(' . $wholesaler->name . '-' . $wholesaler->id . ')',
+                    ])
                 </tr>
             @endforeach
 
