@@ -34,9 +34,20 @@ use function App\Utils\percentange;
 */
 
 Route::get('/mail', function () {
-    $user = User::find(2);
-    Filament::auth()->login($user);
-    return 'ok';
+
+    $title = 'oksasd asda asd';
+    $body = '';
+    $url = route('order.print.label', ['order' => 2]);
+    Notification::make()
+        ->title($title)
+        ->body($body)
+        ->actions([
+            Action::make('view')
+                ->button()
+                ->markAsRead()
+                ->url($url)
+        ])
+        ->sendToDatabase(User::find(1));
 });
 
 Route::post('/push', function () {

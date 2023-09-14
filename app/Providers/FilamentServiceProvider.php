@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Filament\Facades\Filament;
 use Filament\Navigation\NavigationGroup;
+use Filament\Notifications\Livewire\DatabaseNotifications;
+use Filament\Notifications\Notification;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\ServiceProvider;
@@ -26,8 +28,10 @@ class FilamentServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
         Filament::serving(function () {
 
+            DatabaseNotifications::pollingInterval('10s');
 
             FilamentAsset::register([
                 Js::make('example-local-script',  asset('js/enable-push.js')),
@@ -43,13 +47,7 @@ class FilamentServiceProvider extends ServiceProvider
             // ]);
 
 
-            // Filament::registerNavigationGroups([
-            //     'Reseller',
-            //     'Wholesaler',
-            //     'Hub',
-            //     'Catalog',
-            //     'Settings',
-            // ]);
+
         });
     }
 }
