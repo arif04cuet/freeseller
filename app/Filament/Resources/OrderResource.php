@@ -23,6 +23,7 @@ use Filament\Resources\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component as Livewire;
 use Illuminate\Support\Str;
 
@@ -68,6 +69,7 @@ class OrderResource extends Resource
                 Repeater::make('items')
                     ->columnSpanFull()
                     ->columns(5)
+                    ->required()
                     ->cloneable()
                     ->reactive()
                     ->visible(fn (Closure $get) => $get('hub_id') && $get('list'))
@@ -194,15 +196,32 @@ class OrderResource extends Resource
                     ->dehydrated(false)
                     ->hidden(),
                 Forms\Components\Select::make('customer_id')
+                    ->label('Customer')
                     ->required()
                     ->searchable()
                     ->getSearchResultsUsing(
                         fn (string $search) => Customer::query()
-                            ->where('name', 'like', "%{$search}%")
-                            ->orWhere('mobile', 'like', "%{$search}%")
-                            ->pluck('name', 'id')
+                            ->whereRelation('resellers', 'reseller_id', auth()->user()->id)
+                            ->select(
+                                DB::raw("CONCAT(customers.name,' ',customers.mobile) as label"),
+                                "id"
+                            )
+                            ->where('name', 'like', "{$search}%")
+                            ->orWhere('mobile', 'like', "{$search}%")
+                            ->pluck('label', 'id')
                     )
-                    ->relationship('customer', 'name')
+                    ->createOptionAction(
+                        fn ($action, Closure $set) => $action->action(
+                            function ($data) use ($set) {
+                                $customer = Customer::updateOrCreate(
+                                    ['mobile' => $data['mobile']],
+                                    $data
+                                );
+                                $customer->resellers()->syncWithoutDetaching([auth()->user()->id]);
+                                $set('customer_id', $customer->id);
+                            }
+                        )
+                    )
                     ->createOptionForm([
                         Forms\Components\Grid::make('customer')
                             ->columns(2)
@@ -215,7 +234,6 @@ class OrderResource extends Resource
                                     ->type('number')
                                     ->rules('numeric|digits_between:11,11')
                                     ->placeholder('01xxxxxxxxx')
-                                    ->unique()
                                     ->required(),
                                 Forms\Components\Textarea::make('address')
                                     ->required(),
@@ -264,9 +282,15 @@ class OrderResource extends Resource
                     ->hintColor('danger'),
 
                 Forms\Components\Textarea::make('note_for_wholesaler')
-                    ->label('Message for manufacturer if any'),
+                    ->label('Message for manufacturer if any')
+                    ->maxLength(300)
+                    ->rules('size:300')
+                    ->hint(fn ($state, $component) => 'Max ' . $component->getMaxLength() . ' characters'),
                 Forms\Components\Textarea::make('note_for_courier')
-                    ->label('Message for Courier if any'),
+                    ->label('Message for Courier if any')
+                    ->maxLength(300)
+                    ->rules('size:300')
+                    ->hint(fn ($state, $component) => 'Max ' . $component->getMaxLength() . ' characters'),
 
             ]);
     }
@@ -277,6 +301,8 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('consignment_id')
+                    ->label('CN'),
                 Tables\Columns\TextColumn::make('created_at')->dateTime(),
                 Tables\Columns\TextColumn::make('items_sum_quantity')
                     ->label('Products')
@@ -309,38 +335,14 @@ class OrderResource extends Resource
             ->actions([
                 Tables\Actions\Action::make('track')
                     ->label('Track Order')
-                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
+                    ->url(fn (Order $record) => $record->tracking_url)
                     ->visible(fn (Order $record) => $record->tracking_code)
                     ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make()
                     ->visible(fn (?Model $record) => $record?->status?->value == OrderStatus::WaitingForWholesalerApproval->value),
-                // Tables\Actions\ViewAction::make()
-                //     ->visible(fn (?Model $record) => $record?->status?->value != OrderStatus::WaitingForWholesalerApproval->value)
-                //     ->mutateRecordDataUsing(function (Model $record, array $data) {
-
-                //         $data['list'] = explode('-', $data['tracking_no'])[0];
-
-                //         $items = Order::with('items')->find($data['id'])
-                //             ->items
-                //             ->map(function ($item) {
-
-                //                 return [
-                //                     'product' => $item->sku->product->id,
-                //                     'sku' => $item->sku_id,
-                //                     'quantity' => $item->quantity,
-                //                     'reseller_price' => $item->reseller_price,
-                //                     'subtotal' => $item->total_saleable,
-                //                     'status' => $item->status
-                //                 ];
-                //             })->toArray();
-
-                //         $data['items'] = $items;
-
-                //         return $data;
-                //     }),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                //Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 

@@ -27,6 +27,9 @@ class ActiveResellerOrders extends BaseWidget
     {
         return Order::query()
             ->whereBelongsTo(auth()->user(), 'reseller')
+            ->whereNotIn('status', [
+                OrderStatus::Delivered->value
+            ])
             ->latest();
     }
 
@@ -42,6 +45,12 @@ class ActiveResellerOrders extends BaseWidget
                     'success' => OrderStatus::Delivered->value,
                     'danger' => OrderStatus::Cancelled->value,
                 ]),
+            Tables\Columns\TextColumn::make('consignment_id')
+                ->label('CN'),
+            Tables\Columns\TextColumn::make('track')
+                ->label('Track')
+                ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
+                ->openUrlInNewTab(),
             Tables\Columns\TextColumn::make('items_sum_quantity')
                 ->label('Products')
                 ->sum('items', 'quantity'),

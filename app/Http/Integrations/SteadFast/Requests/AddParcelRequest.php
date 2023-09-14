@@ -31,6 +31,8 @@ class AddParcelRequest extends Request implements HasBody
     protected function defaultBody(): array
     {
         $order = $this->order;
+        $reseller = $order->reseller;
+        $cta = 'Call this number for any query : ' . $reseller->mobile;
 
         return [
 
@@ -39,7 +41,7 @@ class AddParcelRequest extends Request implements HasBody
             'recipient_phone' => $order->customer->mobile,
             'recipient_address' => $order->customer->address,
             'cod_amount' => (int) $order->cod,
-            'note' => $order->note_for_courier
+            'note' => $order->note_for_courier . ' ' . $cta
 
         ];
     }

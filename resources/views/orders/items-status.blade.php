@@ -19,7 +19,11 @@
                     Status
                 </th>
                 <th class="filament-tables-header-cell p-0 py-2 px-4">
-                    Wholesaler
+                    @if (auth()->user()->isWholesaler())
+                        Reseller Msg.
+                    @else
+                        Wholesaler
+                    @endif
                 </th>
 
             </tr>
@@ -37,8 +41,21 @@
                         $businessName = $item->wholesaler->business->first()->name;
                         $wholesaler = $item->wholesaler;
                     @endphp
+
                     @include('layout.table-td', [
-                        'text' => $businessName . '(' . $wholesaler->name . '-' . $wholesaler->id . ')',
+                        'text' => auth()->user()->isWholesaler()
+                            ? $item->order->note_for_wholesaler
+                            : $businessName .
+                                '<br/>' .
+                                $wholesaler->name .
+                                '-' .
+                                $wholesaler->id .
+                                '<br/>' .
+                                '<a href="tel:' .
+                                $wholesaler->mobile .
+                                '">' .
+                                $wholesaler->mobile .
+                                '</a>',
                     ])
                 </tr>
             @endforeach

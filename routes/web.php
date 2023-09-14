@@ -32,7 +32,6 @@ use function App\Utils\percentange;
 */
 
 Route::get('/mail', function () {
-    return 'ok';
 });
 
 Route::post('/push', function () {

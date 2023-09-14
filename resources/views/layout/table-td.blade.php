@@ -7,7 +7,7 @@
                 <div class="inline-flex items-center space-x-1 rtl:space-x-reverse">
 
                     <span class="">
-                        {{ $text }}
+                        {!! $text !!}
                     </span>
 
                 </div>

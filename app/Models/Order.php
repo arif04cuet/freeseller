@@ -103,6 +103,13 @@ class Order extends Model
 
     //accessors
 
+    public function trackingUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value, array $attributes) => 'https://steadfast.com.bd/t/' . $attributes['tracking_code']
+        );
+    }
+
     public function totalAmountForWholesaler(): Attribute
     {
 
