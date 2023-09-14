@@ -1,4 +1,4 @@
-<x-filament::page :widget-data="['record' => $record]" :class="\Illuminate\Support\Arr::toCssClasses([
+<x-filament-panels::page :widget-data="['record' => $record]" :class="\Illuminate\Support\Arr::toCssClasses([
     'filament-resources-view-record-page',
     'filament-resources-' . str_replace('/', '-', $this->getResource()::getSlug()),
     'filament-resources-record-' . $record->getKey(),
@@ -13,7 +13,7 @@
 
     @if (count($relationManagers))
         @if (!$this->hasCombinedRelationManagerTabsWithForm())
-            <x-filament::hr />
+            {{-- <x-filament::hr /> --}}
         @endif
 
         <x-filament::resources.relation-managers :active-manager="$activeRelationManager" :form-tab-label="$this->getFormTabLabel()" :managers="$relationManagers" :owner-record="$record"
@@ -25,4 +25,4 @@
             @endif
         </x-filament::resources.relation-managers>
     @endif
-</x-filament::page>
+</x-filament-panels::page>

@@ -13,9 +13,9 @@ use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput\Mask;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Illuminate\Database\Eloquent\Builder;
@@ -26,12 +26,12 @@ class ProductResource extends Resource
     protected static ?string $model = Product::class;
 
     protected static ?string $navigationGroup = 'Wholesaler';
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 2;
     protected static ?string $navigationLabel = 'My Products';
 
 
-    protected static function shouldRegisterNavigation(): bool
+    public static function shouldRegisterNavigation(): bool
     {
         return auth()->user()->hasAnyRole([
             SystemRole::Wholesaler->value,
@@ -44,7 +44,7 @@ class ProductResource extends Resource
         return parent::getEloquentQuery()->mine();
     }
 
-    protected static function getNavigationBadge(): ?string
+    public static function getNavigationBadge(): ?string
     {
         return static::getEloquentQuery()->count();
     }
@@ -64,7 +64,7 @@ class ProductResource extends Resource
                     ->label('Category')
                     ->preload()
                     ->searchable()
-                    ->options(fn (Closure $get) => Category::query()
+                    ->options(fn (\Filament\Forms\Get $get) => Category::query()
                         ->where('product_type_id', $get('product_type_id'))
                         ->pluck('name', 'id'))
                     ->required(),
@@ -73,13 +73,8 @@ class ProductResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('price')
                     ->numeric()
-                    ->mask(
-                        fn (Mask $mask) => $mask
-                            ->numeric()
-                            ->decimalPlaces(2)
-                    )
-                    ->visible(fn (Closure $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price)
-                    ->required(fn (Closure $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price),
+                    ->visible(fn (\Filament\Forms\Get $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price)
+                    ->required(fn (\Filament\Forms\Get $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price),
 
                 Forms\Components\RichEditor::make('description')
                     ->required(),

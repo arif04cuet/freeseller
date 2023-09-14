@@ -8,9 +8,9 @@ use App\Filament\Resources\ProductTypeResource\RelationManagers\OptionsRelationM
 use App\Models\ProductType;
 use Closure;
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Illuminate\Support\Str;
 
@@ -19,7 +19,7 @@ class ProductTypeResource extends Resource
     protected static ?string $model = ProductType::class;
 
     protected static ?string $navigationGroup = 'Catalog';
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 2;
 
 
@@ -29,7 +29,7 @@ class ProductTypeResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->reactive()
-                    ->afterStateUpdated(function (Closure $set, $state) {
+                    ->afterStateUpdated(function (\Filament\Forms\Set $set, $state) {
                         $set('code', Str::slug($state));
                     }),
                 Forms\Components\TextInput::make('code')
@@ -81,7 +81,7 @@ class ProductTypeResource extends Resource
         ];
     }
 
-    protected static function getNavigationBadge(): ?string
+    public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
     }

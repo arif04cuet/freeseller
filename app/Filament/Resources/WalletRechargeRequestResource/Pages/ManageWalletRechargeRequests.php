@@ -13,7 +13,7 @@ class ManageWalletRechargeRequests extends ManageRecords
 {
     protected static string $resource = WalletRechargeRequestResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             Actions\CreateAction::make()

@@ -12,9 +12,9 @@ use App\Models\OrderItem;
 use App\Models\WholesalerOrder;
 use Filament\Forms;
 use Filament\Notifications\Notification;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -25,13 +25,13 @@ class WholesalerOrderResource extends Resource
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationGroup = 'Wholesaler';
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 1;
     protected static ?string $slug = 'wholesaler/orders';
     protected static ?string $modelLabel = 'Wholesale Orders';
 
 
-    protected static function shouldRegisterNavigation(): bool
+    public static function shouldRegisterNavigation(): bool
     {
         return auth()->user()->hasAnyRole([
             SystemRole::Wholesaler->value,
@@ -47,7 +47,7 @@ class WholesalerOrderResource extends Resource
             ->latest();
     }
 
-    protected static function getNavigationBadge(): ?string
+    public static function getNavigationBadge(): ?string
     {
         return static::getEloquentQuery()->count();
     }
@@ -74,14 +74,8 @@ class WholesalerOrderResource extends Resource
                 Tables\Columns\TextColumn::make('total_items')
                     ->label('Total Products')
                     ->getStateUsing(fn (Model $record) => $record->getItemsByWholesaler(auth()->user())->sum('quantity')),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->enum(OrderStatus::array())
-                    ->colors([
-                        'secondary' =>  OrderStatus::WaitingForWholesalerApproval->value,
-                        'warning' =>  OrderStatus::Processing->value,
-                        'success' => OrderStatus::Approved->value,
-                        'danger' => OrderStatus::Cancelled->value,
-                    ]),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge(),
             ])
             ->filters([
                 //
@@ -95,7 +89,7 @@ class WholesalerOrderResource extends Resource
 
                 Tables\Actions\Action::make('items')
                     ->label('Products')
-                    ->icon('heroicon-o-view-list')
+                    ->icon('heroicon-o-bars-4')
                     ->iconButton()
                     ->action(
                         function (Tables\Actions\Action $action, $data, Order $record) {

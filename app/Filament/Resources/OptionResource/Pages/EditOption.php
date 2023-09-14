@@ -10,7 +10,7 @@ class EditOption extends EditRecord
 {
     protected static string $resource = OptionResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             Actions\DeleteAction::make(),

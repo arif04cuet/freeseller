@@ -37,14 +37,8 @@ class ActiveResellerOrders extends BaseWidget
     {
         return [
             Tables\Columns\TextColumn::make('id')->label('Order#'),
-            Tables\Columns\BadgeColumn::make('status')
-                ->enum(OrderStatus::array())
-                ->colors([
-                    'secondary' =>  OrderStatus::WaitingForWholesalerApproval->value,
-                    'warning' =>  OrderStatus::Processing->value,
-                    'success' => OrderStatus::Delivered->value,
-                    'danger' => OrderStatus::Cancelled->value,
-                ]),
+            Tables\Columns\TextColumn::make('status')
+                ->badge(),
             Tables\Columns\TextColumn::make('consignment_id')
                 ->label('CN'),
             Tables\Columns\TextColumn::make('track')

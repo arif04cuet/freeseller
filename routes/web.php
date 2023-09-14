@@ -2,6 +2,7 @@
 
 use App\Enum\AddressType;
 use App\Enum\BusinessType;
+use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\PrintOrderLabel;
 use App\Http\Integrations\SteadFast\Requests\GetParcelStatusByTrackingCodeRequest;
 use App\Listeners\SendNewOrderNotificationToHub;
@@ -13,6 +14,7 @@ use App\Models\Sku;
 use App\Models\User;
 use App\Notifications\NewSignupAdminNotification;
 use App\Notifications\PushDemo;
+use Filament\Facades\Filament;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +34,9 @@ use function App\Utils\percentange;
 */
 
 Route::get('/mail', function () {
+    $user = User::find(2);
+    Filament::auth()->login($user);
+    return 'ok';
 });
 
 Route::post('/push', function () {
@@ -54,6 +59,14 @@ Route::get('/', function () {
     return redirect()->to(config('filament.path'));
     return view('welcome');
 });
+
+Route::name('verification.')
+    ->prefix('/email-verification')
+    ->group(function () {
+        Route::get('/verify', EmailVerificationController::class)
+            ->middleware(['signed'])
+            ->name('verify');
+    });
 
 #####
 //Route::get('/orders/{order}/track', PrintOrderLabel::class)->name('order.print.label');

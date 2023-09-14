@@ -9,9 +9,9 @@ use App\Filament\Resources\WalletRechargeRequestResource\RelationManagers;
 use App\Models\WalletRechargeRequest;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,7 +23,7 @@ class WalletRechargeRequestResource extends Resource
     protected static ?string $model = WalletRechargeRequest::class;
 
     protected static ?string $navigationGroup = 'Reseller';
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $modelLabel = 'Recharge Approval';
     protected static ?int $navigationSort = 5;
 
@@ -79,8 +79,8 @@ class WalletRechargeRequestResource extends Resource
                             ),
                     )
                     ->collection('recharge'),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->enum(WalletRechargeRequestStatus::array())
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
                     ->colors([
                         'danger'  => WalletRechargeRequestStatus::Rejected->value,
                         'warning' => WalletRechargeRequestStatus::Pending->value,

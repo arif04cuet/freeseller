@@ -13,7 +13,7 @@ class ManageFundWithdrawRequests extends ManageRecords
 {
     protected static string $resource = FundWithdrawRequestResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             Actions\CreateAction::make()

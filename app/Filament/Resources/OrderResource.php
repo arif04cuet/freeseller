@@ -17,9 +17,9 @@ use App\Models\Sku;
 use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\Repeater;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -32,12 +32,12 @@ class OrderResource extends Resource
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationGroup = 'Reseller';
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 1;
     protected static ?string $navigationLabel = 'My Orders';
 
 
-    protected static function shouldRegisterNavigation(): bool
+    public static function shouldRegisterNavigation(): bool
     {
         return auth()->user()->hasAnyRole([
             SystemRole::Reseller->value,
@@ -61,8 +61,8 @@ class OrderResource extends Resource
                 Forms\Components\Select::make('hub_id')
                     ->label('Select Hub')
                     ->required()
-                    ->visible(fn (Closure $get) => !empty($get('list')))
-                    ->options(fn (Closure $get) => ResellerList::hubsInList($get('list')))
+                    ->visible(fn (\Filament\Forms\Get $get) => !empty($get('list')))
+                    ->options(fn (\Filament\Forms\Get $get) => ResellerList::hubsInList($get('list')))
                     ->disabledOn('edit')
                     ->reactive(),
 
@@ -72,7 +72,7 @@ class OrderResource extends Resource
                     ->required()
                     ->cloneable()
                     ->reactive()
-                    ->visible(fn (Closure $get) => $get('hub_id') && $get('list'))
+                    ->visible(fn (\Filament\Forms\Get $get) => $get('hub_id') && $get('list'))
                     ->disableItemCreation(
                         fn (?Model $record, $context) => $context == 'edit' &&
                             $record?->status?->value != OrderStatus::WaitingForWholesalerApproval->value
@@ -81,7 +81,7 @@ class OrderResource extends Resource
 
                         Forms\Components\Select::make('sku')
                             ->label('Product')
-                            ->visible(fn (Closure $get) => $get('../../hub_id') && $get('../../list'))
+                            ->visible(fn (\Filament\Forms\Get $get) => $get('../../hub_id') && $get('../../list'))
                             ->reactive()
                             ->required()
                             ->searchable()
@@ -93,11 +93,11 @@ class OrderResource extends Resource
 
                         Forms\Components\TextInput::make('quantity')
                             ->reactive()
-                            ->visible(fn (Closure $get) => $get('sku'))
-                            ->helperText(fn (Closure $get) => 'Available quantity is ' . Sku::find($get('sku'))->quantity)
-                            ->maxValue(fn (Closure $get) => Sku::find($get('sku'))->quantity)
+                            ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
+                            ->helperText(fn (\Filament\Forms\Get $get) => 'Available quantity is ' . Sku::find($get('sku'))->quantity)
+                            ->maxValue(fn (\Filament\Forms\Get $get) => Sku::find($get('sku'))->quantity)
                             ->required()
-                            ->afterStateUpdated(function (Closure $get, Closure $set, ?string $state) {
+                            ->afterStateUpdated(function (\Filament\Forms\Get $get, \Filament\Forms\Set $set, ?string $state) {
 
                                 $subtotal = (int) $get('reseller_price') * (int) $state;
                                 $set('subtotal', $subtotal);
@@ -107,11 +107,11 @@ class OrderResource extends Resource
                         Forms\Components\TextInput::make('reseller_price')
                             ->label('Sell Price')
                             ->reactive()
-                            ->visible(fn (Closure $get) => $get('sku'))
-                            ->helperText(fn (Closure $get) => 'Wholesaler Price is ' . (int) Sku::find($get('sku'))->price)
-                            ->minValue(fn (Closure $get) => Sku::find($get('sku'))->wholesalePrice)
+                            ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
+                            ->helperText(fn (\Filament\Forms\Get $get) => 'Wholesaler Price is ' . (int) Sku::find($get('sku'))->price)
+                            ->minValue(fn (\Filament\Forms\Get $get) => Sku::find($get('sku'))->wholesalePrice)
                             ->required()
-                            ->afterStateUpdated(function (Closure $get, Closure $set, ?string $state) {
+                            ->afterStateUpdated(function (\Filament\Forms\Get $get, \Filament\Forms\Set $set, ?string $state) {
 
                                 $subtotal = (int) $get('quantity') * (int) $state;
                                 $set('subtotal', $subtotal);
@@ -119,7 +119,7 @@ class OrderResource extends Resource
                             ->numeric(),
 
                         Forms\Components\TextInput::make('subtotal')
-                            ->visible(fn (Closure $get) => $get('sku'))
+                            ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
                             ->disabled(),
 
                         Forms\Components\TextInput::make('status')
@@ -138,7 +138,7 @@ class OrderResource extends Resource
                             ->required()
                             ->label('Courier charge')
                             ->disabled()
-                            ->helperText(function (Closure $get, Closure $set, ?Model $record, $state) {
+                            ->helperText(function (\Filament\Forms\Get $get, \Filament\Forms\Set $set, ?Model $record, $state) {
 
                                 $charge = Order::courierCharge($get('items'));
 
@@ -154,7 +154,7 @@ class OrderResource extends Resource
                         Forms\Components\TextInput::make('total_payable')
                             ->required()
                             ->disabled()
-                            ->helperText(function (Closure $get, Closure $set, ?Model $record, $state) {
+                            ->helperText(function (\Filament\Forms\Get $get, \Filament\Forms\Set $set, ?Model $record, $state) {
 
                                 $total_payable = Order::totalPayable($get('items'));
 
@@ -165,7 +165,7 @@ class OrderResource extends Resource
                         Forms\Components\TextInput::make('total_saleable')
                             ->required()
                             ->disabled()
-                            ->helperText(function (Closure $get, Closure $set, ?Model $record, $state) {
+                            ->helperText(function (\Filament\Forms\Get $get, \Filament\Forms\Set $set, ?Model $record, $state) {
 
                                 $subtotals = Order::totalSubtotals($get('items'));
                                 $totalWholesalerAmount = Order::totalWholesaleAmount($get('items'));
@@ -211,7 +211,7 @@ class OrderResource extends Resource
                             ->pluck('label', 'id')
                     )
                     ->createOptionAction(
-                        fn ($action, Closure $set) => $action->action(
+                        fn ($action, \Filament\Forms\Set $set) => $action->action(
                             function ($data) use ($set) {
                                 $customer = Customer::updateOrCreate(
                                     ['mobile' => $data['mobile']],
@@ -248,11 +248,11 @@ class OrderResource extends Resource
                     ->default(1)
                     ->label('COD (total saleable + courier)')
                     ->reactive()
-                    ->afterStateUpdated(function (Closure $set, Closure $get, $state) {
+                    ->afterStateUpdated(function (\Filament\Forms\Set $set, \Filament\Forms\Get $get, $state) {
 
                         $set('cod_update', 2);
                     })
-                    ->hint(function (Closure $get, $state, Closure $set, string $context) {
+                    ->hint(function (\Filament\Forms\Get $get, $state, \Filament\Forms\Set $set, string $context) {
 
                         $subtotals = Order::totalSubtotals($get('items'));
                         $courierCharge = Order::courierCharge($get('items'));
@@ -319,14 +319,8 @@ class OrderResource extends Resource
                 // Tables\Columns\TextColumn::make('customer.address')->label('Address'),
                 // Tables\Columns\TextColumn::make('note')
                 //     ->wrap(),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->enum(OrderStatus::array())
-                    ->colors([
-                        'secondary' =>  OrderStatus::WaitingForWholesalerApproval->value,
-                        'warning' =>  OrderStatus::Processing->value,
-                        'success' => OrderStatus::Approved->value,
-                        'danger' => OrderStatus::Cancelled->value,
-                    ]),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge(),
 
             ])
             ->filters([

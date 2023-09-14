@@ -149,7 +149,7 @@ class Product extends Model implements HasMedia
                     ->preload()
                     ->searchable()
                     ->reactive()
-                    ->hint(function (Closure $get, $state, Livewire $livewire, Closure $set) use ($attribute) {
+                    ->hint(function (\Filament\Forms\Get $get, $state, Livewire $livewire, \Filament\Forms\Set $set) use ($attribute) {
 
                         if ($state) {
                             $product = $livewire->ownerRecord;

@@ -8,9 +8,9 @@ use App\Filament\Resources\PaymentChannelResource\RelationManagers;
 use App\Models\PaymentChannel;
 use Closure;
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -20,7 +20,7 @@ class PaymentChannelResource extends Resource
     protected static ?string $model = PaymentChannel::class;
 
     protected static ?string $modelLabel = 'Account';
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function getEloquentQuery(): Builder
     {
@@ -42,9 +42,9 @@ class PaymentChannelResource extends Resource
                     ->placeholder('01xxxxxxxxx')
                     ->unique(ignoreRecord: true)
                     ->required()
-                    ->visible(fn (Closure $get) => $get('type') == EnumPaymentChannel::bKash->value),
+                    ->visible(fn (\Filament\Forms\Get $get) => $get('type') == EnumPaymentChannel::bKash->value),
                 Forms\Components\Grid::make('bank')
-                    ->visible(fn (Closure $get) => $get('type') == EnumPaymentChannel::Bank->value)
+                    ->visible(fn (\Filament\Forms\Get $get) => $get('type') == EnumPaymentChannel::Bank->value)
                     ->columns(2)
                     ->schema([
                         Forms\Components\TextInput::make('bank_name')

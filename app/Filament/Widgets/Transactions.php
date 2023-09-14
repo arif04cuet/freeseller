@@ -26,7 +26,7 @@ class Transactions extends BaseWidget
 
             Tables\Columns\TextColumn::make('amount')
                 ->searchable(),
-            Tables\Columns\BadgeColumn::make('type')
+            Tables\Columns\TextColumn::make('type')
                 ->colors([
                     'success' => 'deposit',
                     'danger' => 'withdraw',

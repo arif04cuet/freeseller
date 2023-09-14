@@ -3,8 +3,9 @@
 namespace App\Enum;
 
 use App\Traits\EnumToArray;
+use Filament\Support\Contracts\HasColor;
 
-enum OrderStatus: string
+enum OrderStatus: string implements HasColor
 {
     use EnumToArray;
 
@@ -25,4 +26,18 @@ enum OrderStatus: string
     case Approved = 'approved';
 
     case Delivered = 'delivered';
+
+    public function getColor(): string | array | null
+    {
+        return match ($this) {
+            self::WaitingForWholesalerApproval => 'secondary',
+            self::WaitingForHubCollection => 'secondary',
+            self::ProcessingForHandOverToCourier => 'secondary',
+            self::HandOveredToCourier => 'secondary',
+            self::Courier_In_Review => 'secondary',
+            self::Processing => 'warning',
+            self::Delivered => 'success',
+            self::Cancelled => 'danger'
+        };
+    }
 }

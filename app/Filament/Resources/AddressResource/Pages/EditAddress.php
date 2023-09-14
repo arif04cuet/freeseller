@@ -12,7 +12,7 @@ class EditAddress extends EditRecord
 {
     protected static string $resource = AddressResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             // Actions\DeleteAction::make(),

@@ -6,9 +6,9 @@ use App\Enum\AddressType;
 use App\Models\Role;
 use App\Models\User;
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Contracts\HasRelationshipTable;
 use Illuminate\Auth\Events\Registered;
@@ -28,20 +28,20 @@ class UsersRelationManager extends RelationManager
     protected static ?string $modelLabel = 'User';
 
 
-    protected function getTableQuery(): Builder
-    {
-        return parent::getTableQuery()->whereHas('addressable', function ($query) {
-            return $query->hubUsers();
-        });
-    }
+    // protected function getTableQuery(): Builder
+    // {
+    //     return parent::getTableQuery()->whereHas('addressable', function ($query) {
+    //         return $query->hubUsers();
+    //     });
+    // }
 
-    public static function canViewForRecord(Model $ownerRecord): bool
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
         return $ownerRecord->type->value == AddressType::Hub->value;
     }
 
 
-    public static function form(Form $form): Form
+    public function form(Form $form): Form
     {
         return $form
             ->schema([
@@ -74,9 +74,14 @@ class UsersRelationManager extends RelationManager
             ]);
     }
 
-    public static function table(Table $table): Table
+    public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(
+                fn (Builder $query) => $query->whereHas('addressable', function ($query) {
+                    return $query->hubUsers();
+                })
+            )
             ->columns([
                 Tables\Columns\TextColumn::make('addressable.name')
                     ->label('Name'),
@@ -105,7 +110,7 @@ class UsersRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make()
                     ->successNotificationTitle('User created. check user email to activate account.')
                     ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->type->value == AddressType::Hub->value)
-                    ->using(function (HasRelationshipTable $livewire, array $data): Model {
+                    ->using(function (RelationManager $livewire, array $data): Model {
 
                         //create user
                         $user = User::create([

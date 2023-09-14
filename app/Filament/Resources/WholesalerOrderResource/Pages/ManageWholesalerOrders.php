@@ -10,7 +10,7 @@ class ManageWholesalerOrders extends ManageRecords
 {
     protected static string $resource = WholesalerOrderResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             //Actions\CreateAction::make(),

@@ -7,14 +7,18 @@ use Filament\Facades\Filament;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Filament\Http\Responses\Auth\Contracts\EmailVerificationResponse;
 
 class EmailVerificationController extends Controller
 {
 
 
-    public function __invoke(string $id, string $hash): RedirectResponse
+    public function __invoke(Request $request): EmailVerificationResponse
     {
+        $id = $request->id;
+        $hash =  $request->hash;
 
         $user = User::find($id);
 
@@ -22,18 +26,13 @@ class EmailVerificationController extends Controller
             throw new AuthorizationException;
         }
 
-        if ($user->hasVerifiedEmail()) {
-            return redirect(config("filament.home_url"));
-        }
-
-        if ($user->markEmailAsVerified()) {
+        if (!$user->hasVerifiedEmail() && $user->markEmailAsVerified()) {
             event(new Verified($user));
-            $user->markAsActive();
 
             if (!Filament::auth()->check())
                 Filament::auth()->login($user);
         }
 
-        return redirect(config("filament.home_url"));
+        return app(EmailVerificationResponse::class);
     }
 }

@@ -9,9 +9,9 @@ use App\Filament\Resources\AddressResource\RelationManagers\UsersRelationManager
 use App\Models\Address;
 use Closure;
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +22,7 @@ class AddressResource extends Resource
     protected static ?string $model = Address::class;
 
     protected static ?string $navigationGroup = 'Settings';
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationLabel = 'Hub / Addresses';
     protected static ?int $navigationSort = 3;
 
@@ -47,30 +47,30 @@ class AddressResource extends Resource
                             ->options(Address::whereType(AddressType::Division->value)->pluck('name', 'id'))
                             ->reactive(),
                         Forms\Components\Select::make('district')
-                            ->options(fn (Closure $get) => Address::query()
+                            ->options(fn (\Filament\Forms\Get $get) => Address::query()
                                 ->whereType(AddressType::District->value)
                                 ->whereParentId($get('division'))
                                 ->pluck('name', 'id'))
                             ->reactive(),
 
                         Forms\Components\Select::make('upazila')
-                            ->options(fn (Closure $get) => Address::query()
+                            ->options(fn (\Filament\Forms\Get $get) => Address::query()
                                 ->whereType(AddressType::Upazila->value)
                                 ->whereParentId($get('district'))
                                 ->pluck('name', 'id'))
                             ->reactive()
-                            ->visible(fn (Closure $get) => in_array($get('type'), [
+                            ->visible(fn (\Filament\Forms\Get $get) => in_array($get('type'), [
                                 AddressType::Union->value,
                                 AddressType::Hub->value
                             ])),
 
                         Forms\Components\Select::make('union')
-                            ->options(fn (Closure $get) => Address::query()
+                            ->options(fn (\Filament\Forms\Get $get) => Address::query()
                                 ->whereType(AddressType::Union->value)
                                 ->whereParentId($get('upazila'))
                                 ->pluck('name', 'id'))
                             ->reactive()
-                            ->visible(fn (Closure $get) => in_array($get('type'), [
+                            ->visible(fn (\Filament\Forms\Get $get) => in_array($get('type'), [
                                 AddressType::Hub->value
                             ])),
                     ])->columns(4),
@@ -78,7 +78,7 @@ class AddressResource extends Resource
 
                 Forms\Components\TextInput::make('name')
                     ->columnSpanFull()
-                    ->label(fn (Closure $get) => AddressType::tryFrom($get('type'))?->name ? AddressType::tryFrom($get('type'))->name . ' Name' : 'Name')
+                    ->label(fn (\Filament\Forms\Get $get) => AddressType::tryFrom($get('type'))?->name ? AddressType::tryFrom($get('type'))->name . ' Name' : 'Name')
             ]);
     }
 
@@ -121,7 +121,7 @@ class AddressResource extends Resource
         ];
     }
 
-    protected static function getNavigationBadge(): ?string
+    public static function getNavigationBadge(): ?string
     {
         return static::getEloquentQuery()->whereType(AddressType::Hub->value)->count();
     }

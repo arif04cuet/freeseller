@@ -11,13 +11,13 @@ class ListAllProducts extends ListRecords
 {
     protected static string $resource = AllProductResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [];
     }
 
     protected function getTableFiltersLayout(): ?string
     {
-        return Layout::AboveContentCollapsible;
+        return \Filament\Tables\Enums\FiltersLayout::AboveContentCollapsible;
     }
 }

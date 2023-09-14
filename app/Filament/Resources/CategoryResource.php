@@ -11,11 +11,10 @@ use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -26,7 +25,7 @@ class CategoryResource extends Resource
     protected static ?string $model = Category::class;
 
     protected static ?string $navigationGroup = 'Catalog';
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
@@ -57,7 +56,7 @@ class CategoryResource extends Resource
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('productType.name'),
-                BadgeColumn::make('is_system')
+                TextColumn::make('is_system')
                     ->color(fn (Model $record) => $record->is_system ? 'danger' : 'success')
                     ->formatStateUsing(fn (Model $record) => $record->is_system ? 'Yes' : 'No')
             ])
@@ -88,7 +87,7 @@ class CategoryResource extends Resource
         ];
     }
 
-    protected static function getNavigationBadge(): ?string
+    public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
     }

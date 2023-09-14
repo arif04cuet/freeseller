@@ -161,6 +161,11 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
 
     //functions
 
+    public function autoActivation()
+    {
+        return config('app.user_auto_activation');
+    }
+
     public static function platformOwner(): User
     {
         return User::find(1);

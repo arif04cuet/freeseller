@@ -10,11 +10,13 @@ use App\Jobs\DisburseOrderAmount;
 use App\Listeners\ActivateUser;
 use App\Listeners\AddSkuNumnerToImage;
 use App\Listeners\ChangeOrderStatusWhenItemApproved;
+use App\Listeners\CheckUserActivity;
 use App\Listeners\CreateWallet;
 use App\Listeners\DisburseOrderAmountAction;
 use App\Listeners\LockResellerAmount;
 use App\Listeners\SendNewOrderNotifications;
 use App\Listeners\SendNewSignupEmailNotificationToAdmins;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -34,6 +36,7 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
             // SendNewSignupEmailNotificationToAdmins::class
         ],
+
         NewOrderCreated::class => [
             SendNewOrderNotifications::class,
             LockResellerAmount::class
@@ -42,6 +45,7 @@ class EventServiceProvider extends ServiceProvider
             ChangeOrderStatusWhenItemApproved::class
         ],
         Verified::class => [
+            ActivateUser::class,
             CreateWallet::class
         ],
 

@@ -10,7 +10,7 @@ class ListAddresses extends ListRecords
 {
     protected static string $resource = AddressResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             Actions\CreateAction::make(),

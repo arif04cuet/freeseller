@@ -10,7 +10,7 @@ class ManageHubOrders extends ManageRecords
 {
     protected static string $resource = HubOrderResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [];
     }

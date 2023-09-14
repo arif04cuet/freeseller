@@ -10,9 +10,9 @@ use App\Models\FundWithdrawRequest;
 use App\Models\PaymentChannel as ModelsPaymentChannel;
 use Closure;
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +22,7 @@ class FundWithdrawRequestResource extends Resource
 {
     protected static ?string $model = FundWithdrawRequest::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
 
     public static function getEloquentQuery(): Builder
@@ -50,7 +50,7 @@ class FundWithdrawRequestResource extends Resource
 
                 Forms\Components\Select::make('payment_channel_id')
                     ->label('Account')
-                    ->options(fn (Closure $get) => ModelsPaymentChannel::list($get('type')))
+                    ->options(fn (\Filament\Forms\Get $get) => ModelsPaymentChannel::list($get('type')))
                     ->required(),
 
                 Forms\Components\TextInput::make('amount')
@@ -71,7 +71,7 @@ class FundWithdrawRequestResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('user.name'),
                 Tables\Columns\TextColumn::make('amount'),
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->colors([
                         'warning' => WalletRechargeRequestStatus::Pending->value,
                         'success' => WalletRechargeRequestStatus::Approved->value,

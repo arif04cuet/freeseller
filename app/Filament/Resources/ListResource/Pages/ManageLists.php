@@ -10,7 +10,7 @@ class ManageLists extends ManageRecords
 {
     protected static string $resource = ListResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             Actions\CreateAction::make(),

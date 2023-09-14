@@ -8,9 +8,9 @@ use App\Filament\Resources\OptionResource\Pages;
 use App\Filament\Resources\OptionResource\RelationManagers;
 use App\Models\Option;
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -20,7 +20,7 @@ class OptionResource extends Resource
     protected static ?string $model = Option::class;
 
     protected static ?string $navigationGroup = 'Settings';
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form

@@ -8,9 +8,9 @@ use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Tabs;
 use Filament\Notifications\Notification;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Contracts\HasRelationshipTable;
@@ -31,7 +31,7 @@ class SkusRelationManager extends RelationManager
     protected static ?string $recordTitleAttribute = 'quantity';
 
 
-    public static function form(Form $form): Form
+    public function form(Form $form): Form
     {
 
         return $form
@@ -45,7 +45,7 @@ class SkusRelationManager extends RelationManager
             ]);
     }
 
-    public static function table(Table $table): Table
+    public function table(Table $table): Table
     {
         return $table
             ->columns([

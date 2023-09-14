@@ -16,9 +16,9 @@ use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput\Mask;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,7 +31,7 @@ class AllProductResource extends Resource
     protected static ?string $model = Product::class;
 
 
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 1;
     protected static ?string $navigationLabel = 'Explore Products';
     protected static ?string $slug = 'explore-products';
@@ -47,7 +47,7 @@ class AllProductResource extends Resource
                     ->reactive(),
 
                 Forms\Components\Select::make('category_id')
-                    ->options(fn (Closure $get) => Category::query()
+                    ->options(fn (\Filament\Forms\Get $get) => Category::query()
                         ->where('product_type_id', $get('product_type_id'))
                         ->pluck('name', 'id'))
                     ->required(),
@@ -61,8 +61,8 @@ class AllProductResource extends Resource
                             ->numeric()
                             ->decimalPlaces(2)
                     )
-                    ->visible(fn (Closure $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price)
-                    ->required(fn (Closure $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price),
+                    ->visible(fn (\Filament\Forms\Get $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price)
+                    ->required(fn (\Filament\Forms\Get $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price),
 
                 Forms\Components\RichEditor::make('description')
                     ->required(),

@@ -12,7 +12,7 @@ class ListWholesalers extends ListRecords
 {
     protected static string $resource = WholesalerResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             // Actions\CreateAction::make(),

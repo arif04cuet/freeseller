@@ -15,9 +15,9 @@ use App\Models\User;
 use Closure;
 use Filament\Forms;
 use Filament\Notifications\Notification;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -29,12 +29,12 @@ class HubOrderResource extends Resource
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationGroup = 'Hub';
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 1;
     protected static ?string $modelLabel = 'Hub Orders';
     protected static ?string $slug = 'hub/orders';
 
-    protected static function shouldRegisterNavigation(): bool
+    public static function shouldRegisterNavigation(): bool
     {
         return auth()->user()->hasAnyRole([
             SystemRole::HubManager->value,
@@ -52,7 +52,7 @@ class HubOrderResource extends Resource
             ])->mine()->latest();
     }
 
-    protected static function getNavigationBadge(): ?string
+    public static function getNavigationBadge(): ?string
     {
         return static::getEloquentQuery()->count();
     }
@@ -95,15 +95,9 @@ class HubOrderResource extends Resource
                 Tables\Columns\TextColumn::make('items_count')
                     ->label('Total Items')
                     ->counts('items'),
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->sortable()
-                    ->enum(OrderStatus::array())
-                    ->colors([
-                        'secondary' =>  OrderStatus::WaitingForWholesalerApproval->value,
-                        'warning' =>  OrderStatus::Processing->value,
-                        'success' => OrderStatus::Approved->value,
-                        'danger' => OrderStatus::Cancelled->value,
-                    ]),
+                    ->badge(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
@@ -156,7 +150,7 @@ class HubOrderResource extends Resource
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('send_to_courier')
                     ->label('Send to courier')
-                    ->icon('heroicon-o-arrow-circle-up')
+                    ->icon('heroicon-o-arrow-up-circle')
                     ->iconButton()
                     ->requiresConfirmation()
                     ->visible(fn (Order $record) => !$record->consignment_id && ($record->status == OrderStatus::ProcessingForHandOverToCourier))
@@ -169,7 +163,7 @@ class HubOrderResource extends Resource
                     ->visible(fn (Model $record) => $record->status == OrderStatus::Courier_In_Review),
                 Tables\Actions\Action::make('items')
                     ->label('Products')
-                    ->icon('heroicon-o-view-list')
+                    ->icon('heroicon-o-bars-4')
                     ->iconButton()
                     ->action(function (Order $record, array $data, array $arguments) {
 
@@ -200,7 +194,7 @@ class HubOrderResource extends Resource
                             ->label('Select Wholesaler')
                             ->reactive()
                             ->afterStateHydrated(
-                                function (Order $record, Closure $set) {
+                                function (Order $record, \Filament\Forms\Set $set) {
                                     $wholesalers = $record->wholesalers()
                                         ->pluck('wholesaler_id');
 
@@ -209,8 +203,8 @@ class HubOrderResource extends Resource
                                     }
                                 }
                             )
-                            ->visible(fn (Closure $get, Order $record) => $record->status == OrderStatus::WaitingForHubCollection)
-                            ->required(fn (Closure $get) => !$get('all'))
+                            ->visible(fn (\Filament\Forms\Get $get, Order $record) => $record->status == OrderStatus::WaitingForHubCollection)
+                            ->required(fn (\Filament\Forms\Get $get) => !$get('all'))
                             ->options(
                                 fn (Order $record) => $record->loadMissing('items.wholesaler')
                                     ->items
@@ -254,8 +248,8 @@ class HubOrderResource extends Resource
                             ->reactive(),
                         Forms\Components\Select::make('collector_id')
                             ->label('Select Collector')
-                            ->visible(fn (Closure $get) => !$get('self'))
-                            ->required(fn (Closure $get) => !$get('self'))
+                            ->visible(fn (\Filament\Forms\Get $get) => !$get('self'))
+                            ->required(fn (\Filament\Forms\Get $get) => !$get('self'))
                             ->options(
                                 fn () => User::query()
                                     ->whereRelation('address', 'address_id', auth()->user()->address->address_id)

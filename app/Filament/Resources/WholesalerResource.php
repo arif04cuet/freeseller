@@ -11,11 +11,10 @@ use DateTime;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\Filter;
@@ -31,7 +30,7 @@ class WholesalerResource extends Resource
     protected static ?string $model = User::class;
 
     protected static ?string $navigationGroup = 'Settings';
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationLabel = 'Wholesalers';
     protected static ?int $navigationSort = 7;
 
@@ -46,7 +45,7 @@ class WholesalerResource extends Resource
         return static::getModel()::query()->with('address');
     }
 
-    protected static function getNavigationBadge(): ?string
+    public static function getNavigationBadge(): ?string
     {
         return static::getEloquentQuery()->wholesalers()->mine()->count();
     }
@@ -92,7 +91,7 @@ class WholesalerResource extends Resource
     {
         return $table
             ->columns([
-                BadgeColumn::make('business.name'),
+                TextColumn::make('business.name'),
                 TextColumn::make('name')
                     ->label('Owner')
                     ->searchable(),

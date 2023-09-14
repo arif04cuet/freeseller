@@ -9,9 +9,9 @@ use App\Filament\Resources\ListResource\RelationManagers\ProductsRelationManager
 use App\Models\List;
 use App\Models\ResellerList;
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -22,7 +22,7 @@ class ListResource extends Resource
     protected static ?string $model = ResellerList::class;
 
     protected static ?string $navigationGroup = 'Reseller';
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 2;
     protected static ?string $navigationLabel = 'My Lists';
     protected static ?string $slug = 'my-lists';
@@ -44,7 +44,7 @@ class ListResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->unique(callback: function (Unique $rule, callable $get) {
+                    ->unique(modifyRuleUsing: function (Unique $rule, callable $get) {
                         return $rule
                             ->where('name', $get('name'))
                             ->where('user_id', auth()->user()->id);
