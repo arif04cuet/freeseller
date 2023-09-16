@@ -33,7 +33,7 @@ class AllProductResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 1;
-    protected static ?string $navigationLabel = 'Explore Products';
+    protected static ?string $modelLabel = 'Explore Products';
     protected static ?string $slug = 'explore-products';
 
     public static function form(Form $form): Form

@@ -40,6 +40,9 @@ class Address extends Model
     //helpers
     public function manager()
     {
-        # code...
+        return User::query()
+            ->role(SystemRole::HubManager->value)
+            ->whereRelation('address', 'address_id', $this->id)
+            ->first();
     }
 }

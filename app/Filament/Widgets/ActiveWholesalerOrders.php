@@ -48,13 +48,7 @@ class ActiveWholesalerOrders extends BaseWidget
         return [
             Tables\Columns\TextColumn::make('id')->label('Order#'),
             Tables\Columns\TextColumn::make('status')
-                ->enum(OrderStatus::array())
-                ->colors([
-                    'secondary' =>  OrderStatus::WaitingForWholesalerApproval->value,
-                    'warning' =>  OrderStatus::Processing->value,
-                    'success' => OrderStatus::Delivered->value,
-                    'danger' => OrderStatus::Cancelled->value,
-                ]),
+                ->badge(),
             Tables\Columns\TextColumn::make('items_sum_quantity')
                 ->label('Products'),
 

@@ -1,14 +1,12 @@
 @php
     use Filament\Support\Enums\Alignment;
     use Filament\Support\Enums\VerticalAlignment;
-
+    
     $color = $getColor() ?? 'gray';
     $isInline = $isInline();
 @endphp
 
-<x-filament-notifications::notification
-    :notification="$notification"
-    :x-transition:enter-start="
+<x-filament-notifications::notification :notification="$notification" :x-transition:enter-start="
         \Illuminate\Support\Arr::toCssClasses([
             'opacity-0',
             ($this instanceof \Filament\Notifications\Livewire\Notifications)
@@ -23,19 +21,15 @@
             }
             : null,
         ])
-    "
-    :x-transition:leave-end="
+    " :x-transition:leave-end="
         \Illuminate\Support\Arr::toCssClasses([
             'opacity-0',
             'scale-95' => ! $isInline,
         ])
-    "
-    @class([
+    " @class([
         'fi-no-notification w-full overflow-hidden transition duration-300',
         ...match ($isInline) {
-            true => [
-                'fi-inline',
-            ],
+            true => ['fi-inline'],
             false => [
                 'max-w-sm rounded-xl bg-white shadow-lg ring-1 dark:bg-gray-900',
                 match ($color) {
@@ -44,29 +38,20 @@
                 },
             ],
         },
-    ])
-    @style([
-        \Filament\Support\get_color_css_variables($color, shades: [400, 600]) => ! ($isInline || $color === 'gray'),
-    ])
->
-    <div
-        @class([
-            'flex w-full gap-3 p-4',
-            match ($color) {
-                'gray' => null,
-                default => 'bg-custom-50 dark:bg-custom-400/10',
-            },
-        ])
-        @style([
-            \Filament\Support\get_color_css_variables($color, shades: [50, 400]) => ! ($isInline || $color === 'gray'),
-        ])
-    >
+    ]) @style([
+        \Filament\Support\get_color_css_variables($color, shades: [400, 600]) => !($isInline || $color === 'gray'),
+    ])>
+    <div @class([
+        'flex w-full gap-3 p-4',
+        match ($color) {
+            'gray' => null,
+            default => 'bg-custom-50 dark:bg-custom-400/10',
+        },
+    ]) @style([
+        \Filament\Support\get_color_css_variables($color, shades: [50, 400]) => !($isInline || $color === 'gray'),
+    ])>
         @if ($icon = $getIcon())
-            <x-filament-notifications::icon
-                :color="$getIconColor()"
-                :icon="$icon"
-                :size="$getIconSize()"
-            />
+            <x-filament-notifications::icon :color="$getIconColor()" :icon="$icon" :size="$getIconSize()" />
         @endif
 
         <div class="mt-0.5 grid flex-1">
@@ -89,13 +74,10 @@
             @endif
 
             @if ($actions = $getActions())
-                <x-filament-notifications::actions
-                    :actions="$actions"
-                    class="mt-3"
-                />
+                <x-filament-notifications::actions :actions="$actions" class="mt-3" />
             @endif
         </div>
 
-        <x-filament-notifications::close-button />
+        {{-- <x-filament-notifications::close-button /> --}}
     </div>
 </x-filament-notifications::notification>

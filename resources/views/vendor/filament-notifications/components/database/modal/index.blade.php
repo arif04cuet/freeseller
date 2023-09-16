@@ -2,7 +2,7 @@
 
 @php
     use Filament\Support\Enums\Alignment;
-    $notifications = $notifications->filter(fn($item) => is_null($item->read_at));
+    //$notifications = $notifications->filter(fn($item) => is_null($item->read_at));
     $hasNotifications = $notifications->count();
     $isPaginated = $notifications instanceof \Illuminate\Contracts\Pagination\Paginator && $notifications->hasPages();
 @endphp
@@ -14,7 +14,7 @@
             <div>
                 <x-filament-notifications::database.modal.heading :unread-notifications-count="$unreadNotificationsCount" />
 
-                <x-filament-notifications::database.modal.actions :notifications="$notifications" :unread-notifications-count="$unreadNotificationsCount" />
+                {{-- <x-filament-notifications::database.modal.actions :notifications="$notifications" :unread-notifications-count="$unreadNotificationsCount" /> --}}
             </div>
         </x-slot>
 
