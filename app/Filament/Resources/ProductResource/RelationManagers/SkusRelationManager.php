@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\ProductResource\RelationManagers;
 
+use App\Enum\SystemRole;
 use App\Models\AttributeValue;
+use App\Models\ResellerList;
 use App\Models\Sku;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -17,6 +19,7 @@ use Filament\Tables\Contracts\HasRelationshipTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManagerStatic as Image;
@@ -48,13 +51,30 @@ class SkusRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with('resellerLists'))
             ->columns([
+                SpatieMediaLibraryImageColumn::make('image')
+                    ->collection('sharees')
+                    ->action(
+                        Tables\Actions\Action::make('View Image')
+                            ->action(function (Model $record): void {
+                            })
+                            ->modalActions([])
+                            ->modalContent(fn (Model $record) => view(
+                                'products.gallery',
+                                [
+                                    'medias' => $record->getMedia("sharees")
+                                ]
+                            )),
+                    )
+                    ->conversion('thumb'),
                 Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('quantity'),
                 Tables\Columns\TextColumn::make('price')->hidden(true),
-                Tables\Columns\TextColumn::make('images')
-                    ->getStateUsing(fn (Model $record) => view('products.image', compact('record'))->render())
-                    ->html()
+                Tables\Columns\TextColumn::make('resellerLists.name')
+                    ->label('In your List')
+                    ->badge(),
+
             ])
             ->filters([
                 //
@@ -104,6 +124,7 @@ class SkusRelationManager extends RelationManager
                     }),
             ])
             ->actions([
+
                 Tables\Actions\EditAction::make()
                     ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner())
                     ->mutateRecordDataUsing(function (Model $record, array $data): array {
@@ -123,9 +144,30 @@ class SkusRelationManager extends RelationManager
                     ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner()),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make()
-                    ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner()),
-            ]);
+                Tables\Actions\BulkAction::make('add_to_lilst')
+                    ->visible(auth()->user()->hasRole(SystemRole::Reseller->value))
+                    ->label('Add to List')
+                    ->icon('heroicon-o-plus')
+                    ->successNotificationTitle('Products added to specified list')
+                    ->action(function (Tables\Actions\BulkAction $action, Collection $records, array $data): void {
+                        ResellerList::find($data['list'])
+                            ->skus()
+                            ->syncWithoutDetaching($records->pluck('id')->toArray());
+
+                        $action->success();
+                    })
+                    ->deselectRecordsAfterCompletion()
+                    ->form([
+                        Forms\Components\Select::make('list')
+                            ->label('List')
+                            ->options(auth()->user()->lists->pluck('name', 'id'))
+                            ->default(fn () => auth()->user()->lists()->latest()->first()->id)
+                            ->required(),
+                    ])
+            ])
+            ->checkIfRecordIsSelectableUsing(
+                fn (Model $record): bool => $record->resellerLists->count() == 0,
+            );
     }
 
     public static function getSkuFields()

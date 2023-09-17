@@ -32,7 +32,7 @@ class AddParcelRequest extends Request implements HasBody
     {
         $order = $this->order;
         $reseller = $order->reseller;
-        $cta = 'Call this number for any query : ' . $reseller->mobile;
+        $cta = 'প্রয়োজনে এই নাম্বারে কল করুন : ' . $reseller->mobile;
 
         return [
 

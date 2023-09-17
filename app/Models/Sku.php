@@ -34,6 +34,12 @@ class Sku extends Model implements HasMedia
 
     //relations
 
+    public function resellerLists(): BelongsToMany
+    {
+        return $this->belongsToMany(ResellerList::class)
+            ->withTimestamps();
+    }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
@@ -59,6 +65,8 @@ class Sku extends Model implements HasMedia
     }
 
     //helpers
+
+
 
     public function waterMarkText()
     {

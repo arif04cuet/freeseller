@@ -25,9 +25,10 @@ class ResellerList extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function products(): BelongsToMany
+    public function skus(): BelongsToMany
     {
-        return $this->belongsToMany(Product::class);
+        return $this->belongsToMany(Sku::class)
+            ->withTimestamps();
     }
 
     //helpers
@@ -37,8 +38,10 @@ class ResellerList extends Model
         return Address::query()
             ->whereHas('wholesalers', function ($q) use ($listId) {
                 return $q->whereHas('products', function ($q) use ($listId) {
-                    return $q->whereHas('resellerLists', function ($q) use ($listId) {
-                        return $q->where('reseller_lists.id', $listId);
+                    return $q->whereHas('skus', function ($q) use ($listId) {
+                        return $q->whereHas('resellerLists', function ($q) use ($listId) {
+                            return $q->where('reseller_lists.id', $listId);
+                        });
                     });
                 });
             })

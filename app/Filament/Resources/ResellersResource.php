@@ -99,7 +99,8 @@ class ResellersResource extends Resource
                 TernaryFilter::make('is_active'),
             ])
             ->actions([
-                Impersonate::make(),
+                Impersonate::make()
+                    ->redirectTo(route('filament.app.pages.dashboard')),
                 Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([]);

@@ -5,7 +5,7 @@ namespace App\Filament\Resources;
 use App\Enum\SystemRole;
 use App\Filament\Resources\ListResource\Pages;
 use App\Filament\Resources\ListResource\RelationManagers;
-use App\Filament\Resources\ListResource\RelationManagers\ProductsRelationManager;
+use App\Filament\Resources\ListResource\RelationManagers\SkusRelationManager;
 use App\Models\List;
 use App\Models\ResellerList;
 use Filament\Forms;
@@ -28,11 +28,6 @@ class ListResource extends Resource
     protected static ?string $slug = 'my-lists';
     protected static ?string $pluralModelLabel = 'List';
 
-
-    // protected static function shouldRegisterNavigation(): bool
-    // {
-    //     return auth()->user()->hasAnyRole([SystemRole::Reseller->value]);
-    // }
 
     public static function getEloquentQuery(): Builder
     {
@@ -57,8 +52,9 @@ class ListResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name'),
-                Tables\Columns\TextColumn::make('products_count')
-                    ->counts('products', 'id'),
+                Tables\Columns\TextColumn::make('skus_count')
+                    ->label('Total Products')
+                    ->counts('skus', 'id'),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()
             ])
             ->filters([
@@ -81,7 +77,7 @@ class ListResource extends Resource
     public static function getRelations(): array
     {
         return [
-            ProductsRelationManager::class
+            SkusRelationManager::class
         ];
     }
 }

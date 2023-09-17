@@ -61,11 +61,6 @@ class Product extends Model implements HasMedia
 
     //relations
 
-    public function resellerLists(): BelongsToMany
-    {
-        return $this->belongsToMany(ResellerList::class);
-    }
-
     public function skus(): HasMany
     {
         return $this->hasMany(Sku::class);
