@@ -12,7 +12,7 @@ use Filament\Widgets\StatsOverviewWidget\Card;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
 
-class Support extends BaseWidget
+class HubSupport extends BaseWidget
 {
 
     protected static ?string $pollingInterval = null;
@@ -24,7 +24,12 @@ class Support extends BaseWidget
         /** @var App\Models\User $user */
         $user = auth()->user();
         $support_number = config('freeseller.support_number');
-        $label = 'FreeSeller Suppor';
+        $label = 'Hub Suppor';
+
+        $hub = $user->hub;
+        $label = 'Your Hub: ' . $hub->name;
+        $support_number = $hub->manager()?->mobile;
+
 
         return [
             Stat::make($label, $support_number)
@@ -36,6 +41,6 @@ class Support extends BaseWidget
     {
         /** @var App\Models\User $user */
         $user = auth()->user();
-        return $user->isWholesaler() || $user->isReseller();
+        return $user->isWholesaler();
     }
 }

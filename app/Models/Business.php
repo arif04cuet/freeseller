@@ -14,6 +14,7 @@ class Business extends Model
         'name',
         'estd_year',
         'type',
+        'url'
     ];
     protected $casts = [
         'type' => BusinessType::class

@@ -18,12 +18,14 @@ use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 use Livewire\Component as Livewire;
 use Illuminate\Support\Str;
 
@@ -68,7 +70,7 @@ class OrderResource extends Resource
 
                 Repeater::make('items')
                     ->columnSpanFull()
-                    ->columns(5)
+                    ->columns(6)
                     ->required()
                     ->cloneable()
                     ->reactive()
@@ -89,7 +91,14 @@ class OrderResource extends Resource
                                 fn (string $search) => Sku::query()->where('id', $search)->pluck('name', 'id')
                             )
                             ->getOptionLabelUsing(fn ($value): ?string => Sku::find($value)?->name),
-
+                        Forms\Components\Placeholder::make('image')
+                            ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
+                            ->content(
+                                function (Get $get) {
+                                    $media = Sku::find($get('sku'))->getMedia('sharees')->first();
+                                    return $media ? (new HtmlString('<img src="' . $media->getUrl('thumb') . '" / >')) : '';
+                                }
+                            ),
 
                         Forms\Components\TextInput::make('quantity')
                             ->reactive()

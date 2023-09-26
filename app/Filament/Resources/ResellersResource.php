@@ -46,6 +46,12 @@ class ResellersResource extends Resource
                 TextInput::make('email'),
                 TextInput::make('mobile'),
 
+                TextInput::make('business.url')
+                    ->label('Business URL')
+                    ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
+                        $business = $record->business;
+                        $component->state($business?->url);
+                    }),
                 TextInput::make('business.name')
                     ->label('Business Name')
                     ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
@@ -80,6 +86,13 @@ class ResellersResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('business.name'),
+                TextColumn::make('business.url')
+                    ->label('Business Url')
+                    ->formatStateUsing(
+                        fn (Model $record) => $record->business->url ? '<a href="' . $record->business->url . '"><u>FB / Website</u></a>' : 'No website'
+                    )
+                    ->html()
+                    ->openUrlInNewTab(),
                 TextColumn::make('name')
                     ->label('Owner')
                     ->searchable(),

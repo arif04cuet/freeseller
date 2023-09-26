@@ -82,7 +82,7 @@ class SkusRelationManager extends RelationManager
             ->headerActions([
                 Tables\Actions\CreateAction::make()
                     ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner())
-                    ->using(function (Tables\Actions\CreateAction $action, HasRelationshipTable $livewire, array $data): Model {
+                    ->using(function (Tables\Actions\CreateAction $action, RelationManager $livewire, array $data): Model {
 
 
                         DB::beginTransaction();

@@ -50,7 +50,7 @@ class EventServiceProvider extends ServiceProvider
         ],
 
         MediaHasBeenAdded::class => [
-            AddSkuNumnerToImage::class
+            //AddSkuNumnerToImage::class
         ],
         OrderDelivered::class => [
             DisburseOrderAmountAction::class

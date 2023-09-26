@@ -80,7 +80,7 @@ class ProductResource extends Resource
                     ->required(),
 
                 SpatieMediaLibraryFileUpload::make('image')
-                    ->label('Product Main Image')
+                    ->label('Product Focus Image')
                     ->required()
                     ->enableReordering()
                     ->image()

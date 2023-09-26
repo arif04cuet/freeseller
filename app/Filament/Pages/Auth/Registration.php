@@ -75,15 +75,14 @@ class Registration extends Register
                     ->same('password'),
                 Forms\Components\TextInput::make('mobile')
                     ->label('Mobile')
-                    ->type('number')
                     ->rules('numeric|digits_between:11,11')
+                    ->regex('/^(?:\+?88|0088)?01[15-9]\d{8}$/i')
                     ->placeholder('01xxxxxxxxx')
                     ->unique(table: config('filament-breezy.user_model'))
                     ->required(),
 
                 Forms\Components\Fieldset::make('Business Information')
                     ->schema([
-
 
                         Forms\Components\Select::make("business_type")
                             ->label('Type')
@@ -93,6 +92,10 @@ class Registration extends Register
                             ->required(),
                         Forms\Components\TextInput::make("business_name")
                             ->label('Name')
+                            ->required(),
+                        Forms\Components\TextInput::make("business_url")
+                            ->label('FB/Website Url')
+                            ->url()
                             ->required(),
                         Forms\Components\TextInput::make("business_estd_year")
                             ->label('Estd. Year')
@@ -106,6 +109,7 @@ class Registration extends Register
                             ->schema([
                                 Forms\Components\Select::make('division')
                                     ->options(Address::whereType(AddressType::Division->value)->pluck('name', 'id'))
+                                    ->required()
                                     ->reactive(),
                                 Forms\Components\Select::make('district')
                                     ->options(fn (\Filament\Forms\Get $get) => Address::query()
@@ -165,6 +169,7 @@ class Registration extends Register
         $preparedData["business"]["type"] = $data['business_type'];
         $preparedData["business"]["name"] = $data['business_name'];
         $preparedData["business"]["estd_year"] = $data['business_estd_year'];
+        $preparedData["business"]["url"] = $data['business_url'];
 
 
         return $preparedData;

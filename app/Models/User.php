@@ -154,7 +154,12 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
         return $this->morphOne(Addressable::class, 'addressable');
     }
 
-    public function business(): HasMany
+    public function business(): HasOne
+    {
+        return $this->hasOne(Business::class)->latestOfMany();
+    }
+
+    public function businesses(): HasMany
     {
         return $this->hasMany(Business::class);
     }
