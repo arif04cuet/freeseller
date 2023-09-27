@@ -5,7 +5,9 @@
 
         <thead>
             <tr class="bg-gray-500/5">
-
+                <th class="filament-tables-header-cell p-0 py-2 px-4">
+                    Image
+                </th>
                 <th class="filament-tables-header-cell p-0 py-2 px-4">
                     Product
                 </th>
@@ -31,7 +33,24 @@
         <tbody>
             @foreach ($items as $item)
                 <tr class="filament-tables-row transition hover:bg-gray-50 dark:hover:bg-gray-500/10">
-                    @include('layout.table-td', ['text' => $item->sku->product->name])
+
+                    @include('layout.table-td', [
+                        'text' =>
+                            '<img src="' .
+                            $item->sku->getMedia('sharees')->first()->getUrl('thumb') .
+                            '"/>',
+                    ])
+
+                    @include('layout.table-td', [
+                        'text' =>
+                            '<a href="' .
+                            route('filament.app.resources.explore-products.view', [
+                                'record' => $item->sku->product->id,
+                            ]) .
+                            '"><u>' .
+                            $item->sku->product->name .
+                            '</u></a>',
+                    ])
                     @include('layout.table-td', ['text' => $item->sku->name])
 
                     @include('layout.table-td', ['text' => $item->quantity])

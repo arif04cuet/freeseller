@@ -75,7 +75,7 @@ class ProductResource extends Resource
                     ->numeric()
                     ->live()
                     ->afterStateHydrated(
-                        fn (Model $record, $component, $state) => $component->state((int)$record->getAttributes()['price'])
+                        fn (?Model $record, $component, $state) => $component->state((int)$record?->getAttributes()['price'])
                     )
                     ->visible(fn (\Filament\Forms\Get $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price)
                     ->required(fn (\Filament\Forms\Get $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price),
@@ -87,7 +87,7 @@ class ProductResource extends Resource
                             ->label('Has Offer Price')
                             ->visible(fn (Get $get) => $get('price'))
                             ->afterStateHydrated(
-                                fn (Model $record, $component, $state) => $component->state((bool) $record->offer_price)
+                                fn (?Model $record, $component, $state) => $component->state((bool) $record?->offer_price)
                             )
                             ->live(),
                         Forms\Components\TextInput::make('offer_price')
