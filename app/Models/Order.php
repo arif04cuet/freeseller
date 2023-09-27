@@ -5,10 +5,7 @@ namespace App\Models;
 use App\Enum\AddressType;
 use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
-use App\Enum\SystemRole;
-use App\Http\Integrations\SteadFast\Requests\AddBulkParcelRequest;
 use App\Jobs\AddParcelToSteadFast;
-use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -35,7 +32,7 @@ class Order extends Model
         'profit' => 'int',
         'cod' => 'int',
         'courier_charge' => 'int',
-        'total_amount' => 'int'
+        'total_amount' => 'int',
     ];
 
     //scopes
@@ -47,6 +44,7 @@ class Order extends Model
         ];
         $builder->whereNotIn('status', $pending);
     }
+
     public function scopeMine(Builder $builder): void
     {
         $loggedInUser = auth()->user();
@@ -68,14 +66,16 @@ class Order extends Model
 
     //relations
 
-    function lockAmount(): HasOne
+    public function lockAmount(): HasOne
     {
         return $this->hasOne(UserLockAmount::class);
     }
+
     public function hub(): BelongsTo
     {
         return $this->belongsTo(Address::class, 'hub_id')->where('type', AddressType::Hub->value);
     }
+
     public function collections(): HasMany
     {
         return $this->hasMany(OrderCollection::class);
@@ -85,6 +85,7 @@ class Order extends Model
     {
         return $this->belongsTo(User::class, 'collector_id');
     }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
@@ -100,13 +101,12 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-
     //accessors
 
     public function trackingUrl(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, array $attributes) => 'https://steadfast.com.bd/t/' . $attributes['tracking_code']
+            get: fn ($value, array $attributes) => 'https://steadfast.com.bd/t/'.$attributes['tracking_code']
         );
     }
 
@@ -131,7 +131,7 @@ class Order extends Model
 
     // helpers
 
-    function wholsalersAmount(): array
+    public function wholsalersAmount(): array
     {
         $wholesalers = [];
 
@@ -145,45 +145,53 @@ class Order extends Model
 
         return $wholesalers;
     }
+
     public function disburseAmount(): void
     {
         $wholesalerAmount = '';
         $resellerAmount = '';
         $platformAmount = '';
     }
+
     public function markAsDelivered(): void
     {
         $this->forceFill(['status' => OrderStatus::Delivered->value])->save();
     }
 
-    function wholesalers(): EloquentCollection
+    public function wholesalers(): EloquentCollection
     {
         return $this->loadMissing('items.wholesaler')
             ->items
             ->map(fn ($item) => $item->wholesaler)
             ->unique(fn ($item) => $item->id);
     }
-    public static function totalPayable(Collection | array $items): int
+
+    public static function totalPayable(Collection|array $items): int
     {
-        if (empty($items)) return 0;
+        if (empty($items)) {
+            return 0;
+        }
 
         return (int) (self::totalWholesaleAmount($items) + self::courierCharge($items) + self::packgingCost());
     }
 
-    public static function courierCharge(Collection | array $items): int
+    public static function courierCharge(Collection|array $items): int
     {
 
         $delivery_charge = (int) config('freeseller.delivery_charge');
         $per_saree_weight = (int) config('freeseller.per_saree_weight');
 
-        if (is_array($items))
+        if (is_array($items)) {
             $items = collect($items);
+        }
 
         $quantity = $items
-            ->filter(fn ($item) => !empty($item['sku']) && !empty($item['quantity']))
+            ->filter(fn ($item) => ! empty($item['sku']) && ! empty($item['quantity']))
             ->sum('quantity');
 
-        if (empty($quantity)) return 0;
+        if (empty($quantity)) {
+            return 0;
+        }
 
         $kg = ($quantity * $per_saree_weight) / 1000;
         $charge = (int) ($delivery_charge + ($kg - 1) * 20);
@@ -191,33 +199,35 @@ class Order extends Model
         return $charge;
     }
 
-    public static function totalSubtotals(Collection | array $items): int
+    public static function totalSubtotals(Collection|array $items): int
     {
-        if (empty($items)) return 0;
+        if (empty($items)) {
+            return 0;
+        }
 
-        if (is_array($items))
+        if (is_array($items)) {
             $items = collect($items);
+        }
 
         return (int) $items->sum('subtotal');
     }
 
-
-    public static function totalWholesaleAmount(Collection | array $items): int
+    public static function totalWholesaleAmount(Collection|array $items): int
     {
 
-
-        if (is_array($items))
+        if (is_array($items)) {
             $items = collect($items);
+        }
 
         $amount = $items
-            ->filter(fn ($item) => !empty($item['sku']) && !empty($item['quantity']))
+            ->filter(fn ($item) => ! empty($item['sku']) && ! empty($item['quantity']))
             ->map(function ($item) {
                 $sku = Sku::find($item['sku']);
+
                 return [
-                    'price' => $sku->price * $item['quantity']
+                    'price' => $sku->price * $item['quantity'],
                 ];
             })->sum('price');
-
 
         return $amount;
     }
@@ -262,6 +272,7 @@ class Order extends Model
             AddParcelToSteadFast::dispatchSync($order);
         }
     }
+
     public function getWholesalerWiseItems()
     {
         $wholesalers = [];
@@ -274,6 +285,7 @@ class Order extends Model
 
         return $wholesalers;
     }
+
     public function addCollector($userId)
     {
         $user = User::find($userId);
@@ -286,11 +298,10 @@ class Order extends Model
 
             User::sendMessage(
                 users: $user,
-                title: 'New order # ' . $this->id . ' assigned to you. please collect',
-                body: 'OTP is ' . $code,
+                title: 'New order # '.$this->id.' assigned to you. please collect',
+                body: 'OTP is '.$code,
                 url: route('filament.resources.hub/orders.index', ['tableSearchQuery' => $this->id])
             );
-
 
             //order collections table
             if ($this->collections->count() == 0) {
@@ -299,13 +310,14 @@ class Order extends Model
 
                     $this->collections()->create([
                         'wholesaler_id' => $wholesalerId,
-                        'collector_code' => $code
+                        'collector_code' => $code,
                     ]);
                 }
             }
         }
     }
-    public function getItemsByWholesaler(User $wholesaler, $status = "all"): Collection
+
+    public function getItemsByWholesaler(User $wholesaler, $status = 'all'): Collection
     {
         $this->loadMissing('items');
 

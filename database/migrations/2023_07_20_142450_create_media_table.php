@@ -29,6 +29,7 @@ return new class extends Migration
             $table->nullableTimestamps();
         });
     }
+
     public function down(): void
     {
         Schema::dropIfExists('media');

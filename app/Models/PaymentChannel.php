@@ -15,9 +15,8 @@ class PaymentChannel extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'type' => EnumPaymentChannel::class
+        'type' => EnumPaymentChannel::class,
     ];
-
 
     //scopes
 
@@ -25,6 +24,7 @@ class PaymentChannel extends Model
     {
         $builder->whereType($type);
     }
+
     public function scopeMine(Builder $builder): void
     {
         $builder->whereBelongsTo(auth()->user());
@@ -34,14 +34,11 @@ class PaymentChannel extends Model
 
     /**
      * Get the user that owns the PaymentChannel
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-
 
     //helpers
 
@@ -54,13 +51,14 @@ class PaymentChannel extends Model
             ->map(function ($item) use ($type) {
                 return [
                     'id' => $item->id,
-                    'label' => $type == EnumPaymentChannel::Bank->value ? $item->account_name : $item->mobile_no
+                    'label' => $type == EnumPaymentChannel::Bank->value ? $item->account_name : $item->mobile_no,
                 ];
             })
             ->pluck('label', 'id')
             ->toArray();
 
         logger($list);
+
         return $list;
     }
 }

@@ -3,11 +3,9 @@
 namespace App\Models;
 
 use App\Enum\OptionType;
-use App\Enum\OptionValueType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Option extends Model
@@ -29,7 +27,7 @@ class Option extends Model
     ];
 
     protected $casts = [
-        'field_for' => OptionType::class
+        'field_for' => OptionType::class,
     ];
 
     public function productTypes(): MorphToMany

@@ -3,14 +3,12 @@
 namespace App\Models;
 
 use App\Enum\SystemRole;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role as SpatieRole;
 
 class Role extends SpatieRole
 {
-
     protected $appends = ['label'];
 
     protected function label(): Attribute
@@ -20,7 +18,6 @@ class Role extends SpatieRole
         );
     }
 
-
     //functions
 
     //roles for hub user
@@ -28,8 +25,9 @@ class Role extends SpatieRole
     {
         $rolesToFind = [SystemRole::HubMember->value];
 
-        if (auth()->user()->isSuperAdmin())
+        if (auth()->user()->isSuperAdmin()) {
             $rolesToFind[] = SystemRole::HubManager->value;
+        }
 
         return Role::query()
             ->whereIn('name', $rolesToFind)

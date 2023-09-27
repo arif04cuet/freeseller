@@ -13,16 +13,14 @@ class GetParcelStatusByTrackingCodeRequest extends Request
 
     protected string $connector = SteadFastConnector::class;
 
-
     protected Method $method = Method::GET;
 
     public function __construct(protected string $tracking_code)
     {
     }
 
-
     public function resolveEndpoint(): string
     {
-        return '/status_by_trackingcode/' . $this->tracking_code;
+        return '/status_by_trackingcode/'.$this->tracking_code;
     }
 }

@@ -14,13 +14,12 @@ class OrderCollection extends Model
         'order_id',
         'wholesaler_id',
         'collector_code',
-        'collected_at'
+        'collected_at',
     ];
 
     protected $casts = [
-        'collected_at' => 'datetime'
+        'collected_at' => 'datetime',
     ];
-
 
     //relations
 

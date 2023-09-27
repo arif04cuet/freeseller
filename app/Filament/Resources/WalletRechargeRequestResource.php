@@ -5,28 +5,28 @@ namespace App\Filament\Resources;
 use App\Enum\PaymentChannel;
 use App\Enum\WalletRechargeRequestStatus;
 use App\Filament\Resources\WalletRechargeRequestResource\Pages;
-use App\Filament\Resources\WalletRechargeRequestResource\RelationManagers;
 use App\Models\WalletRechargeRequest;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class WalletRechargeRequestResource extends Resource
 {
     protected static ?string $model = WalletRechargeRequest::class;
 
     protected static ?string $navigationGroup = 'Reseller';
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $modelLabel = 'Recharge Approval';
-    protected static ?int $navigationSort = 5;
 
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?string $modelLabel = 'Recharge Approval';
+
+    protected static ?int $navigationSort = 5;
 
     public static function getEloquentQuery(): Builder
     {
@@ -53,7 +53,7 @@ class WalletRechargeRequestResource extends Resource
                     ->required()
                     ->label('Tnx Receipt')
                     ->image()
-                    ->collection('recharge')
+                    ->collection('recharge'),
             ]);
     }
 
@@ -74,7 +74,7 @@ class WalletRechargeRequestResource extends Resource
                             ->modalActions([])
                             ->modalContent(
                                 fn (Model $record) => view('products.single-image', [
-                                    'url' => $record->getMedia('recharge')->first()->getUrl()
+                                    'url' => $record->getMedia('recharge')->first()->getUrl(),
                                 ])
                             ),
                     )
@@ -82,7 +82,7 @@ class WalletRechargeRequestResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->colors([
-                        'danger'  => WalletRechargeRequestStatus::Rejected->value,
+                        'danger' => WalletRechargeRequestStatus::Rejected->value,
                         'warning' => WalletRechargeRequestStatus::Pending->value,
                         'success' => WalletRechargeRequestStatus::Approved->value,
                     ]),
@@ -101,7 +101,7 @@ class WalletRechargeRequestResource extends Resource
                     ->iconButton()
                     ->visible(fn (Model $record) => ($record->status == WalletRechargeRequestStatus::Pending) && auth()->user()->isSuperAdmin())
                     ->requiresConfirmation()
-                    ->action(fn (Model $record) => $record->markAsApproved())
+                    ->action(fn (Model $record) => $record->markAsApproved()),
                 // Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([]);

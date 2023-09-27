@@ -3,26 +3,19 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\WholesalerResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\Address;
 use App\Models\User;
-use Carbon\Carbon;
-use DateTime;
-use Filament\Forms;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use STS\FilamentImpersonate\Tables\Actions\Impersonate;
 
 class WholesalerResource extends Resource
@@ -30,15 +23,18 @@ class WholesalerResource extends Resource
     protected static ?string $model = User::class;
 
     protected static ?string $navigationGroup = 'Settings';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
     protected static ?string $navigationLabel = 'Wholesalers';
+
     protected static ?int $navigationSort = 7;
 
     protected static ?string $modelLabel = 'Wholesaler';
+
     protected static ?string $pluralModelLabel = 'Wholesalers';
 
     protected static ?string $slug = 'wholesalers';
-
 
     public static function getEloquentQuery(): Builder
     {
@@ -83,7 +79,7 @@ class WholesalerResource extends Resource
                     ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
                         $business = $record->business->first();
                         $component->state($business?->type);
-                    })
+                    }),
             ]);
     }
 
@@ -107,7 +103,7 @@ class WholesalerResource extends Resource
                 TextColumn::make('hub')
                     ->getStateUsing(fn (Model $record) => Address::find($record->address->address_id)->name),
                 TextColumn::make('created_at')->datetime(),
-                ToggleColumn::make('is_active')
+                ToggleColumn::make('is_active'),
             ])
             ->filters([
 
@@ -137,7 +133,7 @@ class WholesalerResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListWholesalers::route('/')
+            'index' => Pages\ListWholesalers::route('/'),
         ];
     }
 }

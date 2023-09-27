@@ -2,17 +2,16 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\User;
 use Bavix\Wallet\Models\Transaction;
-use Closure;
-use Filament\Tables;
 use Filament\Forms;
+use Filament\Tables;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Builder;
 
 class Transactions extends BaseWidget
 {
     protected static ?int $sort = 3;
+
     protected function getTableQuery(): Builder
     {
         return Transaction::query()
@@ -54,7 +53,7 @@ class Transactions extends BaseWidget
                             $data['created_until'],
                             fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                         );
-                })
+                }),
         ];
     }
 }

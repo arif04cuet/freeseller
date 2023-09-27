@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\WholesalerResource\Pages;
 
-use App\Filament\Resources\UserResource;
 use App\Filament\Resources\WholesalerResource;
 use Filament\Pages\Actions;
 use Filament\Resources\Pages\ListRecords;

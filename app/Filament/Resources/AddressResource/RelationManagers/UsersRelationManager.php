@@ -8,13 +8,11 @@ use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables\Table;
 use Filament\Tables;
-use Filament\Tables\Contracts\HasRelationshipTable;
+use Filament\Tables\Table;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
 use STS\FilamentImpersonate\Tables\Actions\Impersonate;
 
@@ -25,8 +23,8 @@ class UsersRelationManager extends RelationManager
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $title = 'Hub Manager & Members';
-    protected static ?string $modelLabel = 'User';
 
+    protected static ?string $modelLabel = 'User';
 
     // protected function getTableQuery(): Builder
     // {
@@ -39,7 +37,6 @@ class UsersRelationManager extends RelationManager
     {
         return $ownerRecord->type->value == AddressType::Hub->value;
     }
-
 
     public function form(Form $form): Form
     {
@@ -69,7 +66,7 @@ class UsersRelationManager extends RelationManager
                 Forms\Components\Select::make('role_id')
                     ->label('Role')
                     ->options(Role::getHubRoles()->pluck('label', 'id'))
-                    ->required()
+                    ->required(),
 
             ]);
     }
@@ -117,7 +114,7 @@ class UsersRelationManager extends RelationManager
                             'name' => $data['name'],
                             'email' => $data['email'],
                             'mobile' => $data['mobile'],
-                            'password' => Hash::make($data['password'])
+                            'password' => Hash::make($data['password']),
                         ]);
 
                         //assign role
@@ -126,11 +123,10 @@ class UsersRelationManager extends RelationManager
 
                         //create address
                         $addressable = $user->address()->create([
-                            'address_id' => $livewire->ownerRecord->id
+                            'address_id' => $livewire->ownerRecord->id,
                         ]);
 
                         event(new Registered($user));
-
 
                         return $addressable;
                     }),
@@ -154,15 +150,15 @@ class UsersRelationManager extends RelationManager
                         $userData = [
                             'name' => $data['name'],
                             'email' => $data['email'],
-                            'mobile' => $data['mobile']
+                            'mobile' => $data['mobile'],
                         ];
 
-                        if (!empty($data['password']))
+                        if (! empty($data['password'])) {
                             $userData['password'] = Hash::make($data['password']);
+                        }
 
                         $user = $record->addressable;
                         $user->save($userData);
-
 
                         return $record;
                     }),

@@ -6,7 +6,6 @@ use App\Enum\OptionType;
 use App\Enum\OptionValueType;
 use App\Models\Option;
 use App\Models\ProductType;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class OptionSeeder extends Seeder
@@ -21,14 +20,14 @@ class OptionSeeder extends Seeder
         $saree = ProductType::create([
             'name' => 'Sharee',
             'code' => 'sharee',
-            'is_varient_price' => false
+            'is_varient_price' => false,
         ]);
         // for products
 
         $option = Option::create([
             'name' => 'Has blouse piece?',
             'field_for' => OptionType::Product->value,
-            'field_type' => OptionValueType::Boolean->value
+            'field_type' => OptionValueType::Boolean->value,
         ]);
 
         $saree->options()->save($option);

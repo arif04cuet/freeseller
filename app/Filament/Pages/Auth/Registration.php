@@ -9,19 +9,17 @@ use App\Models\Role;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use DB;
 use Filament\Facades\Filament;
-use Filament\Forms\Form;
-use Filament\Pages\Auth\Register;
 use Filament\Forms;
+use Filament\Forms\Form;
 use Filament\Http\Responses\Auth\Contracts\RegistrationResponse;
 use Filament\Notifications\Notification;
-use FilamentBreezy;
+use Filament\Pages\Auth\Register;
 use Hash;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Validation\Rules\Password;
 
 class Registration extends Register
 {
-
     public function register(): ?RegistrationResponse
     {
         try {
@@ -66,7 +64,7 @@ class Registration extends Register
                     ->dehydrateStateUsing(fn ($state) => Hash::make($state))
                     ->rules([
                         'required',
-                        Password::min(8)
+                        Password::min(8),
                     ]),
                 Forms\Components\TextInput::make('password_confirm')
                     ->label(__('filament-breezy::default.fields.password_confirm'))
@@ -84,20 +82,20 @@ class Registration extends Register
                 Forms\Components\Fieldset::make('Business Information')
                     ->schema([
 
-                        Forms\Components\Select::make("business_type")
+                        Forms\Components\Select::make('business_type')
                             ->label('Type')
                             ->options(BusinessType::array())
                             ->enum(BusinessType::class)
                             ->reactive()
                             ->required(),
-                        Forms\Components\TextInput::make("business_name")
+                        Forms\Components\TextInput::make('business_name')
                             ->label('Name')
                             ->required(),
-                        Forms\Components\TextInput::make("business_url")
+                        Forms\Components\TextInput::make('business_url')
                             ->label('FB/Website Url')
                             ->url()
                             ->required(),
-                        Forms\Components\TextInput::make("business_estd_year")
+                        Forms\Components\TextInput::make('business_estd_year')
                             ->label('Estd. Year')
                             ->type('number')
                             ->minLength(4)
@@ -139,15 +137,15 @@ class Registration extends Register
                                         ->whereParentId($get('union'))
                                         ->pluck('name', 'id')),
 
-                                Forms\Components\TextInput::make("address")
+                                Forms\Components\TextInput::make('address')
                                     ->visible(fn (\Filament\Forms\Get $get) => $get('business_type') == BusinessType::Reseller->value)
                                     ->label('Address')
                                     ->required(),
                             ])->columns(1),
 
-                        Forms\Components\Checkbox::make('consent_to_terms')->label('I consent to the terms of service and privacy policy.')->required()
+                        Forms\Components\Checkbox::make('consent_to_terms')->label('I consent to the terms of service and privacy policy.')->required(),
 
-                    ])
+                    ]),
             ]);
     }
 
@@ -158,19 +156,17 @@ class Registration extends Register
         $preparedData['is_active'] = 0;
 
         if ($data['business_type'] == BusinessType::Wholesaler->value) {
-            $preparedData["addressData"]['address_id'] = $preparedData['hub_id'] = $data['hub'];
+            $preparedData['addressData']['address_id'] = $preparedData['hub_id'] = $data['hub'];
         } else {
 
-            $preparedData["addressData"]['address_id'] = $data['union'] ?? $data['upazila'] ?? $data['district'] ?? $data['division'];
-            $preparedData["addressData"]['addressData'] = $data['address'];
+            $preparedData['addressData']['address_id'] = $data['union'] ?? $data['upazila'] ?? $data['district'] ?? $data['division'];
+            $preparedData['addressData']['addressData'] = $data['address'];
         }
 
-
-        $preparedData["business"]["type"] = $data['business_type'];
-        $preparedData["business"]["name"] = $data['business_name'];
-        $preparedData["business"]["estd_year"] = $data['business_estd_year'];
-        $preparedData["business"]["url"] = $data['business_url'];
-
+        $preparedData['business']['type'] = $data['business_type'];
+        $preparedData['business']['name'] = $data['business_name'];
+        $preparedData['business']['estd_year'] = $data['business_estd_year'];
+        $preparedData['business']['url'] = $data['business_url'];
 
         return $preparedData;
     }

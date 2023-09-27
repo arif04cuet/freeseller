@@ -2,48 +2,43 @@
 
 namespace App\Filament\Resources;
 
-use App\Enum\AddressType;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
 use App\Filament\Resources\OrderResource\Pages;
-use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Models\Address;
-use App\Models\AttributeValue;
 use App\Models\Customer;
 use App\Models\Order;
-use App\Models\Product;
 use App\Models\ResellerList;
 use App\Models\Sku;
-use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
-use Livewire\Component as Livewire;
-use Illuminate\Support\Str;
 
 class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationGroup = 'Reseller';
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?int $navigationSort = 1;
-    protected static ?string $navigationLabel = 'My Orders';
 
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?int $navigationSort = 1;
+
+    protected static ?string $navigationLabel = 'My Orders';
 
     public static function shouldRegisterNavigation(): bool
     {
         return auth()->user()->hasAnyRole([
             SystemRole::Reseller->value,
-            'super_admin'
+            'super_admin',
         ]);
     }
 
@@ -63,7 +58,7 @@ class OrderResource extends Resource
                 Forms\Components\Select::make('hub_id')
                     ->label('Select Hub')
                     ->required()
-                    ->visible(fn (\Filament\Forms\Get $get) => !empty($get('list')))
+                    ->visible(fn (\Filament\Forms\Get $get) => ! empty($get('list')))
                     ->options(fn (\Filament\Forms\Get $get) => ResellerList::hubsInList($get('list')))
                     ->disabledOn('edit')
                     ->reactive(),
@@ -96,17 +91,18 @@ class OrderResource extends Resource
                             ->content(
                                 function (Get $get) {
                                     $media = Sku::find($get('sku'))->getMedia('sharees')->first();
-                                    return $media ? (new HtmlString('<img src="' . $media->getUrl('thumb') . '" / >')) : '';
+
+                                    return $media ? (new HtmlString('<img src="'.$media->getUrl('thumb').'" / >')) : '';
                                 }
                             ),
 
                         Forms\Components\TextInput::make('quantity')
                             ->reactive()
                             ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
-                            ->helperText(fn (\Filament\Forms\Get $get) => 'Available quantity is ' . Sku::find($get('sku'))->quantity)
+                            ->helperText(fn (\Filament\Forms\Get $get) => 'Available quantity is '.Sku::find($get('sku'))->quantity)
                             ->maxValue(fn (\Filament\Forms\Get $get) => Sku::find($get('sku'))->quantity)
                             ->required()
-                            ->afterStateUpdated(function (\Filament\Forms\Get $get, \Filament\Forms\Set $set, ?string $state) {
+                            ->afterStateUpdated(function (Get $get, \Filament\Forms\Set $set, ?string $state) {
 
                                 $subtotal = (int) $get('reseller_price') * (int) $state;
                                 $set('subtotal', $subtotal);
@@ -117,10 +113,10 @@ class OrderResource extends Resource
                             ->label('Sell Price')
                             ->reactive()
                             ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
-                            ->helperText(fn (\Filament\Forms\Get $get) => 'Wholesaler Price is ' . (int) Sku::find($get('sku'))->price)
+                            ->helperText(fn (\Filament\Forms\Get $get) => 'Wholesaler Price is '.(int) Sku::find($get('sku'))->price)
                             ->minValue(fn (\Filament\Forms\Get $get) => Sku::find($get('sku'))->wholesalePrice)
                             ->required()
-                            ->afterStateUpdated(function (\Filament\Forms\Get $get, \Filament\Forms\Set $set, ?string $state) {
+                            ->afterStateUpdated(function (Get $get, \Filament\Forms\Set $set, ?string $state) {
 
                                 $subtotal = (int) $get('quantity') * (int) $state;
                                 $set('subtotal', $subtotal);
@@ -133,12 +129,9 @@ class OrderResource extends Resource
 
                         Forms\Components\TextInput::make('status')
                             ->visible(fn ($state) => $state)
-                            ->disabled()
-
+                            ->disabled(),
 
                     ]),
-
-
 
                 Forms\Components\Grid::make('total')
                     ->columns(5)
@@ -147,7 +140,7 @@ class OrderResource extends Resource
                             ->required()
                             ->label('Courier charge')
                             ->disabled()
-                            ->helperText(function (\Filament\Forms\Get $get, \Filament\Forms\Set $set, ?Model $record, $state) {
+                            ->helperText(function (Get $get, \Filament\Forms\Set $set, ?Model $record, $state) {
 
                                 $charge = Order::courierCharge($get('items'));
 
@@ -163,7 +156,7 @@ class OrderResource extends Resource
                         Forms\Components\TextInput::make('total_payable')
                             ->required()
                             ->disabled()
-                            ->helperText(function (\Filament\Forms\Get $get, \Filament\Forms\Set $set, ?Model $record, $state) {
+                            ->helperText(function (Get $get, \Filament\Forms\Set $set, ?Model $record, $state) {
 
                                 $total_payable = Order::totalPayable($get('items'));
 
@@ -174,7 +167,7 @@ class OrderResource extends Resource
                         Forms\Components\TextInput::make('total_saleable')
                             ->required()
                             ->disabled()
-                            ->helperText(function (\Filament\Forms\Get $get, \Filament\Forms\Set $set, ?Model $record, $state) {
+                            ->helperText(function (Get $get, \Filament\Forms\Set $set, ?Model $record, $state) {
 
                                 $subtotals = Order::totalSubtotals($get('items'));
                                 $totalWholesalerAmount = Order::totalWholesaleAmount($get('items'));
@@ -184,7 +177,6 @@ class OrderResource extends Resource
                                 $profit = $subtotals - ((int) $get('packaging_charge') + $totalWholesalerAmount);
                                 $set('profit', $profit);
 
-
                                 return '';
                             }),
 
@@ -192,7 +184,6 @@ class OrderResource extends Resource
                             ->label('Your Profit')
                             ->disabled(),
                     ]),
-
 
                 Forms\Components\TextInput::make('cod_update')
                     ->default(1)
@@ -213,7 +204,7 @@ class OrderResource extends Resource
                             ->whereRelation('resellers', 'reseller_id', auth()->user()->id)
                             ->select(
                                 DB::raw("CONCAT(customers.name,' ',customers.mobile) as label"),
-                                "id"
+                                'id'
                             )
                             ->where('name', 'like', "{$search}%")
                             ->orWhere('mobile', 'like', "{$search}%")
@@ -249,19 +240,18 @@ class OrderResource extends Resource
                                 Forms\Components\TextInput::make('email')
                                     ->email(),
 
-                            ])
+                            ]),
                     ]),
-
 
                 Forms\Components\TextInput::make('cod')
                     ->default(1)
                     ->label('COD (total saleable + courier)')
                     ->reactive()
-                    ->afterStateUpdated(function (\Filament\Forms\Set $set, \Filament\Forms\Get $get, $state) {
+                    ->afterStateUpdated(function (\Filament\Forms\Set $set, Get $get, $state) {
 
                         $set('cod_update', 2);
                     })
-                    ->hint(function (\Filament\Forms\Get $get, $state, \Filament\Forms\Set $set, string $context) {
+                    ->hint(function (Get $get, $state, \Filament\Forms\Set $set, string $context) {
 
                         $subtotals = Order::totalSubtotals($get('items'));
                         $courierCharge = Order::courierCharge($get('items'));
@@ -275,17 +265,20 @@ class OrderResource extends Resource
                         $lockAmount = (int) auth()->user()->lockAmount->sum('amount');
                         $balance = auth()->user()->balanceInt - $lockAmount;
 
-                        $amount = ($balance + (int)$state) - (Order::totalPayable($get('items')));
+                        $amount = ($balance + (int) $state) - (Order::totalPayable($get('items')));
 
                         if ($amount < 0) {
                             $set('error', 1);
-                            return 'Please recharge your wallet with TK = ' . abs($amount);
-                        } else if ($state > $cod) {
+
+                            return 'Please recharge your wallet with TK = '.abs($amount);
+                        } elseif ($state > $cod) {
                             $set('error', 1);
-                            return 'COD can\'t be grater than ' . $cod;
+
+                            return 'COD can\'t be grater than '.$cod;
                         }
 
                         $set('error', 0);
+
                         return '';
                     })
                     ->hintColor('danger'),
@@ -294,17 +287,15 @@ class OrderResource extends Resource
                     ->label('Message for manufacturer if any')
                     ->maxLength(300)
                     ->rules('size:300')
-                    ->hint(fn ($state, $component) => 'Max ' . $component->getMaxLength() . ' characters'),
+                    ->hint(fn ($state, $component) => 'Max '.$component->getMaxLength().' characters'),
                 Forms\Components\Textarea::make('note_for_courier')
                     ->label('Message for Courier if any')
                     ->maxLength(300)
                     ->rules('size:300')
-                    ->hint(fn ($state, $component) => 'Max ' . $component->getMaxLength() . ' characters'),
+                    ->hint(fn ($state, $component) => 'Max '.$component->getMaxLength().' characters'),
 
             ]);
     }
-
-
 
     public static function table(Table $table): Table
     {

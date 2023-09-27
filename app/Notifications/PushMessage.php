@@ -3,8 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\WebPush\WebPushChannel;
 use NotificationChannels\WebPush\WebPushMessage;
@@ -16,6 +14,7 @@ class PushMessage extends Notification
     public function __construct(public string $title, public string $body, public string $url)
     {
     }
+
     public function via(object $notifiable): array
     {
         return [WebPushChannel::class];

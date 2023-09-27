@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enum\SystemRole;
 use App\Events\SkuCreated;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,14 +22,12 @@ class Sku extends Model implements HasMedia
         'product_id',
         'sku',
         'quantity',
-        'price'
+        'price',
     ];
-
 
     protected $dispatchesEvents = [
-        'created' => SkuCreated::class
+        'created' => SkuCreated::class,
     ];
-
 
     //relations
 
@@ -44,15 +41,13 @@ class Sku extends Model implements HasMedia
     {
         return $this->belongsTo(Product::class);
     }
+
     public function attributeValues(): BelongsToMany
     {
         return $this->belongsToMany(AttributeValue::class);
     }
 
-
-
     //accessors
-
 
     public function price(): Attribute
     {
@@ -66,15 +61,14 @@ class Sku extends Model implements HasMedia
 
     //helpers
 
-
-
     public function waterMarkText()
     {
         return '#' . $this->id;
     }
+
     public static function getQuantity($productId, $attributeValueId)
     {
-        list($sku, $valueId) = explode('-', $attributeValueId);
+        [$sku, $valueId] = explode('-', $attributeValueId);
 
         return self::query()
             ->where('product_id', $productId)
@@ -82,6 +76,7 @@ class Sku extends Model implements HasMedia
             ->first()
             ->quantity;
     }
+
     public function registerMediaConversions(Media $media = null): void
     {
         $this->addMediaConversion('thumb')

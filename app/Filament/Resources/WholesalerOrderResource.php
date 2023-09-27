@@ -6,36 +6,35 @@ use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
 use App\Filament\Resources\WholesalerOrderResource\Pages;
-use App\Filament\Resources\WholesalerOrderResource\RelationManagers;
 use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\WholesalerOrder;
 use Filament\Forms;
-use Filament\Notifications\Notification;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class WholesalerOrderResource extends Resource
 {
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationGroup = 'Wholesaler';
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?int $navigationSort = 1;
-    protected static ?string $slug = 'wholesaler/orders';
-    protected static ?string $modelLabel = 'Wholesale Orders';
 
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?int $navigationSort = 1;
+
+    protected static ?string $slug = 'wholesaler/orders';
+
+    protected static ?string $modelLabel = 'Wholesale Orders';
 
     public static function shouldRegisterNavigation(): bool
     {
         return auth()->user()->hasAnyRole([
             SystemRole::Wholesaler->value,
-            'super_admin'
+            'super_admin',
         ]);
     }
 
@@ -51,7 +50,6 @@ class WholesalerOrderResource extends Resource
     {
         return static::getEloquentQuery()->count();
     }
-
 
     public static function form(Form $form): Form
     {
@@ -83,7 +81,7 @@ class WholesalerOrderResource extends Resource
             ->actions([
                 Tables\Actions\Action::make('track')
                     ->label('Track Order')
-                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
+                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/'.$record->tracking_code)
                     ->visible(fn (Order $record) => $record->tracking_code)
                     ->openUrlInNewTab(),
 
@@ -98,7 +96,7 @@ class WholesalerOrderResource extends Resource
 
                                 $collection = $record->collections->filter(fn ($item) => $item->wholesaler_id == auth()->user()->id)->first();
 
-                                if (!$collection || ($collection->collector_code != $data['collector_code'])) {
+                                if (! $collection || ($collection->collector_code != $data['collector_code'])) {
 
                                     Notification::make()
                                         ->title('Code mismatch')
@@ -123,7 +121,7 @@ class WholesalerOrderResource extends Resource
                     )
                     ->modalHeading('Items details')
                     ->modalContent(fn (Model $record) => view('orders.items-status', [
-                        'items' => $record->loadMissing('items.wholesaler')->getItemsByWholesaler(auth()->user())
+                        'items' => $record->loadMissing('items.wholesaler')->getItemsByWholesaler(auth()->user()),
                     ]))
                     ->form([
                         // Forms\Components\CheckboxList::make('items')
@@ -154,9 +152,8 @@ class WholesalerOrderResource extends Resource
                                 fn (Order $record) => $record->collector?->id &&
                                     is_null($record->collections->filter(fn ($item) => $item->wholesaler_id == auth()->user()->id)->first()?->collected_at) &&
                                     auth()->user()->isWholesaler()
-                            )
+                            ),
                     ]),
-
 
             ])
             ->bulkActions([

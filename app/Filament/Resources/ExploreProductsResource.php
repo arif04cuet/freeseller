@@ -4,21 +4,20 @@ namespace App\Filament\Resources;
 
 use App\Enum\SystemRole;
 use App\Filament\Resources\ExploreProductsResource\Pages;
-use App\Filament\Resources\ExploreProductsResource\RelationManagers;
 use App\Filament\Resources\ProductResource\RelationManagers\SkusRelationManager;
 use App\Models\AttributeValue;
-use App\Models\ExploreProducts;
 use App\Models\Product;
 use App\Models\ResellerList;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 
@@ -48,7 +47,7 @@ class ExploreProductsResource extends Resource
                             ->content(fn (Product $record): ?string => $record->price),
                         Forms\Components\Placeholder::make('description')
                             ->columnSpanFull()
-                            ->content(fn (Product $record): ?HtmlString => new HtmlString($record->description))
+                            ->content(fn (Product $record): ?HtmlString => new HtmlString($record->description)),
 
                     ])
                     ->columns(4),
@@ -70,7 +69,7 @@ class ExploreProductsResource extends Resource
                             ->modalContent(fn (Model $record) => view(
                                 'products.gallery',
                                 [
-                                    'medias' => $record->getAllImages()
+                                    'medias' => $record->getAllImages(),
                                 ]
                             )),
                     )
@@ -78,8 +77,8 @@ class ExploreProductsResource extends Resource
                 Tables\Columns\TextColumn::make('productType.name'),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('price')
-                    ->formatStateUsing(fn ($state) => (int) $state),
+                \App\Tables\Columns\ProductPrice::make('price'),
+
                 Tables\Columns\TagsColumn::make('quantity')
                     ->label('Color wise quantity')
                     ->getStateUsing(
@@ -115,8 +114,6 @@ class ExploreProductsResource extends Resource
                         });
                     }),
 
-
-
                 Tables\Filters\Filter::make('price')
                     ->form([
                         Forms\Components\Grid::make('price_range')
@@ -125,7 +122,7 @@ class ExploreProductsResource extends Resource
 
                                 Forms\Components\TextInput::make('from')->label('Price From')->numeric(),
                                 Forms\Components\TextInput::make('to')->numeric(),
-                            ])
+                            ]),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -137,7 +134,7 @@ class ExploreProductsResource extends Resource
                                 $data['to'],
                                 fn (Builder $query, $to): Builder => $query->where('price', '<=', $to),
                             );
-                    })
+                    }),
             ])
             ->actions([
                 // Tables\Actions\Action::make('gallery')
@@ -147,7 +144,6 @@ class ExploreProductsResource extends Resource
                 //     ->modalContent(fn (Model $record) => view('products.gallery', [
                 //         'medias' => $record->getAllImages()
                 //     ]))
-
 
             ])
             ->bulkActions([
@@ -171,16 +167,44 @@ class ExploreProductsResource extends Resource
                             ->label('List')
                             ->options(auth()->user()->lists->pluck('name', 'id'))
                             ->required(),
-                    ])
+                    ]),
 
             ])
             ->emptyStateActions([]);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Infolists\Components\Section::make('General')
+                    ->heading(
+                        fn (Model $record) => $record->name
+                    )
+                    ->columns(3)
+                    ->schema([
+                        Infolists\Components\TextEntry::make('productType.name'),
+                        Infolists\Components\TextEntry::make('category.name'),
+                        Infolists\Components\ViewEntry::make('price')
+                            ->label('Price')
+                            ->view('tables.columns.product-price'),
+                        Infolists\Components\ImageEntry::make('focus_image')
+                            ->defaultImageUrl(
+                                fn (Model $record) => $record->getMedia('sharees')->first()->getUrl('thumb')
+                            ),
+                        Infolists\Components\TextEntry::make('description')
+                            ->columnSpan(2)
+                            ->html(),
+
+                    ]),
+            ]);
+    }
+
+
     public static function getRelations(): array
     {
         return [
-            SkusRelationManager::class
+            SkusRelationManager::class,
         ];
     }
 

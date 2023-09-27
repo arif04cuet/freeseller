@@ -27,7 +27,7 @@ enum OrderStatus: string implements HasColor
 
     case Delivered = 'delivered';
 
-    public function getColor(): string | array | null
+    public function getColor(): string|array|null
     {
         return match ($this) {
             self::WaitingForWholesalerApproval => 'secondary',

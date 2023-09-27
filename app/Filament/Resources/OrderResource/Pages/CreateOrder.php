@@ -7,10 +7,7 @@ use App\Enum\OrderStatus;
 use App\Events\NewOrderCreated;
 use App\Filament\Resources\OrderResource;
 use App\Models\Order;
-use App\Models\Product;
 use App\Models\Sku;
-use Filament\Pages\Actions;
-use Filament\Pages\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +21,7 @@ class CreateOrder extends CreateRecord
 
         return DB::transaction(function () use ($data) {
 
-            $prefix = $data['list'] . '-';
+            $prefix = $data['list'].'-';
             $items = $data['items'];
 
             $totalPaypable = Order::totalPayable($items);
@@ -37,11 +34,11 @@ class CreateOrder extends CreateRecord
                 'tracking_no' => uniqid($prefix),
                 'reseller_id' => auth()->user()->id,
                 'status' => OrderStatus::WaitingForWholesalerApproval->value,
-                "courier_charge" => Order::courierCharge($items),
-                "packaging_charge" => Order::packgingCost(),
-                "total_payable" => Order::totalPayable($items),
-                "total_saleable" => $totalSalable,
-                "profit" => $profit,
+                'courier_charge' => Order::courierCharge($items),
+                'packaging_charge' => Order::packgingCost(),
+                'total_payable' => Order::totalPayable($items),
+                'total_saleable' => $totalSalable,
+                'profit' => $profit,
                 ...collect($data)->except([
                     'list',
                     'items',
@@ -50,9 +47,8 @@ class CreateOrder extends CreateRecord
                     'total_payable',
                     'total_saleable',
                     'profit',
-                ])->toArray()
+                ])->toArray(),
             ];
-
 
             $order = $this->getModel()::create($orderData);
 

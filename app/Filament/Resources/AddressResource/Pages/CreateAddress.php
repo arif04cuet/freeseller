@@ -4,7 +4,6 @@ namespace App\Filament\Resources\AddressResource\Pages;
 
 use App\Enum\AddressType;
 use App\Filament\Resources\AddressResource;
-use Filament\Pages\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateAddress extends CreateRecord
@@ -20,6 +19,7 @@ class CreateAddress extends CreateRecord
         };
 
         $data = collect($data)->only(['name', 'parent_id', 'type'])->toArray();
+
         return $data;
     }
 

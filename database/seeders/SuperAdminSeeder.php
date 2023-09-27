@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
@@ -21,7 +20,7 @@ class SuperAdminSeeder extends Seeder
             'mobile' => '01717348147',
             'password' => Hash::make('admin123'),
             'email_verified_at' => now(),
-            'is_active' => 1
+            'is_active' => 1,
         ]);
 
         Artisan::call('shield:install --fresh --minimal');

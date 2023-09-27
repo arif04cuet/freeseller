@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder
@@ -16,7 +15,7 @@ class CategorySeeder extends Seeder
         Category::create([
             'name' => 'Sharee',
             'category_id' => null,
-            'is_system' => true
+            'is_system' => true,
         ]);
     }
 }

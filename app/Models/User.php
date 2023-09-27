@@ -9,6 +9,8 @@ use App\Enum\BusinessType;
 use App\Enum\SystemRole;
 use App\Notifications\EmailNotification;
 use App\Notifications\PushMessage;
+use Bavix\Wallet\Interfaces\Wallet;
+use Bavix\Wallet\Traits\HasWallet;
 use Filament\Models\Contracts\HasName;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
@@ -26,18 +28,16 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification as FacadesNotification;
-use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
 use NotificationChannels\WebPush\HasPushSubscriptions;
-use Bavix\Wallet\Traits\HasWallet;
-use Bavix\Wallet\Interfaces\Wallet;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
+class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet
 {
     use HasApiTokens, HasFactory, Notifiable;
-    use HasRoles;
     use HasPushSubscriptions;
+    use HasRoles;
     use HasWallet;
 
     /**
@@ -51,7 +51,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
         'password',
         'is_active',
         'mobile',
-        'hub_id'
+        'hub_id',
     ];
 
     /**
@@ -72,9 +72,8 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
     protected $casts = [
         'email_verified_at' => 'datetime',
         // 'password' => 'hashed',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
-
 
     public static function booted()
     {
@@ -83,18 +82,18 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
         });
     }
 
-
     //scopes
 
     public function scopeMine(Builder $builder): void
     {
         $loggedInUser = auth()->user();
-        $builder->when(!$loggedInUser->isSuperAdmin(), function ($q) use ($loggedInUser) {
+        $builder->when(! $loggedInUser->isSuperAdmin(), function ($q) use ($loggedInUser) {
             return $q->whereHas('address', function ($addressable) use ($loggedInUser) {
                 return $addressable->where('address_id', $loggedInUser->address->address_id);
             });
         });
     }
+
     public function scopeHubUsers(Builder $builder)
     {
         $builder->role([
@@ -102,6 +101,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
             SystemRole::HubMember->value,
         ]);
     }
+
     public function scopeResellers(Builder $builder): void
     {
         $builder->role(SystemRole::Reseller->value);
@@ -112,16 +112,17 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
         $builder->role(SystemRole::Wholesaler->value);
     }
 
-
     //relations
-    function lockAmount(): HasMany
+    public function lockAmount(): HasMany
     {
         return $this->hasMany(UserLockAmount::class);
     }
+
     public function hub(): BelongsTo
     {
         return $this->belongsTo(Address::class, 'hub_id')->where('type', AddressType::Hub->value);
     }
+
     public function customers(): BelongsToMany
     {
         return $this->belongsToMany(Customer::class, 'customer_reseller', 'reseller_id', 'customer_id')
@@ -144,6 +145,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
     {
         return $this->hasMany(Product::class, 'owner_id');
     }
+
     public function lists(): HasMany
     {
         return $this->hasMany(ResellerList::class);
@@ -177,7 +179,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
     }
 
     public static function sendMessage(
-        Model | Authenticatable | Collection | array $users,
+        Model|Authenticatable|Collection|array $users,
         string $title,
         string $body = '',
         string $url = '/',
@@ -190,7 +192,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
             ->actions([
                 Action::make('view')
                     ->button()
-                    ->url($url)
+                    ->url($url),
             ])
             ->sendToDatabase($users);
 
@@ -198,11 +200,14 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
         if ($users instanceof Model) {
             $users->notify(new PushMessage($title, $body, $url));
             //send email
-            if ($sent_email)
+            if ($sent_email) {
                 $users->notify(new EmailNotification($title, $body, $url));
-        } else
+            }
+        } else {
             FacadesNotification::send($users, new PushMessage($title, $body, $url));
+        }
     }
+
     public static function getHubManagerByAddress($addressId)
     {
         return self::query()
@@ -212,6 +217,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
             ->role(SystemRole::HubManager->value)
             ->first();
     }
+
     public function canImpersonate()
     {
         return true;
@@ -219,13 +225,14 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
 
     public function getFilamentName(): string
     {
-        $name =  $this->name . ' (' . Str::headline($this->roles->first()->name) . ')';
+        $name = $this->name.' ('.Str::headline($this->roles->first()->name).')';
 
         if ($this->isReseller() || $this->isWholesaler()) {
             $business = $this->business->first();
             $name = $business->name;
             //$name .= '-' . $this->id;
         }
+
         return $name;
     }
 
@@ -233,18 +240,22 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
     {
         return $this->hasRole('super_admin');
     }
+
     public function isWholesaler()
     {
         return $this->hasRole(SystemRole::Wholesaler->value);
     }
+
     public function isReseller()
     {
         return $this->hasRole(SystemRole::Reseller->value);
     }
+
     public function isHubManager()
     {
         return $this->hasRole(SystemRole::HubManager->value);
     }
+
     public function isHubMember()
     {
         return $this->hasRole(SystemRole::HubMember->value);
@@ -252,8 +263,9 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
 
     public function color()
     {
-        if (!$this->roles->count())
+        if (! $this->roles->count()) {
             return '';
+        }
 
         return match ($this->roles->first()->name) {
             BusinessType::Wholesaler->name => 'primary',
@@ -261,6 +273,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasName, Wallet
             default => ''
         };
     }
+
     public function markAsActive()
     {
         $this->is_active = 1;

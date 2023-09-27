@@ -7,7 +7,6 @@ use App\Events\OrderItemApproved;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class OrderItem extends Model
 {
@@ -30,7 +29,7 @@ class OrderItem extends Model
         'wholesaler_price' => 'int',
         'reseller_price' => 'int',
         'total_amount' => 'int',
-        'quantity' => 'int'
+        'quantity' => 'int',
     ];
 
     //relations

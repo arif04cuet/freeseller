@@ -7,8 +7,6 @@ use App\Enum\SystemRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Spatie\Permission\Models\Role;
 
 class Address extends Model
 {
@@ -17,7 +15,7 @@ class Address extends Model
     protected $fillable = ['name', 'parent_id', 'type'];
 
     protected $casts = [
-        'type' => AddressType::class
+        'type' => AddressType::class,
     ];
 
     //relations

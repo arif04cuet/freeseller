@@ -20,7 +20,6 @@ class Attribute extends Model
         return $this->belongsToMany(ProductType::class);
     }
 
-
     public function values(): HasMany
     {
         return $this->hasMany(AttributeValue::class);

@@ -1,6 +1,5 @@
 <?php
 
-use App\Enum\WalletRechargeRequestStatus;
 use App\Models\User;
 use Bavix\Wallet\Models\Wallet;
 use Illuminate\Database\Migrations\Migration;

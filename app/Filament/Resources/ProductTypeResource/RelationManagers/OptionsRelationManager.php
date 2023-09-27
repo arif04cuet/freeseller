@@ -7,10 +7,9 @@ use App\Enum\OptionValueType;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables\Table;
 use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class OptionsRelationManager extends RelationManager
 {
@@ -59,7 +58,7 @@ class OptionsRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make(),
                 Tables\Actions\AttachAction::make()
                     ->preloadRecordSelect()
-                    ->recordSelectOptionsQuery(fn (Builder $query) => $query->forProduct())
+                    ->recordSelectOptionsQuery(fn (Builder $query) => $query->forProduct()),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

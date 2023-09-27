@@ -7,18 +7,15 @@ use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
 use App\Events\OrderDelivered;
 use App\Filament\Resources\HubOrderResource\Pages;
-use App\Http\Integrations\SteadFast\Requests\AddBulkParcelRequest;
 use App\Jobs\AddParcelToSteadFast;
 use App\Models\Order;
-use App\Models\OrderCollection;
 use App\Models\User;
-use Closure;
 use Filament\Forms;
-use Filament\Notifications\Notification;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -29,9 +26,13 @@ class HubOrderResource extends Resource
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationGroup = 'Hub';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
     protected static ?int $navigationSort = 1;
+
     protected static ?string $modelLabel = 'Hub Orders';
+
     protected static ?string $slug = 'hub/orders';
 
     public static function shouldRegisterNavigation(): bool
@@ -39,16 +40,15 @@ class HubOrderResource extends Resource
         return auth()->user()->hasAnyRole([
             SystemRole::HubManager->value,
             SystemRole::HubMember->value,
-            'super_admin'
+            'super_admin',
         ]);
     }
-
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->with([
-                'reseller'
+                'reseller',
             ])->mine()->latest();
     }
 
@@ -60,6 +60,7 @@ class HubOrderResource extends Resource
     public static function getQueries(Builder $builder)
     {
         $addSlashes = str_replace('?', "'?'", $builder->toSql());
+
         return vsprintf(str_replace('?', '%s', $addSlashes), $builder->getBindings());
     }
 
@@ -102,7 +103,7 @@ class HubOrderResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->multiple()
-                    ->options(OrderStatus::array())
+                    ->options(OrderStatus::array()),
             ])
             ->actions([
                 Tables\Actions\Action::make('mark_as_delivered')
@@ -123,7 +124,7 @@ class HubOrderResource extends Resource
                                     $amount = ($record->cod - $record->courier_charge);
                                     $dipositedAmount = $amount - $percentageFn($amount, 1);
 
-                                    User::platformOwner()->deposit($dipositedAmount, ['description' => 'Order amount for order#' . $record->id]);
+                                    User::platformOwner()->deposit($dipositedAmount, ['description' => 'Order amount for order#'.$record->id]);
 
                                     OrderDelivered::dispatch($record);
 
@@ -145,7 +146,7 @@ class HubOrderResource extends Resource
 
                 Tables\Actions\Action::make('track')
                     ->label('Track Order')
-                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
+                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/'.$record->tracking_code)
                     ->visible(fn (Order $record) => $record->tracking_code)
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('send_to_courier')
@@ -153,7 +154,7 @@ class HubOrderResource extends Resource
                     ->icon('heroicon-o-arrow-up-circle')
                     ->iconButton()
                     ->requiresConfirmation()
-                    ->visible(fn (Order $record) => !$record->consignment_id && ($record->status == OrderStatus::ProcessingForHandOverToCourier))
+                    ->visible(fn (Order $record) => ! $record->consignment_id && ($record->status == OrderStatus::ProcessingForHandOverToCourier))
                     ->action(fn (Order $record) => AddParcelToSteadFast::dispatchSync($record)),
                 Tables\Actions\Action::make('print_address')
                     ->icon('heroicon-o-printer')
@@ -175,8 +176,9 @@ class HubOrderResource extends Resource
                         $record->deliverToCollector($collection);
 
                         //print label
-                        if (isset($data['print']))
+                        if (isset($data['print'])) {
                             return redirect(route('order.print.label', ['order' => $record]));
+                        }
                     })
                     ->modalActions(
                         fn (Tables\Actions\Action $action, Order $record): array => match ($record->status) {
@@ -204,7 +206,7 @@ class HubOrderResource extends Resource
                                 }
                             )
                             ->visible(fn (\Filament\Forms\Get $get, Order $record) => $record->status == OrderStatus::WaitingForHubCollection)
-                            ->required(fn (\Filament\Forms\Get $get) => !$get('all'))
+                            ->required(fn (\Filament\Forms\Get $get) => ! $get('all'))
                             ->options(
                                 fn (Order $record) => $record->loadMissing('items.wholesaler')
                                     ->items
@@ -225,7 +227,7 @@ class HubOrderResource extends Resource
                     ])
                     ->modalHeading('Products details')
                     ->modalContent(fn (Model $record) => view('orders.items-status', [
-                        'items' => $record->loadMissing('items.wholesaler')->items
+                        'items' => $record->loadMissing('items.wholesaler')->items,
                     ])),
 
                 Tables\Actions\Action::make('collector')
@@ -241,22 +243,22 @@ class HubOrderResource extends Resource
                         fn (Order $record, array $data) => $data['self'] ?
                             $record->addCollector(auth()->user()->id) : $record->addCollector($data['collector_id'])
                     )
-                    ->modalHeading(fn (Model $record) => 'Assign Collector to Order no ' . $record->id)
+                    ->modalHeading(fn (Model $record) => 'Assign Collector to Order no '.$record->id)
                     ->form([
                         Forms\Components\Checkbox::make('self')
                             ->label('Assign Myself')
                             ->reactive(),
                         Forms\Components\Select::make('collector_id')
                             ->label('Select Collector')
-                            ->visible(fn (\Filament\Forms\Get $get) => !$get('self'))
-                            ->required(fn (\Filament\Forms\Get $get) => !$get('self'))
+                            ->visible(fn (\Filament\Forms\Get $get) => ! $get('self'))
+                            ->required(fn (\Filament\Forms\Get $get) => ! $get('self'))
                             ->options(
                                 fn () => User::query()
                                     ->whereRelation('address', 'address_id', auth()->user()->address->address_id)
                                     ->role(SystemRole::HubMember->value)
                                     ->pluck('name', 'id')
 
-                            )
+                            ),
                     ]),
 
             ])

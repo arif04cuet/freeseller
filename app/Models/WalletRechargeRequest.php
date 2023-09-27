@@ -25,12 +25,12 @@ class WalletRechargeRequest extends Model implements HasMedia
         'amount',
         'tnx_id',
         'status',
-        'action_taken_at'
+        'action_taken_at',
     ];
 
     protected $casts = [
         'status' => WalletRechargeRequestStatus::class,
-        'action_taken_at' => 'datetime'
+        'action_taken_at' => 'datetime',
     ];
 
     //scopes
@@ -38,11 +38,10 @@ class WalletRechargeRequest extends Model implements HasMedia
     public function scopeMine(Builder $builder): void
     {
         $loggedInUser = auth()->user();
-        $builder->when(!$loggedInUser->isSuperAdmin(), function ($q) use ($loggedInUser) {
+        $builder->when(! $loggedInUser->isSuperAdmin(), function ($q) use ($loggedInUser) {
             return $q->whereBelongsTo($loggedInUser);
         });
     }
-
 
     //relations
 
@@ -63,7 +62,7 @@ class WalletRechargeRequest extends Model implements HasMedia
         DB::transaction(function () {
             $this->forceFill([
                 'status' => WalletRechargeRequestStatus::Approved->value,
-                'action_taken_at' => now()
+                'action_taken_at' => now(),
             ])->save();
 
             $reseller = $this->user;
@@ -71,7 +70,7 @@ class WalletRechargeRequest extends Model implements HasMedia
             $amount = $this->amount;
 
             // diposit to platform account
-            $platform->deposit($amount, ['description' => 'deposited by ' . $reseller->name]);
+            $platform->deposit($amount, ['description' => 'deposited by '.$reseller->name]);
 
             //transfer account to reseller
             $platform->forceTransfer($reseller, $amount, ['description' => 'wallet recharged']);
@@ -80,7 +79,7 @@ class WalletRechargeRequest extends Model implements HasMedia
             $tnxId = $this->tnx_id;
             User::sendMessage(
                 users: $reseller,
-                title: 'Wallet rechange request has been approved with tnx_id = ' . $tnxId,
+                title: 'Wallet rechange request has been approved with tnx_id = '.$tnxId,
                 url: route('filament.resources.wallet-recharge-requests.index', ['tableSearchQuery' => $tnxId])
             );
         });

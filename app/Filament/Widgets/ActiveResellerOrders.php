@@ -4,17 +4,14 @@ namespace App\Filament\Widgets;
 
 use App\Enum\OrderStatus;
 use App\Models\Order;
-use App\Models\User;
-use Bavix\Wallet\Models\Transaction;
-use Closure;
 use Filament\Tables;
-use Filament\Forms;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Builder;
 
 class ActiveResellerOrders extends BaseWidget
 {
     protected static ?int $sort = 2;
+
     protected static ?string $heading = 'Active Orders';
 
     public static function canView(): bool
@@ -22,13 +19,12 @@ class ActiveResellerOrders extends BaseWidget
         return auth()->user()->isReseller();
     }
 
-
     protected function getTableQuery(): Builder
     {
         return Order::query()
             ->whereBelongsTo(auth()->user(), 'reseller')
             ->whereNotIn('status', [
-                OrderStatus::Delivered->value
+                OrderStatus::Delivered->value,
             ])
             ->latest();
     }
@@ -43,7 +39,7 @@ class ActiveResellerOrders extends BaseWidget
                 ->label('CN'),
             Tables\Columns\TextColumn::make('track')
                 ->label('Track')
-                ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
+                ->url(fn (Order $record) => 'https://steadfast.com.bd/t/'.$record->tracking_code)
                 ->openUrlInNewTab(),
             Tables\Columns\TextColumn::make('items_sum_quantity')
                 ->label('Products')

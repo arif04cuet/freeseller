@@ -27,14 +27,14 @@ class EditAddress extends EditRecord
             case AddressType::Upazila->value:
                 $district = Address::find($data['parent_id']);
                 $data['district'] = $district->id;
-                $data['division'] =  $district->parent_id;
+                $data['division'] = $district->parent_id;
                 break;
             case AddressType::Union->value:
                 $upazila = Address::with('parent')->find($data['parent_id']);
                 $district = $upazila->parent;
                 $data['upazila'] = $upazila->id;
                 $data['district'] = $district->id;
-                $data['division'] =  $district->parent_id;
+                $data['division'] = $district->parent_id;
                 break;
             case AddressType::Hub->value:
                 $union = Address::with('parent')->find($data['parent_id']);
@@ -44,7 +44,7 @@ class EditAddress extends EditRecord
                 $data['union'] = $union->id;
                 $data['upazila'] = $upazila->id;
                 $data['district'] = $district->id;
-                $data['division'] =  $district->parent_id;
+                $data['division'] = $district->parent_id;
                 break;
         }
 

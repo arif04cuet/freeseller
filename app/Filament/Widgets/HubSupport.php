@@ -2,21 +2,12 @@
 
 namespace App\Filament\Widgets;
 
-use App\Enum\OrderItemStatus;
-use App\Enum\OrderStatus;
-use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
-use Filament\Widgets\StatsOverviewWidget\Card;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Support\Facades\DB;
 
 class HubSupport extends BaseWidget
 {
-
     protected static ?string $pollingInterval = null;
-
 
     protected function getStats(): array
     {
@@ -27,13 +18,12 @@ class HubSupport extends BaseWidget
         $label = 'Hub Suppor';
 
         $hub = $user->hub;
-        $label = 'Your Hub: ' . $hub->name;
+        $label = 'Your Hub: '.$hub->name;
         $support_number = $hub->manager()?->mobile;
-
 
         return [
             Stat::make($label, $support_number)
-                ->color('success')
+                ->color('success'),
         ];
     }
 
@@ -41,6 +31,7 @@ class HubSupport extends BaseWidget
     {
         /** @var App\Models\User $user */
         $user = auth()->user();
+
         return $user->isWholesaler();
     }
 }

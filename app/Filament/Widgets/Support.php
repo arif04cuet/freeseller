@@ -2,21 +2,12 @@
 
 namespace App\Filament\Widgets;
 
-use App\Enum\OrderItemStatus;
-use App\Enum\OrderStatus;
-use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
-use Filament\Widgets\StatsOverviewWidget\Card;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Support\Facades\DB;
 
 class Support extends BaseWidget
 {
-
     protected static ?string $pollingInterval = null;
-
 
     protected function getStats(): array
     {
@@ -28,7 +19,7 @@ class Support extends BaseWidget
 
         return [
             Stat::make($label, $support_number)
-                ->color('success')
+                ->color('success'),
         ];
     }
 
@@ -36,6 +27,7 @@ class Support extends BaseWidget
     {
         /** @var App\Models\User $user */
         $user = auth()->user();
+
         return $user->isWholesaler() || $user->isReseller();
     }
 }

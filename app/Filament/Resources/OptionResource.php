@@ -5,22 +5,21 @@ namespace App\Filament\Resources;
 use App\Enum\OptionType;
 use App\Enum\OptionValueType;
 use App\Filament\Resources\OptionResource\Pages;
-use App\Filament\Resources\OptionResource\RelationManagers;
 use App\Models\Option;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Table;
 
 class OptionResource extends Resource
 {
     protected static ?string $model = Option::class;
 
     protected static ?string $navigationGroup = 'Settings';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
     protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form

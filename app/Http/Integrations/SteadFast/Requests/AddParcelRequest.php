@@ -4,15 +4,15 @@ namespace App\Http\Integrations\SteadFast\Requests;
 
 use App\Http\Integrations\SteadFast\SteadFastConnector;
 use App\Models\Order;
+use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
-use Saloon\Contracts\Body\HasBody;
 use Saloon\Traits\Body\HasJsonBody;
 use Saloon\Traits\Request\HasConnector;
 
 class AddParcelRequest extends Request implements HasBody
 {
-    use HasJsonBody, HasConnector;
+    use HasConnector, HasJsonBody;
 
     protected string $connector = SteadFastConnector::class;
 
@@ -27,12 +27,11 @@ class AddParcelRequest extends Request implements HasBody
         return '/create_order';
     }
 
-
     protected function defaultBody(): array
     {
         $order = $this->order;
         $reseller = $order->reseller;
-        $cta = 'প্রয়োজনে এই নাম্বারে কল করুন : ' . $reseller->mobile;
+        $cta = 'প্রয়োজনে এই নাম্বারে কল করুন : '.$reseller->mobile;
 
         return [
 
@@ -41,7 +40,7 @@ class AddParcelRequest extends Request implements HasBody
             'recipient_phone' => $order->customer->mobile,
             'recipient_address' => $order->customer->address,
             'cod_amount' => (int) $order->cod,
-            'note' => $order->note_for_courier . ' ' . $cta
+            'note' => $order->note_for_courier.' '.$cta,
 
         ];
     }

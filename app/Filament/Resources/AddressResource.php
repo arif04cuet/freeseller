@@ -4,28 +4,26 @@ namespace App\Filament\Resources;
 
 use App\Enum\AddressType;
 use App\Filament\Resources\AddressResource\Pages;
-use App\Filament\Resources\AddressResource\RelationManagers;
 use App\Filament\Resources\AddressResource\RelationManagers\UsersRelationManager;
 use App\Models\Address;
-use Closure;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class AddressResource extends Resource
 {
     protected static ?string $model = Address::class;
 
     protected static ?string $navigationGroup = 'Settings';
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationLabel = 'Hub / Addresses';
-    protected static ?int $navigationSort = 3;
 
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?string $navigationLabel = 'Hub / Addresses';
+
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
@@ -61,7 +59,7 @@ class AddressResource extends Resource
                             ->reactive()
                             ->visible(fn (\Filament\Forms\Get $get) => in_array($get('type'), [
                                 AddressType::Union->value,
-                                AddressType::Hub->value
+                                AddressType::Hub->value,
                             ])),
 
                         Forms\Components\Select::make('union')
@@ -71,14 +69,13 @@ class AddressResource extends Resource
                                 ->pluck('name', 'id'))
                             ->reactive()
                             ->visible(fn (\Filament\Forms\Get $get) => in_array($get('type'), [
-                                AddressType::Hub->value
+                                AddressType::Hub->value,
                             ])),
                     ])->columns(4),
 
-
                 Forms\Components\TextInput::make('name')
                     ->columnSpanFull()
-                    ->label(fn (\Filament\Forms\Get $get) => AddressType::tryFrom($get('type'))?->name ? AddressType::tryFrom($get('type'))->name . ' Name' : 'Name')
+                    ->label(fn (\Filament\Forms\Get $get) => AddressType::tryFrom($get('type'))?->name ? AddressType::tryFrom($get('type'))->name.' Name' : 'Name'),
             ]);
     }
 
@@ -90,12 +87,12 @@ class AddressResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('parent.name'),
                 Tables\Columns\TextColumn::make('type')
-                    ->formatStateUsing(fn (Model $record) => $record->type->name)
+                    ->formatStateUsing(fn (Model $record) => $record->type->name),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('type')
                     ->options(AddressType::array())
-                    ->default(AddressType::Hub->value)
+                    ->default(AddressType::Hub->value),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -108,7 +105,7 @@ class AddressResource extends Resource
     public static function getRelations(): array
     {
         return [
-            UsersRelationManager::class
+            UsersRelationManager::class,
         ];
     }
 

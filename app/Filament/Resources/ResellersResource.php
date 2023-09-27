@@ -3,21 +3,16 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ResellersResource\Pages;
-use App\Filament\Resources\ResellersResource\RelationManagers;
-use App\Models\Resellers;
 use App\Models\User;
-use Filament\Forms;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TernaryFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use STS\FilamentImpersonate\Tables\Actions\Impersonate;
 
 class ResellersResource extends Resource
@@ -25,11 +20,15 @@ class ResellersResource extends Resource
     protected static ?string $model = User::class;
 
     protected static ?string $navigationGroup = 'Settings';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
     protected static ?string $navigationLabel = 'Resellers';
+
     protected static ?int $navigationSort = 8;
 
     protected static ?string $modelLabel = 'Reseller';
+
     protected static ?string $pluralModelLabel = 'Resellers';
 
     protected static ?string $slug = 'resellers';
@@ -38,6 +37,7 @@ class ResellersResource extends Resource
     {
         return static::getEloquentQuery()->resellers()->count();
     }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -77,7 +77,7 @@ class ResellersResource extends Resource
                     ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
                         $business = $record->business->first();
                         $component->state($business?->type);
-                    })
+                    }),
             ]);
     }
 
@@ -89,7 +89,7 @@ class ResellersResource extends Resource
                 TextColumn::make('business.url')
                     ->label('Business Url')
                     ->formatStateUsing(
-                        fn (Model $record) => $record->business->url ? '<a href="' . $record->business->url . '"><u>FB / Website</u></a>' : 'No website'
+                        fn (Model $record) => $record->business->url ? '<a href="'.$record->business->url.'"><u>FB / Website</u></a>' : 'No website'
                     )
                     ->html()
                     ->openUrlInNewTab(),
@@ -105,7 +105,7 @@ class ResellersResource extends Resource
                 Tables\Columns\TagsColumn::make('roles.name')
                     ->label('User Type'),
                 TextColumn::make('created_at')->datetime(),
-                ToggleColumn::make('is_active')
+                ToggleColumn::make('is_active'),
             ])
             ->filters([
 
@@ -129,7 +129,7 @@ class ResellersResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListResellers::route('/')
+            'index' => Pages\ListResellers::route('/'),
         ];
     }
 }

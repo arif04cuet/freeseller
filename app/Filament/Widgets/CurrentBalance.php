@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Enum\OrderItemStatus;
-use App\Enum\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
@@ -14,11 +13,12 @@ use Illuminate\Support\Facades\DB;
 class CurrentBalance extends BaseWidget
 {
     protected static ?int $sort = 1;
+
     protected function getCards(): array
     {
         /** @var App\Models\User $user */
         $user = auth()->user();
-        $platformPer = (int)config('freeseller.platform_fee');
+        $platformPer = (int) config('freeseller.platform_fee');
         $codPer = (int) config('freeseller.cod_fee');
 
         $cards = [];
@@ -36,7 +36,6 @@ class CurrentBalance extends BaseWidget
                 $lockAmount = (int) auth()->user()->lockAmount->sum('amount');
                 $balance = $balance - $lockAmount;
 
-
                 $pendingSum = $this->resellerPendingSum($user);
                 $pendingBalance = $pendingSum - $percentageFn($pendingSum, $platformPer + $codPer);
             }
@@ -51,7 +50,6 @@ class CurrentBalance extends BaseWidget
                 $pendingBalance = $percentageFn($pendingSum, $platformPer + $codPer);
             }
 
-
             $cards[] = Card::make('Available Balance (TK)', $balance)
                 ->description('Balance you can windraw')
                 ->color('success');
@@ -65,6 +63,7 @@ class CurrentBalance extends BaseWidget
                 ->description('Balance, currently locked ')
                 ->color('danger');
         }
+
         return $cards;
     }
 
@@ -72,10 +71,11 @@ class CurrentBalance extends BaseWidget
     {
         /** @var App\Models\User $user */
         $user = auth()->user();
+
         return $user->isSuperAdmin() || $user->isWholesaler() || $user->isReseller();
     }
 
-    public  function resellerPendingSum(User $user): int
+    public function resellerPendingSum(User $user): int
     {
 
         return Order::query()
@@ -85,7 +85,7 @@ class CurrentBalance extends BaseWidget
             ->sum(DB::raw('cod - total_payable'));
     }
 
-    public  function wholesalerPendingSum(User $user): int
+    public function wholesalerPendingSum(User $user): int
     {
         return OrderItem::query()
             ->where('status', OrderItemStatus::Approved->value)
@@ -95,6 +95,7 @@ class CurrentBalance extends BaseWidget
             ->whereBelongsTo($user, 'wholesaler')
             ->sum('wholesaler_price');
     }
+
     public function platforrmPendingSum()
     {
         $resellersSum = Order::query()
@@ -102,7 +103,7 @@ class CurrentBalance extends BaseWidget
             ->whereColumn('cod', '>', 'total_payable')
             ->sum(DB::raw('cod - total_payable'));
 
-        $wholesalersSum =  OrderItem::query()
+        $wholesalersSum = OrderItem::query()
             ->where('status', OrderItemStatus::Approved->value)
             ->whereHas('order', function ($query) {
                 return $query->pending();

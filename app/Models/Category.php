@@ -14,9 +14,8 @@ class Category extends Model
     protected $fillable = ['name', 'product_type_id', 'category_id', 'is_system'];
 
     protected $casts = [
-        'is_system' => 'boolean'
+        'is_system' => 'boolean',
     ];
-
 
     //relations
 
@@ -24,6 +23,7 @@ class Category extends Model
     {
         return $this->belongsTo(ProductType::class);
     }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'category_id');

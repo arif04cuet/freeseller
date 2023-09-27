@@ -16,27 +16,24 @@ class Customer extends Model
         'mobile',
         'email',
         'is_inside_dhaka',
-        'address'
+        'address',
     ];
 
     protected $casts = [
-        'is_inside_dhaka' => 'boolean'
+        'is_inside_dhaka' => 'boolean',
     ];
-
 
     //scopes
 
     public function scopeMine(Builder $builder): void
     {
         $builder
-            ->when(!auth()->user()->isSuperAdmin(), function ($query) {
+            ->when(! auth()->user()->isSuperAdmin(), function ($query) {
                 $query->whereHas('resellers', function ($q) {
                     return $q->where('reseller_id', auth()->user()->id);
                 });
             });
     }
-
-
 
     //relations
 

@@ -6,7 +6,6 @@ use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Filament\Resources\OrderResource;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\Sku;
 use Filament\Pages\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -39,7 +38,7 @@ class EditOrder extends EditRecord
                     'quantity' => $item->quantity,
                     'reseller_price' => $item->reseller_price,
                     'subtotal' => $item->total_amount,
-                    'status' => $item->status
+                    'status' => $item->status,
                 ];
             })->toArray();
 
@@ -51,9 +50,7 @@ class EditOrder extends EditRecord
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
 
-
         return DB::transaction(function () use ($data, $record) {
-
 
             $items = $data['items'];
 
@@ -62,11 +59,11 @@ class EditOrder extends EditRecord
             $profit = (int) $totalSalable - (int) $totalPaypable;
 
             $orderData = [
-                "courier_charge" => Order::courierCharge($items),
-                "packaging_charge" => Order::packgingCost(),
-                "total_payable" => Order::totalPayable($items),
-                "total_saleable" => $totalSalable,
-                "profit" => $profit,
+                'courier_charge' => Order::courierCharge($items),
+                'packaging_charge' => Order::packgingCost(),
+                'total_payable' => Order::totalPayable($items),
+                'total_saleable' => $totalSalable,
+                'profit' => $profit,
                 ...collect($data)->except([
                     'list',
                     'items',
@@ -75,13 +72,12 @@ class EditOrder extends EditRecord
                     'total_payable',
                     'total_saleable',
                     'profit',
-                ])->toArray()
+                ])->toArray(),
             ];
 
             $record->update($orderData);
 
             // create items
-
 
             collect($data['items'])
                 ->each(function ($item) use ($record) {
@@ -93,7 +89,7 @@ class EditOrder extends EditRecord
                             'quantity' => $item['quantity'],
                             'reseller_price' => $item['reseller_price'],
                             'total_amount' => (int) $item['subtotal'],
-                            'status' => $item['status'] ?? OrderStatus::WaitingForWholesalerApproval->value
+                            'status' => $item['status'] ?? OrderStatus::WaitingForWholesalerApproval->value,
                         ]);
                     } else {
 
@@ -106,7 +102,7 @@ class EditOrder extends EditRecord
                             'wholesaler_price' => $sku->price,
                             'wholesaler_id' => $sku->product->owner_id,
                             'reseller_price' => $item['reseller_price'],
-                            'total_amount' => (int)$item['subtotal'],
+                            'total_amount' => (int) $item['subtotal'],
                             'status' => OrderItemStatus::WaitingForWholesalerApproval->value,
                         ]);
                     }

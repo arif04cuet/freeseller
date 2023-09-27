@@ -2,19 +2,15 @@
 
 namespace App\Filament\Resources;
 
-use App\Enum\SystemRole;
 use App\Filament\Resources\ListResource\Pages;
-use App\Filament\Resources\ListResource\RelationManagers;
 use App\Filament\Resources\ListResource\RelationManagers\SkusRelationManager;
-use App\Models\List;
 use App\Models\ResellerList;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Validation\Rules\Unique;
 
 class ListResource extends Resource
@@ -22,12 +18,16 @@ class ListResource extends Resource
     protected static ?string $model = ResellerList::class;
 
     protected static ?string $navigationGroup = 'Reseller';
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?int $navigationSort = 2;
-    protected static ?string $navigationLabel = 'My Lists';
-    protected static ?string $slug = 'my-lists';
-    protected static ?string $pluralModelLabel = 'List';
 
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?int $navigationSort = 2;
+
+    protected static ?string $navigationLabel = 'My Lists';
+
+    protected static ?string $slug = 'my-lists';
+
+    protected static ?string $pluralModelLabel = 'List';
 
     public static function getEloquentQuery(): Builder
     {
@@ -43,7 +43,7 @@ class ListResource extends Resource
                         return $rule
                             ->where('name', $get('name'))
                             ->where('user_id', auth()->user()->id);
-                    }, ignoreRecord: true)
+                    }, ignoreRecord: true),
             ]);
     }
 
@@ -55,7 +55,7 @@ class ListResource extends Resource
                 Tables\Columns\TextColumn::make('skus_count')
                     ->label('Total Products')
                     ->counts('skus', 'id'),
-                Tables\Columns\TextColumn::make('created_at')->dateTime()
+                Tables\Columns\TextColumn::make('created_at')->dateTime(),
             ])
             ->filters([
                 //
@@ -70,14 +70,14 @@ class ListResource extends Resource
     {
         return [
             'index' => Pages\ListLists::route('/'),
-            'edit' => Pages\EditList::route('/{record}/edit')
+            'edit' => Pages\EditList::route('/{record}/edit'),
         ];
     }
 
     public static function getRelations(): array
     {
         return [
-            SkusRelationManager::class
+            SkusRelationManager::class,
         ];
     }
 }

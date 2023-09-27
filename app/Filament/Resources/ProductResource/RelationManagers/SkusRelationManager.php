@@ -7,32 +7,26 @@ use App\Models\AttributeValue;
 use App\Models\ResellerList;
 use App\Models\Sku;
 use Filament\Forms;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Tabs;
-use Filament\Notifications\Notification;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
-use Filament\Tables\Contracts\HasRelationshipTable;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use Intervention\Image\ImageManagerStatic as Image;
 
 class SkusRelationManager extends RelationManager
 {
     protected static string $relationship = 'skus';
 
     protected static ?string $label = '';
+
     protected static ?string $title = 'Varient & Quantity';
 
     protected static ?string $recordTitleAttribute = 'quantity';
-
 
     public function form(Form $form): Form
     {
@@ -63,7 +57,7 @@ class SkusRelationManager extends RelationManager
                             ->modalContent(fn (Model $record) => view(
                                 'products.gallery',
                                 [
-                                    'medias' => $record->getMedia("sharees")
+                                    'medias' => $record->getMedia('sharees'),
                                 ]
                             )),
                     )
@@ -73,6 +67,10 @@ class SkusRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('price')->hidden(true),
                 Tables\Columns\TextColumn::make('resellerLists.name')
                     ->label('In your List')
+                    ->getStateUsing(
+                        fn (Model $record) => $record->resellerLists()->where('user_id', auth()->id())->pluck('name')->toArray()
+                    )
+                    ->toggleable(isToggledHiddenByDefault: fn () => auth()->user()->isWholesaler())
                     ->badge(),
 
             ])
@@ -83,7 +81,6 @@ class SkusRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make()
                     ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner())
                     ->using(function (Tables\Actions\CreateAction $action, RelationManager $livewire, array $data): Model {
-
 
                         DB::beginTransaction();
 
@@ -163,7 +160,7 @@ class SkusRelationManager extends RelationManager
                             ->options(auth()->user()->lists->pluck('name', 'id'))
                             ->default(fn () => auth()->user()->lists()->latest()->first()->id)
                             ->required(),
-                    ])
+                    ]),
             ])
             ->checkIfRecordIsSelectableUsing(
                 fn (Model $record): bool => $record->resellerLists->count() == 0,
@@ -183,12 +180,13 @@ class SkusRelationManager extends RelationManager
 
         foreach ($attributes as $attributeId => $valueId) {
 
-            if ($value = AttributeValue::find($valueId))
+            if ($value = AttributeValue::find($valueId)) {
                 $names[] = $value->label;
+            }
         }
 
         //$names[] = (int)($product->is_varient_price ? $data['price'] : $product->price);
 
-        return collect($names)->implode("-");
+        return collect($names)->implode('-');
     }
 }

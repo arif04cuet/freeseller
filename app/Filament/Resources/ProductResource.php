@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Enum\SystemRole;
 use App\Filament\Resources\ProductResource\Pages;
-use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Filament\Resources\ProductResource\RelationManagers\SkusRelationManager;
 use App\Models\Category;
 use App\Models\Product;
@@ -12,12 +11,12 @@ use App\Models\ProductType;
 use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Components\TextInput\Mask;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -26,16 +25,18 @@ class ProductResource extends Resource
     protected static ?string $model = Product::class;
 
     protected static ?string $navigationGroup = 'Wholesaler';
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?int $navigationSort = 2;
-    protected static ?string $navigationLabel = 'My Products';
 
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?int $navigationSort = 2;
+
+    protected static ?string $navigationLabel = 'My Products';
 
     public static function shouldRegisterNavigation(): bool
     {
         return auth()->user()->hasAnyRole([
             SystemRole::Wholesaler->value,
-            'super_admin'
+            'super_admin',
         ]);
     }
 
@@ -48,7 +49,6 @@ class ProductResource extends Resource
     {
         return static::getEloquentQuery()->count();
     }
-
 
     public static function form(Form $form): Form
     {
@@ -73,8 +73,46 @@ class ProductResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('price')
                     ->numeric()
+                    ->live()
+                    ->afterStateHydrated(
+                        fn (Model $record, $component, $state) => $component->state((int)$record->getAttributes()['price'])
+                    )
                     ->visible(fn (\Filament\Forms\Get $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price)
                     ->required(fn (\Filament\Forms\Get $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price),
+
+                Forms\Components\Grid::make()
+                    ->columns(4)
+                    ->schema([
+                        Forms\Components\Checkbox::make('has_offer_price')
+                            ->label('Has Offer Price')
+                            ->visible(fn (Get $get) => $get('price'))
+                            ->afterStateHydrated(
+                                fn (Model $record, $component, $state) => $component->state((bool) $record->offer_price)
+                            )
+                            ->live(),
+                        Forms\Components\TextInput::make('offer_price')
+                            ->numeric()
+                            ->visible(fn (Get $get) => $get('has_offer_price'))
+                            ->rules([
+                                function (Get $get) {
+                                    return function (string $attribute, $value, Closure $fail) use ($get) {
+                                        if ($value > $get('price')) {
+                                            $fail('The offer price must be less than price.');
+                                        }
+                                    };
+                                },
+                            ])
+                            ->required(fn (Get $get) => filled($get('has_offer_price'))),
+                        Forms\Components\DateTimePicker::make('offer_price_valid_from')
+                            ->native(false)
+                            ->closeOnDateSelection()
+                            ->visible(fn (Get $get) => $get('has_offer_price')),
+                        Forms\Components\DateTimePicker::make('offer_price_valid_to')
+                            ->native(false)
+                            ->closeOnDateSelection()
+                            ->visible(fn (Get $get) => $get('has_offer_price')),
+
+                    ]),
 
                 Forms\Components\RichEditor::make('description')
                     ->required(),
@@ -85,10 +123,7 @@ class ProductResource extends Resource
                     ->enableReordering()
                     ->image()
                     ->enableDownload()
-                    ->collection('sharees')
-
-
-
+                    ->collection('sharees'),
 
             ]);
     }
@@ -110,8 +145,7 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('productType.name'),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('price')
-                    ->formatStateUsing(fn ($state) => (int) $state),
+                \App\Tables\Columns\ProductPrice::make('price'),
                 Tables\Columns\TagsColumn::make('quantity')
                     ->label('Color wise quantity')
                     ->getStateUsing(
@@ -127,20 +161,20 @@ class ProductResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('category')
-                    ->relationship('category', 'name')
+                    ->relationship('category', 'name'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                //Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 
     public static function getRelations(): array
     {
         return [
-            SkusRelationManager::class
+            SkusRelationManager::class,
         ];
     }
 

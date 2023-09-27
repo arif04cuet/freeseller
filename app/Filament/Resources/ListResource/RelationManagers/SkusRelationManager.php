@@ -6,20 +6,17 @@ use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use ZipArchive;
 
 class SkusRelationManager extends RelationManager
 {
@@ -52,7 +49,7 @@ class SkusRelationManager extends RelationManager
                             ->modalContent(fn (Model $record) => view(
                                 'products.gallery',
                                 [
-                                    'medias' => $record->getMedia("sharees")
+                                    'medias' => $record->getMedia('sharees'),
                                 ]
                             )),
                     )
@@ -61,9 +58,13 @@ class SkusRelationManager extends RelationManager
                     ->searchable(),
                 Tables\Columns\TextColumn::make('product.price')
                     ->label('Price')
-                    ->formatStateUsing(fn ($state) => (int) $state),
+                    ->formatStateUsing(fn (Model $record, $state) => '<div class="fi-ta-text grid gap-y-1 px-3">
+                    <div>' . $record->product->price . '</div>
+                    <div><del>' . ($record->product->getOfferPrice() ? $record->product->getAttributes()['price'] : '') . '</del></div>
+                </div>
+                ')->html(),
                 Tables\Columns\TextColumn::make('quantity'),
-                Tables\Columns\TextColumn::make('product.category.name')
+                Tables\Columns\TextColumn::make('product.category.name'),
 
                 // SpatieMediaLibraryImageColumn::make('image')
                 //     ->collection('sharees')
@@ -118,7 +119,7 @@ class SkusRelationManager extends RelationManager
                                 'top_right' => 'Top Right',
                                 'bottom_left' => 'Bottom Left',
                                 'bottom_right' => 'Bootom Right',
-                            ])
+                            ]),
                     ])
                     ->action(
                         function (Collection $records, array $data) {
@@ -132,19 +133,20 @@ class SkusRelationManager extends RelationManager
 
                                 $images = $sku->getMedia('sharees');
 
-                                if ($images->count() == 0)
+                                if ($images->count() == 0) {
                                     continue;
-
+                                }
 
                                 foreach ($images as $media) {
 
                                     $path = $media->getPath();
 
-                                    if (!File::exists($path))
+                                    if (!File::exists($path)) {
                                         continue;
+                                    }
 
                                     $img = Image::make($path);
-                                    list($x, $y) = self::imageXY($img, $data);
+                                    [$x, $y] = self::imageXY($img, $data);
                                     $img->text($sku->waterMarkText(), $x, $y);
 
                                     $savePath = $folder . '/' . uniqid("$sku->id-") . '.png';
@@ -155,7 +157,7 @@ class SkusRelationManager extends RelationManager
                             //zip and download
                             $zip = new \ZipArchive();
                             $zipFileName = $folderName . '.zip';
-                            if ($zip->open(public_path($folder . '/' . $zipFileName), \ZipArchive::CREATE) == TRUE) {
+                            if ($zip->open(public_path($folder . '/' . $zipFileName), \ZipArchive::CREATE) == true) {
                                 $files = File::files(public_path($folder));
                                 foreach ($files as $key => $value) {
                                     $relativeName = basename($value);
@@ -177,11 +179,11 @@ class SkusRelationManager extends RelationManager
                         Column::make('product.category.name'),
 
                     ]),
-                ])
+                ]),
             ]);
     }
 
-    public  static function imageXY($img, $data): array
+    public static function imageXY($img, $data): array
     {
         $pad = 30;
         switch ($data['watermark_position']) {

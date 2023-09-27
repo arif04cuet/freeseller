@@ -5,7 +5,6 @@ namespace App\Filament\Resources\PaymentChannelResource\Pages;
 use App\Filament\Resources\PaymentChannelResource;
 use Filament\Pages\Actions;
 use Filament\Resources\Pages\ManageRecords;
-use Illuminate\Database\Eloquent\Model;
 
 class ManagePaymentChannels extends ManageRecords
 {
@@ -18,6 +17,7 @@ class ManagePaymentChannels extends ManageRecords
                 ->mutateFormDataUsing(
                     function (array $data): array {
                         $data['user_id'] = auth()->id();
+
                         return $data;
                     }
                 ),

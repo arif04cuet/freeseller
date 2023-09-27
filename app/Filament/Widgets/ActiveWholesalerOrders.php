@@ -2,26 +2,21 @@
 
 namespace App\Filament\Widgets;
 
-use App\Enum\OrderStatus;
 use App\Models\Order;
-use App\Models\User;
-use Bavix\Wallet\Models\Transaction;
-use Closure;
 use Filament\Tables;
-use Filament\Forms;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Builder;
 
 class ActiveWholesalerOrders extends BaseWidget
 {
     protected static ?int $sort = 2;
+
     protected static ?string $heading = 'Active Orders';
 
     public static function canView(): bool
     {
         return auth()->user()->isWholesaler();
     }
-
 
     protected function getTableQuery(): Builder
     {
@@ -30,12 +25,12 @@ class ActiveWholesalerOrders extends BaseWidget
             ->withSum([
                 'items' => function (Builder $q) {
                     return $q->whereBelongsTo(auth()->user(), 'wholesaler');
-                }
+                },
             ], 'quantity')
             ->withSum([
                 'items' => function (Builder $q) {
                     return $q->whereBelongsTo(auth()->user(), 'wholesaler');
-                }
+                },
             ], 'wholesaler_price')
             ->whereHas('items', function ($q) {
                 return $q->whereBelongsTo(auth()->user(), 'wholesaler');

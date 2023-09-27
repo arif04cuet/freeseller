@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\CustomerResource\Pages;
 
 use App\Filament\Resources\CustomerResource;
-use Filament\Pages\Actions;
 use Filament\Resources\Pages\ManageRecords;
 use Illuminate\Database\Eloquent\Model;
 use Konnco\FilamentImport\Actions\ImportAction;
@@ -36,7 +35,7 @@ class ManageCustomers extends ManageRecords
                     $model->resellers()->attach(auth()->user()->id);
 
                     return $model;
-                })
+                }),
         ];
     }
 }

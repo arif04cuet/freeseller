@@ -2,48 +2,36 @@
 
 namespace App\Models;
 
-use App\Enum\OptionValueType;
-use App\Enum\SystemRole;
 use App\Filament\Resources\ProductResource\RelationManagers\SkusRelationManager;
-use Closure;
+use Filament\Forms;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Filament\Forms;
-use Filament\Forms\ComponentContainer;
-use Filament\Forms\Components\FileUpload;
-use Filament\Pages\Page;
-use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Notifications\Notification;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Livewire\Component as Livewire;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Livewire\Component as Livewire;
 
 class Product extends Model implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;
 
-    protected $fillable = [
-        'name',
-        'description',
-        'price',
-        'owner_id',
-        'product_type_id',
-        'category_id',
-        'approved_at'
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
-        'approved_at' => 'datetime'
+        'approved_at' => 'datetime',
+        'offer_price_valid_from' => 'datetime',
+        'offer_price_valid_to' => 'datetime',
+        'offer_price' => 'int'
     ];
-
 
     protected static function booted()
     {
@@ -84,18 +72,40 @@ class Product extends Model implements HasMedia
     //accessors
     public function price(): Attribute
     {
+
         return Attribute::make(
-            get: fn ($value) => (int) $value
+            get: fn ($value) => $this->getProductPrice($value)
         );
     }
 
     //helpers
+    public function getOfferPrice()
+    {
+        $price = null;
+
+        if ($offerPrice = $this->offer_price) {
+
+            $from = $this->offer_price_valid_from ?: Carbon::yesterday();
+            $to = $this->offer_price_valid_to ?: Carbon::tomorrow();
+            if (Carbon::now()->between($from, $to)) {
+                $price = (int) $offerPrice;
+            }
+        }
+
+        return $price;
+    }
+    public function getProductPrice($originalPrice)
+    {
+        $price = $this->getOfferPrice() ?? $originalPrice;
+
+        return (int) $price;
+    }
 
     public function getAllImages()
     {
         $this->loadMissing('skus');
 
-        $images = $this->getMedia("sharees");
+        $images = $this->getMedia('sharees');
 
         foreach ($this->skus as $sku) {
             $images = $images->merge($sku->getMedia('sharees'));
@@ -103,6 +113,7 @@ class Product extends Model implements HasMedia
 
         return $images;
     }
+
     public function isOwner()
     {
         return $this->owner_id == auth()->user()->id;
@@ -123,7 +134,7 @@ class Product extends Model implements HasMedia
 
             return [
                 'color' => $sku->getColorAttributeValue()->label,
-                'quantity' => $sku->quantity
+                'quantity' => $sku->quantity,
             ];
         });
     }
@@ -158,6 +169,7 @@ class Product extends Model implements HasMedia
                                     ->send();
                                 $set($attribute->id, 0);
                             }
+
                             return $state;
                         }
                     })
@@ -165,14 +177,13 @@ class Product extends Model implements HasMedia
             })
             ->toArray();
 
-
         $fields = array_merge($varients, [
-            Forms\Components\TextInput::make('quantity')->numeric()->required()
+            Forms\Components\TextInput::make('quantity')->numeric()->required(),
         ]);
 
-
-        if ($productType->is_varient_price)
-            $fields[] =  Forms\Components\TextInput::make('price')->numeric()->required();
+        if ($productType->is_varient_price) {
+            $fields[] = Forms\Components\TextInput::make('price')->numeric()->required();
+        }
 
         $fields[] = SpatieMediaLibraryFileUpload::make('images')
             ->multiple()
@@ -184,7 +195,6 @@ class Product extends Model implements HasMedia
             ->columnSpanFull()
             ->enableDownload()
             ->collection('sharees');
-
 
         return $fields;
     }

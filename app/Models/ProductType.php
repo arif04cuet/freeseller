@@ -19,7 +19,7 @@ class ProductType extends Model
     ];
 
     protected $casts = [
-        'is_varient_price' => 'boolean'
+        'is_varient_price' => 'boolean',
     ];
 
     //relations
@@ -33,6 +33,7 @@ class ProductType extends Model
     {
         return $this->hasMany(Category::class);
     }
+
     public function options(): MorphToMany
     {
         return $this->morphToMany(Option::class, 'optionable');

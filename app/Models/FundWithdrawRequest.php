@@ -17,15 +17,13 @@ class FundWithdrawRequest extends Model
     protected $dates = ['approved_at'];
 
     protected $casts = [
-        'status' => WalletRechargeRequestStatus::class
+        'status' => WalletRechargeRequestStatus::class,
     ];
 
     //relations
 
     /**
      * Get the user that owns the FundWithdrawRequest
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user(): BelongsTo
     {
@@ -34,8 +32,6 @@ class FundWithdrawRequest extends Model
 
     /**
      * Get the user that owns the FundWithdrawRequest
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function approver(): BelongsTo
     {
@@ -44,14 +40,11 @@ class FundWithdrawRequest extends Model
 
     /**
      * Get the user that owns the FundWithdrawRequest
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function paymentChannel(): BelongsTo
     {
         return $this->belongsTo(PaymentChannel::class);
     }
-
 
     //helpers
 
@@ -60,7 +53,7 @@ class FundWithdrawRequest extends Model
         DB::transaction(function () {
             $this->forceFill([
                 'status' => WalletRechargeRequestStatus::Approved->value,
-                'approved_at' => now()
+                'approved_at' => now(),
             ])->save();
 
             $user = $this->user;
@@ -71,13 +64,13 @@ class FundWithdrawRequest extends Model
             $user->forceTransfer($platform, $amount, ['description' => 'Fund withdrawn amount transfered to platform account']);
 
             // deduct from platform account.
-            $platform->withdraw($amount, ['description' => 'Fund transfered to user (' . $user->name . ') bank acount']);
+            $platform->withdraw($amount, ['description' => 'Fund transfered to user ('.$user->name.') bank acount']);
 
             //send notification
 
             User::sendMessage(
                 users: $user,
-                title: 'Fund withdrawal request has been approved with id = ' . $this->id,
+                title: 'Fund withdrawal request has been approved with id = '.$this->id,
                 url: route('filament.resources.fund-withdraw-requests.index', ['tableSearchQuery' => $this->id]),
             );
         });

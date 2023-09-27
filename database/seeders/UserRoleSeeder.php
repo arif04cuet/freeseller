@@ -2,13 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Enum\BusinessType;
 use App\Enum\SystemRole;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
 use Spatie\Permission\Models\Role;
-
 
 class UserRoleSeeder extends Seeder
 {

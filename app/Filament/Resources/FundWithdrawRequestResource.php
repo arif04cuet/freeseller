@@ -5,18 +5,15 @@ namespace App\Filament\Resources;
 use App\Enum\PaymentChannel;
 use App\Enum\WalletRechargeRequestStatus;
 use App\Filament\Resources\FundWithdrawRequestResource\Pages;
-use App\Filament\Resources\FundWithdrawRequestResource\RelationManagers;
 use App\Models\FundWithdrawRequest;
 use App\Models\PaymentChannel as ModelsPaymentChannel;
-use Closure;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class FundWithdrawRequestResource extends Resource
 {
@@ -24,17 +21,14 @@ class FundWithdrawRequestResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->when(!auth()->user()->isSuperAdmin(), function ($query) {
+            ->when(! auth()->user()->isSuperAdmin(), function ($query) {
                 $query->whereBelongsTo(auth()->user());
             })
             ->latest();
     }
-
-
 
     public static function form(Form $form): Form
     {
@@ -55,10 +49,10 @@ class FundWithdrawRequestResource extends Resource
 
                 Forms\Components\TextInput::make('amount')
                     ->numeric()
-                    ->helperText(fn () => 'Available Balance: ' . auth()->user()->balance)
+                    ->helperText(fn () => 'Available Balance: '.auth()->user()->balance)
                     ->maxValue(auth()->user()->balance)
-                    ->rules('max:' . auth()->user()->balance)
-                    ->required()
+                    ->rules('max:'.auth()->user()->balance)
+                    ->required(),
 
             ]);
     }
@@ -103,7 +97,7 @@ class FundWithdrawRequestResource extends Resource
                     ->iconButton()
                     ->visible(fn (Model $record) => ($record->status == WalletRechargeRequestStatus::Pending) && auth()->user()->isSuperAdmin())
                     ->requiresConfirmation()
-                    ->action(fn (Model $record) => $record->markAsApproved())
+                    ->action(fn (Model $record) => $record->markAsApproved()),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

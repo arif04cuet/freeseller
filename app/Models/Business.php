@@ -14,10 +14,11 @@ class Business extends Model
         'name',
         'estd_year',
         'type',
-        'url'
+        'url',
     ];
+
     protected $casts = [
-        'type' => BusinessType::class
+        'type' => BusinessType::class,
     ];
 
     public static function booted()

@@ -3,25 +3,18 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
-use Carbon\Carbon;
-use DateTime;
-use Filament\Forms;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use STS\FilamentImpersonate\Tables\Actions\Impersonate;
 
 class UserResource extends Resource
@@ -29,7 +22,9 @@ class UserResource extends Resource
     protected static ?string $model = User::class;
 
     protected static ?string $navigationGroup = 'Settings';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
     protected static ?int $navigationSort = 1;
 
     public static function getEloquentQuery(): Builder
@@ -75,7 +70,7 @@ class UserResource extends Resource
                     ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
                         $business = $record->business->first();
                         $component->state($business?->type);
-                    })
+                    }),
             ]);
     }
 
@@ -92,20 +87,20 @@ class UserResource extends Resource
                     ->searchable(),
                 Tables\Columns\TagsColumn::make('roles.name'),
                 TextColumn::make('created_at')->datetime(),
-                ToggleColumn::make('is_active')
+                ToggleColumn::make('is_active'),
             ])
             ->filters([
 
                 TernaryFilter::make('is_active'),
                 SelectFilter::make('roles')
                     ->label('User Type')
-                    ->relationship('roles', 'name')
+                    ->relationship('roles', 'name'),
 
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Impersonate::make()
-                    ->redirectTo(route('filament.app.pages.dashboard'))
+                    ->redirectTo(route('filament.app.pages.dashboard')),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

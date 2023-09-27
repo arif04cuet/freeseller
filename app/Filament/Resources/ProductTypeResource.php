@@ -3,15 +3,13 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductTypeResource\Pages;
-use App\Filament\Resources\ProductTypeResource\RelationManagers;
 use App\Filament\Resources\ProductTypeResource\RelationManagers\OptionsRelationManager;
 use App\Models\ProductType;
-use Closure;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
 use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Support\Str;
 
 class ProductTypeResource extends Resource
@@ -19,9 +17,10 @@ class ProductTypeResource extends Resource
     protected static ?string $model = ProductType::class;
 
     protected static ?string $navigationGroup = 'Catalog';
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?int $navigationSort = 2;
 
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -52,7 +51,7 @@ class ProductTypeResource extends Resource
                 Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('code'),
                 Tables\Columns\TagsColumn::make('attributes.name'),
-                Tables\Columns\TagsColumn::make('options.name')
+                Tables\Columns\TagsColumn::make('options.name'),
             ])
             ->filters([
                 //
@@ -68,7 +67,7 @@ class ProductTypeResource extends Resource
     public static function getRelations(): array
     {
         return [
-            OptionsRelationManager::class
+            OptionsRelationManager::class,
         ];
     }
 
