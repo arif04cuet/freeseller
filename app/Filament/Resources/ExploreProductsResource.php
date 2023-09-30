@@ -27,7 +27,7 @@ class ExploreProductsResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $modelLabel = 'Explode Products';
+    protected static ?string $modelLabel = 'Explore Products';
 
     public static function form(Form $form): Form
     {
