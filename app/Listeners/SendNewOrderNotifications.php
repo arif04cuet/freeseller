@@ -28,8 +28,8 @@ class SendNewOrderNotifications implements ShouldQueue
             if ($manager = User::getHubManagerByAddress($addressId)) {
                 User::sendMessage(
                     users: $manager,
-                    title: 'New Order submitted. Order id ='.$order->id,
-                    url: route('filament.resources.hub/orders.index', ['tableSearchQuery' => $order->id])
+                    title: 'New Order submitted. Order id =' . $order->id,
+                    url: route('filament.app.resources.hub.orders.index', ['tableSearchQuery' => $order->id])
                 );
             }
 
@@ -38,8 +38,8 @@ class SendNewOrderNotifications implements ShouldQueue
             if ($wholesalers = User::whereIn('id', $wholesalerIds)->get()) {
                 User::sendMessage(
                     users: $wholesalers,
-                    title: 'New Order submitted. Order id ='.$order->id,
-                    url: route('filament.resources.wholesaler/orders.index', ['tableSearchQuery' => $order->id])
+                    title: 'New Order submitted. Order id =' . $order->id,
+                    url: route('filament.app.resources.wholesaler.orders.index', ['tableSearchQuery' => $order->id])
                 );
             }
         }

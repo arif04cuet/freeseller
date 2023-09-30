@@ -30,19 +30,30 @@ class DisburseOrderAmount implements ShouldQueue
             $codPer = (int) config('freeseller.cod_fee');
             $ownerAccount = User::platformOwner();
 
-            $percentageFn = fn ($amount, $percentage): float => (float) (($percentage / 100) * $amount);
+            $floatFn = fn ($number) => number_format($number, 2, '.', '');
+            $percentageFn = fn ($amount, $percentage) => $floatFn((($percentage / 100) * $amount));
 
             //deduct from wholesalers
             $wholesalers = $order->wholsalersAmount();
             foreach ($wholesalers as $id => $amount) {
 
                 $wholesaler = User::find($id);
-                $amount = (int) $amount;
+                $amount = $floatFn($amount);
 
-                $ownerAccount->forceTransfer($wholesaler, $amount, ['description' => 'Products amount diposited for order #'.$order->id]);
+                $ownerAccount->forceTransferFloat($wholesaler, $amount, [
+                    'description' => 'Products amount diposited for order #' . $order->id,
+                    'order' => $order->id
+                ]);
 
-                $wholesaler->forceTransfer($ownerAccount, $percentageFn($amount, $platformPer), ['description' => 'Platform fee for order #'.$order->id]);
-                $wholesaler->forceTransfer($ownerAccount, $percentageFn($amount, $codPer), ['description' => 'Cod fee for order #'.$order->id]);
+                $wholesaler->forceTransferFloat($ownerAccount, $percentageFn($amount, $platformPer), [
+                    'description' => 'Platform fee for order #' . $order->id,
+                    'order' => $order->id
+                ]);
+
+                $wholesaler->forceTransferFloat($ownerAccount, $percentageFn($amount, $codPer), [
+                    'description' => 'Cod fee for order #' . $order->id,
+                    'order' => $order->id
+                ]);
             }
 
             //deduct from reseller
@@ -51,19 +62,31 @@ class DisburseOrderAmount implements ShouldQueue
 
             //release lock amount if any
             if ($order->lockAmount()->exists()) {
-                $lockAmount = $order->lockAmount->amount;
-                $reseller->forceTransfer($ownerAccount, $lockAmount, ['description' => 'Transfering lock amount for order #'.$order->id]);
+                $lockAmount = $floatFn($order->lockAmount->amount);
+                $reseller->forceTransferFloat($ownerAccount, $lockAmount, [
+                    'description' => 'Transfering lock amount for order #' . $order->id,
+                    'order' => $order->id
+                ]);
                 $order->lockAmount()->delete();
             }
 
             $rAmount = $order->cod - $order->total_payable;
 
             if ($rAmount > 0) {
-                $ownerAccount->forceTransfer($reseller, $rAmount, ['description' => 'Profit for order #'.$order->id]);
+                $ownerAccount->forceTransferFloat($reseller, $floatFn($rAmount), [
+                    'description' => 'Profit for order #' . $order->id,
+                    'order' => $order->id
+                ]);
             }
 
-            $reseller->forceTransfer($ownerAccount, $percentageFn($order->profit, $platformPer), ['description' => 'Platform fee for order #'.$order->id]);
-            $reseller->forceTransfer($ownerAccount, $percentageFn($order->profit, $codPer), ['description' => 'Cod fee for order #'.$order->id]);
+            $reseller->forceTransferFloat($ownerAccount, $percentageFn($order->profit, $platformPer), [
+                'description' => 'Platform fee for order #' . $order->id,
+                'order' => $order->id
+            ]);
+            $reseller->forceTransferFloat($ownerAccount, $percentageFn($order->profit, $codPer), [
+                'description' => 'Cod fee for order #' . $order->id,
+                'order' => $order->id
+            ]);
 
             //update order
             $order->forceFill(['delivered_at' => now()])->save();

@@ -38,7 +38,7 @@ class WalletRechargeRequest extends Model implements HasMedia
     public function scopeMine(Builder $builder): void
     {
         $loggedInUser = auth()->user();
-        $builder->when(! $loggedInUser->isSuperAdmin(), function ($q) use ($loggedInUser) {
+        $builder->when(!$loggedInUser->isSuperAdmin(), function ($q) use ($loggedInUser) {
             return $q->whereBelongsTo($loggedInUser);
         });
     }
@@ -67,20 +67,24 @@ class WalletRechargeRequest extends Model implements HasMedia
 
             $reseller = $this->user;
             $platform = User::platformOwner();
-            $amount = $this->amount;
+
+            $floatFn = fn ($number) => number_format($number, 2, '.', '');
+
+
+            $amount = $floatFn($this->amount);
 
             // diposit to platform account
-            $platform->deposit($amount, ['description' => 'deposited by '.$reseller->name]);
+            $platform->depositFloat($amount, ['description' => 'deposited by ' . $reseller->name]);
 
             //transfer account to reseller
-            $platform->forceTransfer($reseller, $amount, ['description' => 'wallet recharged']);
+            $platform->forceTransferFloat($reseller, $amount, ['description' => 'wallet recharged']);
 
             //send notification
             $tnxId = $this->tnx_id;
             User::sendMessage(
                 users: $reseller,
-                title: 'Wallet rechange request has been approved with tnx_id = '.$tnxId,
-                url: route('filament.resources.wallet-recharge-requests.index', ['tableSearchQuery' => $tnxId])
+                title: 'Wallet rechange request has been approved with tnx_id = ' . $tnxId,
+                url: route('filament.app.resources.wallet-recharge-requests.index', ['tableSearchQuery' => $tnxId])
             );
         });
     }

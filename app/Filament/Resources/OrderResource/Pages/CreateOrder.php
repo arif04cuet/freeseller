@@ -21,8 +21,14 @@ class CreateOrder extends CreateRecord
 
         return DB::transaction(function () use ($data) {
 
-            $prefix = $data['list'].'-';
-            $items = $data['items'];
+            $prefix = $data['list'] . '-';
+            $items = collect($data['items'])
+                ->map(
+                    function ($item) {
+                        $item['subtotal'] = (int) $item['reseller_price'] * (int) $item['quantity'];
+                        return $item;
+                    }
+                )->toArray();
 
             $totalPaypable = Order::totalPayable($items);
             $totalSalable = Order::totalSubtotals($items);
@@ -54,7 +60,7 @@ class CreateOrder extends CreateRecord
 
             // create items
 
-            $items = collect($data['items'])
+            $items = collect($items)
                 ->map(function ($item) {
 
                     $sku = Sku::with('product')->find($item['sku']);

@@ -39,7 +39,7 @@ class WalletRechargeRequestResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('amount')
                     ->required()
-                    ->mask(fn (Forms\Components\TextInput\Mask $mask) => $mask->money(prefix: 'BDT', thousandsSeparator: ',', decimalPlaces: 0))
+                    //->mask(fn (Forms\Components\TextInput\Mask $mask) => $mask->money(prefix: 'BDT', thousandsSeparator: ',', decimalPlaces: 0))
                     ->numeric(),
                 Forms\Components\Select::make('bank')
                     ->label('Payment Channel')

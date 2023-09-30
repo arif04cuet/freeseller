@@ -58,7 +58,7 @@ class OrderResource extends Resource
                 Forms\Components\Select::make('hub_id')
                     ->label('Select Hub')
                     ->required()
-                    ->visible(fn (\Filament\Forms\Get $get) => ! empty($get('list')))
+                    ->visible(fn (\Filament\Forms\Get $get) => !empty($get('list')))
                     ->options(fn (\Filament\Forms\Get $get) => ResellerList::hubsInList($get('list')))
                     ->disabledOn('edit')
                     ->reactive(),
@@ -92,14 +92,14 @@ class OrderResource extends Resource
                                 function (Get $get) {
                                     $media = Sku::find($get('sku'))->getMedia('sharees')->first();
 
-                                    return $media ? (new HtmlString('<img src="'.$media->getUrl('thumb').'" / >')) : '';
+                                    return $media ? (new HtmlString('<img src="' . $media->getUrl('thumb') . '" / >')) : '';
                                 }
                             ),
 
                         Forms\Components\TextInput::make('quantity')
                             ->reactive()
                             ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
-                            ->helperText(fn (\Filament\Forms\Get $get) => 'Available quantity is '.Sku::find($get('sku'))->quantity)
+                            ->helperText(fn (\Filament\Forms\Get $get) => 'Available quantity is ' . Sku::find($get('sku'))->quantity)
                             ->maxValue(fn (\Filament\Forms\Get $get) => Sku::find($get('sku'))->quantity)
                             ->required()
                             ->afterStateUpdated(function (Get $get, \Filament\Forms\Set $set, ?string $state) {
@@ -113,7 +113,7 @@ class OrderResource extends Resource
                             ->label('Sell Price')
                             ->reactive()
                             ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
-                            ->helperText(fn (\Filament\Forms\Get $get) => 'Wholesaler Price is '.(int) Sku::find($get('sku'))->price)
+                            ->helperText(fn (\Filament\Forms\Get $get) => 'Wholesaler Price is ' . (int) Sku::find($get('sku'))->price)
                             ->minValue(fn (\Filament\Forms\Get $get) => Sku::find($get('sku'))->wholesalePrice)
                             ->required()
                             ->afterStateUpdated(function (Get $get, \Filament\Forms\Set $set, ?string $state) {
@@ -270,11 +270,11 @@ class OrderResource extends Resource
                         if ($amount < 0) {
                             $set('error', 1);
 
-                            return 'Please recharge your wallet with TK = '.abs($amount);
+                            return 'Please recharge your wallet with TK = ' . abs($amount);
                         } elseif ($state > $cod) {
                             $set('error', 1);
 
-                            return 'COD can\'t be grater than '.$cod;
+                            return 'COD can\'t be grater than ' . $cod;
                         }
 
                         $set('error', 0);
@@ -286,13 +286,13 @@ class OrderResource extends Resource
                 Forms\Components\Textarea::make('note_for_wholesaler')
                     ->label('Message for manufacturer if any')
                     ->maxLength(300)
-                    ->rules('size:300')
-                    ->hint(fn ($state, $component) => 'Max '.$component->getMaxLength().' characters'),
+                    ->rules('max:300')
+                    ->hint(fn ($state, $component) => 'Max ' . $component->getMaxLength() . ' characters'),
                 Forms\Components\Textarea::make('note_for_courier')
                     ->label('Message for Courier if any')
                     ->maxLength(300)
-                    ->rules('size:300')
-                    ->hint(fn ($state, $component) => 'Max '.$component->getMaxLength().' characters'),
+                    ->rules('max:300')
+                    ->hint(fn ($state, $component) => 'Max ' . $component->getMaxLength() . ' characters'),
 
             ]);
     }

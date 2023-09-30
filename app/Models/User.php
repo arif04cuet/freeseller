@@ -11,6 +11,7 @@ use App\Notifications\EmailNotification;
 use App\Notifications\PushMessage;
 use Bavix\Wallet\Interfaces\Wallet;
 use Bavix\Wallet\Traits\HasWallet;
+use Bavix\Wallet\Traits\HasWalletFloat;
 use Filament\Models\Contracts\HasName;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
@@ -38,7 +39,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet
     use HasApiTokens, HasFactory, Notifiable;
     use HasPushSubscriptions;
     use HasRoles;
-    use HasWallet;
+    use HasWalletFloat;
 
     /**
      * The attributes that are mass assignable.
@@ -87,7 +88,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet
     public function scopeMine(Builder $builder): void
     {
         $loggedInUser = auth()->user();
-        $builder->when(! $loggedInUser->isSuperAdmin(), function ($q) use ($loggedInUser) {
+        $builder->when(!$loggedInUser->isSuperAdmin(), function ($q) use ($loggedInUser) {
             return $q->whereHas('address', function ($addressable) use ($loggedInUser) {
                 return $addressable->where('address_id', $loggedInUser->address->address_id);
             });
@@ -225,7 +226,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet
 
     public function getFilamentName(): string
     {
-        $name = $this->name.' ('.Str::headline($this->roles->first()->name).')';
+        $name = $this->name . ' (' . Str::headline($this->roles->first()->name) . ')';
 
         if ($this->isReseller() || $this->isWholesaler()) {
             $business = $this->business->first();
@@ -263,7 +264,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet
 
     public function color()
     {
-        if (! $this->roles->count()) {
+        if (!$this->roles->count()) {
             return '';
         }
 

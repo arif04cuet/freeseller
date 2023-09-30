@@ -21,19 +21,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/mail', function () {
 
-    $title = 'oksasd asda asd';
-    $body = '';
-    $url = route('order.print.label', ['order' => 2]);
-    Notification::make()
-        ->title($title)
-        ->body($body)
-        ->actions([
-            Action::make('view')
-                ->button()
-                ->markAsRead()
-                ->url($url),
-        ])
-        ->sendToDatabase(User::find(1));
+    $floatFn = fn ($number) => number_format($number, 2, '.', '');
+    $percentageFn = fn ($amount, $percentage) => $floatFn((($percentage / 100) * $amount));
+    return $percentageFn(650, 10);
 });
 
 Route::post('/push', function () {
@@ -53,7 +43,7 @@ Route::post('/push', function () {
 });
 
 Route::get('/', function () {
-    return redirect()->to(config('filament.path'));
+    //return redirect()->to(config('filament.path'));
 
     return view('welcome');
 });

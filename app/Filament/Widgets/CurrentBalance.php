@@ -27,7 +27,8 @@ class CurrentBalance extends BaseWidget
 
             $percentageFn = fn ($amount, $percentage): float => (float) (($percentage / 100) * $amount);
 
-            $balance = $user->balanceInt;
+            $balance = $user->balanceFloat;
+
             $pendingBalance = 0;
 
             if ($user->isReseller()) {
