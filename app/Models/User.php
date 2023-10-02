@@ -229,9 +229,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet
         $name = $this->name . ' (' . Str::headline($this->roles->first()->name) . ')';
 
         if ($this->isReseller() || $this->isWholesaler()) {
-            $business = $this->business->first();
-            $name = $business->name;
-            //$name .= '-' . $this->id;
+            $name = $this->business->name;
         }
 
         return $name;

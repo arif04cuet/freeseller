@@ -55,15 +55,14 @@ class ResellersResource extends Resource
                 TextInput::make('business.name')
                     ->label('Business Name')
                     ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
-                        $business = $record->business->first();
+                        $business = $record->business;
                         $component->state($business?->name);
                     }),
 
-                TextInput::make('business.address')
+                TextInput::make('address.address')
                     ->label('Business Address')
                     ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
-                        $business = $record->business->first();
-                        $component->state($business?->address);
+                        $component->state($record->address?->address);
                     }),
 
                 TextInput::make('business.estd_year')
@@ -89,7 +88,7 @@ class ResellersResource extends Resource
                 TextColumn::make('business.url')
                     ->label('Business Url')
                     ->formatStateUsing(
-                        fn (Model $record) => $record->business->url ? '<a href="'.$record->business->url.'"><u>FB / Website</u></a>' : 'No website'
+                        fn (Model $record) => $record->business->url ? '<a href="' . $record->business->url . '"><u>FB / Website</u></a>' : 'No website'
                     )
                     ->html()
                     ->openUrlInNewTab(),

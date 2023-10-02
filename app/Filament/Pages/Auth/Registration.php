@@ -160,7 +160,7 @@ class Registration extends Register
         } else {
 
             $preparedData['addressData']['address_id'] = $data['union'] ?? $data['upazila'] ?? $data['district'] ?? $data['division'];
-            $preparedData['addressData']['addressData'] = $data['address'];
+            $preparedData['addressData']['address'] = $data['address'];
         }
 
         $preparedData['business']['type'] = $data['business_type'];
