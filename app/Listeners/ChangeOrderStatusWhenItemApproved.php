@@ -30,8 +30,8 @@ class ChangeOrderStatusWhenItemApproved
 
                 User::sendMessage(
                     users: $manager,
-                    title: 'Order no ='.$order->id.' has been awaiting for collection. please collect',
-                    url: route('filament.resources.hub/orders.index', ['tableSearchQuery' => $order->id])
+                    title: 'Order no =' . $order->id . ' has been awaiting for collection. please collect',
+                    url: route('filament.app.resources.hub.orders.index', ['tableSearch' => $order->id])
                 );
             }
         }

@@ -57,7 +57,7 @@
                     @include('layout.table-td', ['text' => $item->status->value])
 
                     @php
-                        $businessName = $item->wholesaler->business->first()->name;
+                        $businessName = $item->wholesaler->business->name;
                         $wholesaler = $item->wholesaler;
                     @endphp
 

@@ -84,7 +84,7 @@ class WalletRechargeRequest extends Model implements HasMedia
             User::sendMessage(
                 users: $reseller,
                 title: 'Wallet rechange request has been approved with tnx_id = ' . $tnxId,
-                url: route('filament.app.resources.wallet-recharge-requests.index', ['tableSearchQuery' => $tnxId])
+                url: route('filament.app.resources.wallet-recharge-requests.index', ['tableSearch' => $tnxId])
             );
         });
     }

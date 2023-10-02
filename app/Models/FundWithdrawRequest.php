@@ -74,7 +74,7 @@ class FundWithdrawRequest extends Model
             User::sendMessage(
                 users: $user,
                 title: 'Fund withdrawal request has been approved with id = ' . $this->id,
-                url: route('filament.resources.fund-withdraw-requests.index', ['tableSearchQuery' => $this->id]),
+                url: route('filament.resources.fund-withdraw-requests.index', ['tableSearch' => $this->id]),
             );
         });
     }

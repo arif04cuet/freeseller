@@ -49,7 +49,8 @@ class CustomerResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name'),
-                Tables\Columns\TextColumn::make('mobile'),
+                Tables\Columns\TextColumn::make('mobile')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('email'),
                 Tables\Columns\TextColumn::make('address'),
             ])

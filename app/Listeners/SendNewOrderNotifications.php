@@ -29,7 +29,7 @@ class SendNewOrderNotifications implements ShouldQueue
                 User::sendMessage(
                     users: $manager,
                     title: 'New Order submitted. Order id =' . $order->id,
-                    url: route('filament.app.resources.hub.orders.index', ['tableSearchQuery' => $order->id])
+                    url: route('filament.app.resources.hub.orders.index', ['tableSearch' => $order->id])
                 );
             }
 
@@ -39,7 +39,7 @@ class SendNewOrderNotifications implements ShouldQueue
                 User::sendMessage(
                     users: $wholesalers,
                     title: 'New Order submitted. Order id =' . $order->id,
-                    url: route('filament.app.resources.wholesaler.orders.index', ['tableSearchQuery' => $order->id])
+                    url: route('filament.app.resources.wholesaler.orders.index', ['tableSearch' => $order->id])
                 );
             }
         }

@@ -15,7 +15,7 @@ class Support extends BaseWidget
         /** @var App\Models\User $user */
         $user = auth()->user();
         $support_number = config('freeseller.support_number');
-        $label = 'FreeSeller Suppor';
+        $label = 'FreeSeller Support';
 
         return [
             Stat::make($label, $support_number)

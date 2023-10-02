@@ -23,7 +23,7 @@ class Transactions extends BaseWidget
     {
         return [
 
-            Tables\Columns\TextColumn::make('amount')
+            Tables\Columns\TextColumn::make('amount_float')
                 ->searchable(),
             Tables\Columns\TextColumn::make('type')
                 ->colors([

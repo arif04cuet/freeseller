@@ -30,8 +30,8 @@ class ManageFundWithdrawRequests extends ManageRecords
 
                     User::sendMessage(
                         users: $superadmin,
-                        title: 'New fund withdrawal request submitted from user = '.$user->name,
-                        url: route('filament.resources.fund-withdraw-requests.index', ['tableSearchQuery' => $item->id]),
+                        title: 'New fund withdrawal request submitted from user = ' . $user->name,
+                        url: route('filament.resources.fund-withdraw-requests.index', ['tableSearch' => $item->id]),
                         sent_email: true
                     );
 

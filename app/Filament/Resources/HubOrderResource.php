@@ -124,7 +124,7 @@ class HubOrderResource extends Resource
                                     $amount = ($record->cod - $record->courier_charge);
                                     $dipositedAmount = $amount - $percentageFn($amount, 1);
 
-                                    User::platformOwner()->deposit($dipositedAmount, ['description' => 'Order amount for order#'.$record->id]);
+                                    User::platformOwner()->deposit($dipositedAmount, ['description' => 'Order amount for order#' . $record->id]);
 
                                     OrderDelivered::dispatch($record);
 
@@ -146,7 +146,7 @@ class HubOrderResource extends Resource
 
                 Tables\Actions\Action::make('track')
                     ->label('Track Order')
-                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/'.$record->tracking_code)
+                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
                     ->visible(fn (Order $record) => $record->tracking_code)
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('send_to_courier')
@@ -154,7 +154,7 @@ class HubOrderResource extends Resource
                     ->icon('heroicon-o-arrow-up-circle')
                     ->iconButton()
                     ->requiresConfirmation()
-                    ->visible(fn (Order $record) => ! $record->consignment_id && ($record->status == OrderStatus::ProcessingForHandOverToCourier))
+                    ->visible(fn (Order $record) => !$record->consignment_id && ($record->status == OrderStatus::ProcessingForHandOverToCourier))
                     ->action(fn (Order $record) => AddParcelToSteadFast::dispatchSync($record)),
                 Tables\Actions\Action::make('print_address')
                     ->icon('heroicon-o-printer')
@@ -198,15 +198,14 @@ class HubOrderResource extends Resource
                             ->afterStateHydrated(
                                 function (Order $record, \Filament\Forms\Set $set) {
                                     $wholesalers = $record->wholesalers()
-                                        ->pluck('wholesaler_id');
-
+                                        ->pluck('id');
                                     if ($wholesalers->count() == 1) {
                                         $set('wholesaler', $wholesalers->first());
                                     }
                                 }
                             )
                             ->visible(fn (\Filament\Forms\Get $get, Order $record) => $record->status == OrderStatus::WaitingForHubCollection)
-                            ->required(fn (\Filament\Forms\Get $get) => ! $get('all'))
+                            ->required(fn (\Filament\Forms\Get $get) => !$get('all'))
                             ->options(
                                 fn (Order $record) => $record->loadMissing('items.wholesaler')
                                     ->items
@@ -243,15 +242,15 @@ class HubOrderResource extends Resource
                         fn (Order $record, array $data) => $data['self'] ?
                             $record->addCollector(auth()->user()->id) : $record->addCollector($data['collector_id'])
                     )
-                    ->modalHeading(fn (Model $record) => 'Assign Collector to Order no '.$record->id)
+                    ->modalHeading(fn (Model $record) => 'Assign Collector to Order no ' . $record->id)
                     ->form([
                         Forms\Components\Checkbox::make('self')
                             ->label('Assign Myself')
                             ->reactive(),
                         Forms\Components\Select::make('collector_id')
                             ->label('Select Collector')
-                            ->visible(fn (\Filament\Forms\Get $get) => ! $get('self'))
-                            ->required(fn (\Filament\Forms\Get $get) => ! $get('self'))
+                            ->visible(fn (\Filament\Forms\Get $get) => !$get('self'))
+                            ->required(fn (\Filament\Forms\Get $get) => !$get('self'))
                             ->options(
                                 fn () => User::query()
                                     ->whereRelation('address', 'address_id', auth()->user()->address->address_id)

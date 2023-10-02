@@ -116,7 +116,7 @@ class WholesalerResource extends Resource
             ->actions([
                 Impersonate::make()
                     ->redirectTo(route('filament.app.pages.dashboard')),
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()->iconButton(),
             ])
             ->bulkActions([
                 //Tables\Actions\DeleteBulkAction::make(),

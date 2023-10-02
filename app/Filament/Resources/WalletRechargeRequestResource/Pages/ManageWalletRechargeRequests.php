@@ -34,7 +34,7 @@ class ManageWalletRechargeRequests extends ManageRecords
                     User::sendMessage(
                         users: $superadmin,
                         title: 'New wallet rechange request submitted with tnx_id = ' . $tnxId,
-                        url: route('filament.app.resources.wallet-recharge-requests.index', ['tableSearchQuery' => $tnxId]),
+                        url: route('filament.app.resources.wallet-recharge-requests.index', ['tableSearch' => $tnxId]),
                         sent_email: true
                     );
 

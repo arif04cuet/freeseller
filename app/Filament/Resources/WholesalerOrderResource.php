@@ -7,6 +7,7 @@ use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
 use App\Filament\Resources\WholesalerOrderResource\Pages;
 use App\Models\Order;
+use Filament\Actions\StaticAction;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -81,7 +82,7 @@ class WholesalerOrderResource extends Resource
             ->actions([
                 Tables\Actions\Action::make('track')
                     ->label('Track Order')
-                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/'.$record->tracking_code)
+                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
                     ->visible(fn (Order $record) => $record->tracking_code)
                     ->openUrlInNewTab(),
 
@@ -96,7 +97,7 @@ class WholesalerOrderResource extends Resource
 
                                 $collection = $record->collections->filter(fn ($item) => $item->wholesaler_id == auth()->user()->id)->first();
 
-                                if (! $collection || ($collection->collector_code != $data['collector_code'])) {
+                                if (!$collection || ($collection->collector_code != $data['collector_code'])) {
 
                                     Notification::make()
                                         ->title('Code mismatch')
@@ -112,13 +113,12 @@ class WholesalerOrderResource extends Resource
                             }
                         }
                     )
-                    ->modalButton(
-                        fn (Order $record) => match ($record->status) {
-                            OrderStatus::WaitingForWholesalerApproval => 'Approve All',
-                            OrderStatus::WaitingForHubCollection => 'Verify OTP',
-                            default => ''
-                        }
+                    ->modalSubmitAction(
+                        fn (StaticAction $action, Order $record) =>
+                        $record->status != OrderStatus::WaitingForWholesalerApproval ?
+                            false : $action->label('Approve All')
                     )
+
                     ->modalHeading('Items details')
                     ->modalContent(fn (Model $record) => view('orders.items-status', [
                         'items' => $record->loadMissing('items.wholesaler')->getItemsByWholesaler(auth()->user()),

@@ -80,12 +80,7 @@ class WalletRechargeRequestResource extends Resource
                     )
                     ->collection('recharge'),
                 Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->colors([
-                        'danger' => WalletRechargeRequestStatus::Rejected->value,
-                        'warning' => WalletRechargeRequestStatus::Pending->value,
-                        'success' => WalletRechargeRequestStatus::Approved->value,
-                    ]),
+                    ->badge(),
                 // Tables\Columns\TextColumn::make('action_taken_at')
                 //     ->dateTime(),
 
@@ -93,7 +88,9 @@ class WalletRechargeRequestResource extends Resource
             ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->visible(fn (Model $record) => $record->status == WalletRechargeRequestStatus::Pending),
+                    ->visible(
+                        fn (Model $record) => $record->status == WalletRechargeRequestStatus::Pending && $record->user_id == auth()->user()->id
+                    ),
                 Tables\Actions\Action::make('approved')
                     ->label('Approve')
                     ->color('success')

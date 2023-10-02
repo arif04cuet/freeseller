@@ -106,7 +106,7 @@ class Order extends Model
     public function trackingUrl(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, array $attributes) => 'https://steadfast.com.bd/t/'.$attributes['tracking_code']
+            get: fn ($value, array $attributes) => 'https://steadfast.com.bd/t/' . $attributes['tracking_code']
         );
     }
 
@@ -186,7 +186,7 @@ class Order extends Model
         }
 
         $quantity = $items
-            ->filter(fn ($item) => ! empty($item['sku']) && ! empty($item['quantity']))
+            ->filter(fn ($item) => !empty($item['sku']) && !empty($item['quantity']))
             ->sum('quantity');
 
         if (empty($quantity)) {
@@ -220,7 +220,7 @@ class Order extends Model
         }
 
         $amount = $items
-            ->filter(fn ($item) => ! empty($item['sku']) && ! empty($item['quantity']))
+            ->filter(fn ($item) => !empty($item['sku']) && !empty($item['quantity']))
             ->map(function ($item) {
                 $sku = Sku::find($item['sku']);
 
@@ -298,9 +298,9 @@ class Order extends Model
 
             User::sendMessage(
                 users: $user,
-                title: 'New order # '.$this->id.' assigned to you. please collect',
-                body: 'OTP is '.$code,
-                url: route('filament.resources.hub/orders.index', ['tableSearchQuery' => $this->id])
+                title: 'New order # ' . $this->id . ' assigned to you. please collect',
+                body: 'OTP is ' . $code,
+                url: route('filament.app.resources.hub.orders.index', ['tableSearch' => $this->id])
             );
 
             //order collections table
