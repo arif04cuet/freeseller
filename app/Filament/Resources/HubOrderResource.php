@@ -5,13 +5,16 @@ namespace App\Filament\Resources;
 use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
+use App\Events\OrderCancelled;
 use App\Events\OrderDelivered;
 use App\Filament\Resources\HubOrderResource\Pages;
 use App\Jobs\AddParcelToSteadFast;
 use App\Models\Order;
 use App\Models\User;
+use Closure;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -109,29 +112,65 @@ class HubOrderResource extends Resource
                 Tables\Actions\Action::make('mark_as_delivered')
                     ->label('Mark as Delivered?')
                     ->icon('heroicon-o-check')
-                    ->requiresConfirmation()
+                    ->modalHeading('Add Delivery Status')
+                    ->form([
+                        Forms\Components\Select::make('status')
+                            ->options(OrderStatus::delivery_statuses())
+                            ->default(OrderStatus::Delivered->value)
+                            ->live()
+                            ->required(),
+                        Forms\Components\Placeholder::make('cod')
+                            ->label('COD (taka)')
+                            ->content(fn (Order $record) => $record->cod),
+                        Forms\Components\TextInput::make('collected_cod')
+                            ->numeric()
+                            ->visible(fn (Get $get) => $get('status') != OrderStatus::Cancelled->value)
+                            ->maxValue(fn (Get $get, Order $record) => $record->cod)
+                            ->required(fn (Get $get) => $get('status') != OrderStatus::Cancelled->value)
+                            ->rules([
+                                function (Order $record, Get $get) {
+                                    return function (string $attribute, $value, Closure $fail) use ($get, $record) {
+
+                                        if (($get('status') == OrderStatus::Delivered->value) && ($value != $record->cod)) {
+                                            $fail('The COD mismatched');
+                                        }
+
+                                        if (($get('status') == OrderStatus::Partial_Delivered->value) &&
+                                            ($value < 1 || $value > $record->cod)
+                                        ) {
+                                            $fail('The :attribute is invalid.');
+                                        }
+                                    };
+                                },
+                            ]),
+                    ])
                     ->color('success')
                     ->iconButton()
-                    ->visible(fn (Order $record) => $record->tracking_code && $record->status != OrderStatus::Delivered)
+                    ->visible(fn (Order $record) => $record->tracking_code && $record->status == OrderStatus::HandOveredToCourier)
                     ->action(
-                        function (Order $record) {
+                        function (Order $record, array $data) {
+
                             try {
 
-                                DB::transaction(function () use ($record) {
-                                    $percentageFn = fn ($amount, $percentage): float => (float) (($percentage / 100) * $amount);
+                                DB::transaction(function () use ($record, $data) {
+                                    $order = $record;
+                                    $order->update([
+                                        'status' => OrderStatus::from($data['status'])->value,
+                                        'collected_cod' => isset($data['collected_cod']) ? $data['collected_cod'] : 0,
+                                    ]);
 
-                                    //steadfast courier charge and cod 1 % deducted
-                                    $amount = ($record->cod - $record->courier_charge);
-                                    $dipositedAmount = $amount - $percentageFn($amount, 1);
+                                    $order->refresh();
 
-                                    User::platformOwner()->deposit($dipositedAmount, ['description' => 'Order amount for order#' . $record->id]);
+                                    if ($order->status == OrderStatus::Delivered) {
+                                        OrderDelivered::dispatch($order);
+                                    } else if ($order->status == OrderStatus::Partial_Delivered) {
+                                    } else if ($order->status == OrderStatus::Cancelled) {
+                                        OrderCancelled::dispatch($order);
+                                    }
 
-                                    OrderDelivered::dispatch($record);
-
-                                    $record->update(['status' => OrderStatus::Delivered->value]);
 
                                     Notification::make()
-                                        ->title('Order marked as delivered successfully')
+                                        ->title('Order delivery status added successfully')
                                         ->success()
                                         ->send();
                                 });
@@ -161,7 +200,7 @@ class HubOrderResource extends Resource
                     ->iconButton()
                     ->url(fn (Order $record): string => route('order.print.label', $record))
                     ->openUrlInNewTab()
-                    ->visible(fn (Model $record) => $record->status == OrderStatus::Courier_In_Review),
+                    ->visible(fn (Model $record) => $record->status == OrderStatus::ProcessingForHandOverToCourier),
                 Tables\Actions\Action::make('items')
                     ->label('Products')
                     ->icon('heroicon-o-bars-4')

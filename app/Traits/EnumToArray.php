@@ -25,4 +25,13 @@ trait EnumToArray
     {
         return collect(self::array());
     }
+
+    public static function delivery_statuses(): array
+    {
+        return self::collection()->filter(fn ($name) => in_array($name, [
+            'Delivered',
+            //'Partial_Delivered',
+            'Cancelled'
+        ]))->toArray();
+    }
 }

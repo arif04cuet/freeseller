@@ -19,13 +19,12 @@ enum OrderStatus: string implements HasColor
 
     case HandOveredToCourier = 'hand_overed_to_courier';
 
-    case Courier_In_Review = 'in_review';
-
     case Cancelled = 'cacelled';
 
     case Approved = 'approved';
 
     case Delivered = 'delivered';
+    case Partial_Delivered = 'partial_delivered';
 
     public function getColor(): string|array|null
     {
@@ -34,7 +33,6 @@ enum OrderStatus: string implements HasColor
             self::WaitingForHubCollection => 'secondary',
             self::ProcessingForHandOverToCourier => 'secondary',
             self::HandOveredToCourier => 'secondary',
-            self::Courier_In_Review => 'secondary',
             self::Processing => 'warning',
             self::Delivered => 'success',
             self::Cancelled => 'danger'

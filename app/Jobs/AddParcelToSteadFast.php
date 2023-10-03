@@ -44,7 +44,7 @@ class AddParcelToSteadFast
             $order->update([
                 'consignment_id' => $consignment['consignment_id'],
                 'tracking_code' => $consignment['tracking_code'],
-                'status' => OrderStatus::Courier_In_Review->value,
+                'status' => OrderStatus::HandOveredToCourier->value,
             ]);
 
             Notification::make()

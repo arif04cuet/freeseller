@@ -33,7 +33,18 @@ class DisburseOrderAmount implements ShouldQueue
             $floatFn = fn ($number) => number_format($number, 2, '.', '');
             $percentageFn = fn ($amount, $percentage) => $floatFn((($percentage / 100) * $amount));
 
-            //deduct from wholesalers
+
+            //add order amount to owner account first
+            $amount = ($order->cod - $order->courier_charge);
+            $dipositedAmount = $amount - $percentageFn($amount, 1);
+
+            $ownerAccount->depositFloat($floatFn($dipositedAmount), [
+                'description' => 'Order amount for order#' . $order->id,
+                'order' => $order->id
+            ]);
+
+
+            //deposit and deduct from wholesalers
             $wholesalers = $order->wholsalersAmount();
             foreach ($wholesalers as $id => $amount) {
 
@@ -56,7 +67,7 @@ class DisburseOrderAmount implements ShouldQueue
                 ]);
             }
 
-            //deduct from reseller
+            //deposit and deduct from reseller
 
             $reseller = $order->reseller;
 
@@ -90,6 +101,9 @@ class DisburseOrderAmount implements ShouldQueue
 
             //update order
             $order->forceFill(['delivered_at' => now()])->save();
+
+
+            SendOrderDeliveredNotification::dispatch($order->refresh());
         });
     }
 }

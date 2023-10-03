@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Events\NewOrderCreated;
+use App\Events\OrderCancelled;
 use App\Events\OrderDelivered;
 use App\Events\OrderItemApproved;
 use App\Listeners\ActivateUser;
@@ -11,8 +12,10 @@ use App\Listeners\ChangeOrderStatusWhenItemApproved;
 use App\Listeners\CreateWallet;
 use App\Listeners\DisburseOrderAmountAction;
 use App\Listeners\LockResellerAmount;
+use App\Listeners\OrderCancelledListener;
 use App\Listeners\SendNewOrderNotifications;
 use App\Listeners\SendNewSignupEmailNotificationToAdmins;
+use App\Listeners\SendOrderCancelledNotificationListener;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -51,6 +54,9 @@ class EventServiceProvider extends ServiceProvider
         OrderDelivered::class => [
             DisburseOrderAmountAction::class,
         ],
+        OrderCancelled::class => [
+            OrderCancelledListener::class
+        ]
 
     ];
 

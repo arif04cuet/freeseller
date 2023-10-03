@@ -9,6 +9,6 @@ class DisburseOrderAmountAction
 {
     public function handle(OrderDelivered $event): void
     {
-        DisburseOrderAmount::dispatchSync($event->order);
+        DisburseOrderAmount::dispatch($event->order);
     }
 }

@@ -27,6 +27,7 @@ class Order extends Model
         'status' => OrderStatus::class,
         'collected_at' => 'datetime',
         'delivered_at' => 'datetime',
+        'delivery_action_at' => 'datetime',
         'total_payable' => 'int',
         'total_saleable' => 'int',
         'profit' => 'int',

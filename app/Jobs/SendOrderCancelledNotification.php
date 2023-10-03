@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Models\Order;
+use App\Models\User;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+
+class SendOrderCancelledNotification implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public function __construct(public Order $order)
+    {
+        //
+    }
+
+    public function handle(): void
+    {
+        $order = $this->order;
+
+        $order->wholesalers()
+            ->each(
+                function ($wholesaler) use ($order) {
+                    User::sendMessage(
+                        users: $wholesaler,
+                        title: 'Order has been cancelled. Order # = ' . $order->id,
+                        url: route('filament.app.resources.wholesaler.orders.index', ['tableSearch' => $order->id])
+                    );
+                }
+            );
+
+
+        User::sendMessage(
+            users: $order->reseller,
+            title: 'Order has been cancelled. Order # = ' . $order->id,
+            url: route('filament.app.resources.orders.index', ['tableSearch' => $order->id])
+        );
+    }
+}
