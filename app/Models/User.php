@@ -199,6 +199,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
             ->actions([
                 Action::make('view')
                     ->button()
+                    ->markAsRead()
                     ->url($url),
             ])
             ->sendToDatabase($users);
