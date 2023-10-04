@@ -87,7 +87,6 @@ class HubOrderResource extends Resource
                     ->getStateUsing(fn (Model $record) => $record
                         ->reseller
                         ->business
-                        ->first()
                         ->name),
                 Tables\Columns\TextColumn::make('reseller.name')
                     ->label('Name'),
