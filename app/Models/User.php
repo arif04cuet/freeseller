@@ -12,6 +12,7 @@ use App\Notifications\PushMessage;
 use Bavix\Wallet\Interfaces\Wallet;
 use Bavix\Wallet\Traits\HasWallet;
 use Bavix\Wallet\Traits\HasWalletFloat;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Models\Contracts\HasName;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
@@ -34,7 +35,7 @@ use Laravel\Sanctum\HasApiTokens;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet
+class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, HasAvatar
 {
     use HasApiTokens, HasFactory, Notifiable;
     use HasPushSubscriptions;
@@ -168,6 +169,11 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet
     }
 
     //functions
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->business->logo;
+    }
 
     public function autoActivation()
     {

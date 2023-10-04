@@ -14,12 +14,7 @@ class Business extends Model implements HasMedia
     use HasFactory;
     use InteractsWithMedia;
 
-    protected $fillable = [
-        'name',
-        'estd_year',
-        'type',
-        'url',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'type' => BusinessType::class,

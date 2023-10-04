@@ -45,7 +45,8 @@ class SkusRelationManager extends RelationManager
                         Tables\Actions\Action::make('View Image')
                             ->action(function (Model $record): void {
                             })
-                            ->modalActions([])
+                            ->modalSubmitAction(false)
+                            ->modalCancelAction(false)
                             ->modalContent(fn (Model $record) => view(
                                 'products.gallery',
                                 [
@@ -105,81 +106,88 @@ class SkusRelationManager extends RelationManager
 
             ])
             ->bulkActions([
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\DetachBulkAction::make(),
+                    Tables\Actions\BulkAction::make('export_images')
+                        ->label('Download Images')
+                        ->modalSubmitActionLabel('Download')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->form([
+                            Forms\Components\Select::make('watermark_position')
+                                ->label('Watermark Position')
+                                ->required()
+                                ->options([
+                                    'top_left' => 'Top Left',
+                                    'top_right' => 'Top Right',
+                                    'bottom_left' => 'Bottom Left',
+                                    'bottom_right' => 'Bootom Right',
+                                ]),
+                        ])
+                        ->action(
+                            function (Collection $records, array $data) {
 
-                Tables\Actions\DetachBulkAction::make(),
-                Tables\Actions\BulkAction::make('export_images')
-                    ->label('Download Images')
-                    ->modalSubmitActionLabel('Download')
-                    ->form([
-                        Forms\Components\Select::make('watermark_position')
-                            ->label('Watermark Position')
-                            ->required()
-                            ->options([
-                                'top_left' => 'Top Left',
-                                'top_right' => 'Top Right',
-                                'bottom_left' => 'Bottom Left',
-                                'bottom_right' => 'Bootom Right',
-                            ]),
-                    ])
-                    ->action(
-                        function (Collection $records, array $data) {
+                                $folderName = uniqid();
+                                $tmpDir = 'tmp';
+                                $folder = $tmpDir . '/' . $folderName;
+                                !File::isDirectory($folder) && File::makeDirectory($folder, 0777, true, true);
 
-                            $folderName = uniqid();
-                            $tmpDir = 'tmp';
-                            $folder = $tmpDir . '/' . $folderName;
-                            !File::isDirectory($folder) && File::makeDirectory($folder, 0777, true, true);
+                                foreach ($records as $sku) {
 
-                            foreach ($records as $sku) {
+                                    $images = $sku->getMedia('sharees');
 
-                                $images = $sku->getMedia('sharees');
-
-                                if ($images->count() == 0) {
-                                    continue;
-                                }
-
-                                foreach ($images as $media) {
-
-                                    $path = $media->getPath();
-
-                                    if (!File::exists($path)) {
+                                    if ($images->count() == 0) {
                                         continue;
                                     }
 
-                                    $img = Image::make($path);
-                                    [$x, $y] = self::imageXY($img, $data);
-                                    $img->text($sku->waterMarkText(), $x, $y);
+                                    foreach ($images as $media) {
 
-                                    $savePath = $folder . '/' . uniqid("$sku->id-") . '.png';
-                                    $img->save($savePath);
+                                        $path = $media->getPath();
+
+                                        if (!File::exists($path)) {
+                                            continue;
+                                        }
+
+                                        $img = Image::make($path);
+                                        [$x, $y] = self::imageXY($img, $data);
+                                        $img->text($sku->waterMarkText(), $x, $y);
+
+                                        $savePath = $folder . '/' . uniqid("$sku->id-") . '.png';
+                                        $img->save($savePath);
+                                    }
                                 }
-                            }
 
-                            //zip and download
-                            $zip = new \ZipArchive();
-                            $zipFileName = $folderName . '.zip';
-                            if ($zip->open(public_path($folder . '/' . $zipFileName), \ZipArchive::CREATE) == true) {
-                                $files = File::files(public_path($folder));
-                                foreach ($files as $key => $value) {
-                                    $relativeName = basename($value);
-                                    $zip->addFile($value, $relativeName);
+                                //zip and download
+                                $zip = new \ZipArchive();
+                                $zipFileName = $folderName . '.zip';
+                                if ($zip->open(public_path($folder . '/' . $zipFileName), \ZipArchive::CREATE) == true) {
+                                    $files = File::files(public_path($folder));
+                                    foreach ($files as $key => $value) {
+                                        $relativeName = basename($value);
+                                        $zip->addFile($value, $relativeName);
+                                    }
+                                    $zip->close();
                                 }
-                                $zip->close();
+
+                                return response()->download(public_path($folder . '/' . $zipFileName))
+                                    ->deleteFileAfterSend();
                             }
+                        ),
+                    ExportBulkAction::make()
+                        ->label('Export Info')
+                        ->exports([
+                            ExcelExport::make()->withColumns([
+                                Column::make('name'),
+                                Column::make('product.description')
+                                    ->formatStateUsing(fn ($state) => strip_tags($state)),
+                                Column::make('product.price'),
+                                Column::make('quantity'),
+                                Column::make('product.category.name'),
 
-                            return response()->download(public_path($folder . '/' . $zipFileName))
-                                ->deleteFileAfterSend();
-                        }
-                    ),
-                ExportBulkAction::make()->exports([
-                    ExcelExport::make()->withColumns([
-                        Column::make('name'),
-                        Column::make('product.description'),
-                        Column::make('product.price'),
-                        Column::make('quantity'),
-                        Column::make('product.category.name'),
-
-                    ]),
+                            ]),
+                        ]),
                 ]),
+
+
             ]);
     }
 

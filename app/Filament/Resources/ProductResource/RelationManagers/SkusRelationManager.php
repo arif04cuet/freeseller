@@ -53,7 +53,8 @@ class SkusRelationManager extends RelationManager
                         Tables\Actions\Action::make('View Image')
                             ->action(function (Model $record): void {
                             })
-                            ->modalActions([])
+                            ->modalSubmitAction(false)
+                            ->modalCancelAction(false)
                             ->modalContent(fn (Model $record) => view(
                                 'products.gallery',
                                 [

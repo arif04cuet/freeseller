@@ -5,6 +5,7 @@ namespace App\Filament\Pages\Auth;
 use App\Enum\AddressType;
 use App\Enum\BusinessType;
 use App\Models\Address;
+use App\Models\Business;
 use App\Models\User;
 use Exception;
 use Filament\Actions\Action;
@@ -42,6 +43,7 @@ class EditProfile extends AuthEditProfile
      */
     protected function mutateFormDataBeforeFill(array $data): array
     {
+
         $user = User::find($data['id']);
         $data['business'] = $user->business;
         $data['address'] = $user->address;
@@ -105,10 +107,20 @@ class EditProfile extends AuthEditProfile
                         Forms\Components\TextInput::make('business.name')
                             ->label('Name')
                             ->required(),
-                        Forms\Components\TextInput::make('business.url')
-                            ->label('FB/Website Url')
-                            ->url()
+                        Forms\Components\TextInput::make('business.slogan')
+                            ->label('Slogan')
                             ->required(),
+                        Forms\Components\FileUpload::make('business.logo')
+                            ->image()
+                            ->imageEditor()
+                            ->directory('logo')
+                            ->imageEditorAspectRatios([
+                                null,
+                                '16:9',
+                                '4:3',
+                                '1:1',
+                            ]),
+
                         Forms\Components\TextInput::make('business.estd_year')
                             ->label('Estd. Year')
                             ->type('number')
@@ -121,11 +133,11 @@ class EditProfile extends AuthEditProfile
                             ->label('Address')
                             ->required(),
 
-                        // SpatieMediaLibraryFileUpload::make('image')
-                        //     ->required()
-                        //     ->label('Logo')
-                        //     ->image()
-                        //     ->collection('logo'),
+                        Forms\Components\TextInput::make('business.url')
+                            ->label('FB/Website Url')
+                            ->url()
+                            ->columnSpanFull()
+                            ->required(),
 
 
                     ]),
