@@ -7,7 +7,15 @@
                 <div class="inline-flex items-center space-x-1 rtl:space-x-reverse">
 
                     <span class="">
-                        {!! $text !!}
+                        @php
+                            $escape = !isset($escape) ? true : false;
+                        @endphp
+                        @if ($escape)
+                            {!! $text !!}
+                        @else
+                            {{ $text }}
+                        @endif
+
                     </span>
 
                 </div>

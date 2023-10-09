@@ -74,7 +74,7 @@ class WalletRechargeRequest extends Model implements HasMedia
             $amount = $floatFn($this->amount);
 
             // diposit to platform account
-            $platform->depositFloat($amount, ['description' => 'deposited by ' . $reseller->name]);
+            $platform->depositFloat($amount, ['description' => 'deposited by ' . $reseller->business->name]);
 
             //transfer account to reseller
             $platform->forceTransferFloat($reseller, $amount, ['description' => 'wallet recharged']);

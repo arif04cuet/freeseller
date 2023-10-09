@@ -64,6 +64,11 @@ class OrderItem extends Model
     }
 
     //helpers
+    public function returnedMessage(): string
+    {
+        return 'Your product ' . $this->sku->name . ' has been returned.
+        please collect it from hub within 3 days.';
+    }
 
     public function markAsApproved(): void
     {

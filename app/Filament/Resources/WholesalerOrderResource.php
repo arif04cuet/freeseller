@@ -114,9 +114,14 @@ class WholesalerOrderResource extends Resource
                         }
                     )
                     ->modalSubmitAction(
-                        fn (StaticAction $action, Order $record) =>
-                        $record->status != OrderStatus::WaitingForWholesalerApproval ?
-                            false : $action->label('Approve All')
+                        function (StaticAction $action, Order $record) {
+
+                            $wholesalerPendingItems = $record
+                                ->getItemsByWholesaler(auth()->user(), OrderItemStatus::WaitingForWholesalerApproval->value)
+                                ->count();
+                            logger($wholesalerPendingItems);
+                            return $wholesalerPendingItems ? $action->label('Approve All') : false;
+                        }
                     )
 
                     ->modalHeading('Items details')
@@ -142,17 +147,17 @@ class WholesalerOrderResource extends Resource
                         //     )
                         //     ->required(),
 
-                        Forms\Components\TextInput::make('collector_code')
-                            ->numeric()
-                            ->required()
-                            ->helperText('Ask 6 digits code from collector')
-                            ->minLength(6)
-                            ->maxLength(6)
-                            ->visible(
-                                fn (Order $record) => $record->collector?->id &&
-                                    is_null($record->collections->filter(fn ($item) => $item->wholesaler_id == auth()->user()->id)->first()?->collected_at) &&
-                                    auth()->user()->isWholesaler()
-                            ),
+                        // Forms\Components\TextInput::make('collector_code')
+                        //     ->numeric()
+                        //     ->required()
+                        //     ->helperText('Ask 6 digits code from collector')
+                        //     ->minLength(6)
+                        //     ->maxLength(6)
+                        //     ->visible(
+                        //         fn (Order $record) => $record->collector?->id &&
+                        //             is_null($record->collections->filter(fn ($item) => $item->wholesaler_id == auth()->user()->id)->first()?->collected_at) &&
+                        //             auth()->user()->isWholesaler()
+                        //     ),
                     ]),
 
             ])

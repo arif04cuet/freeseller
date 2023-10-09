@@ -16,6 +16,8 @@ use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\Summarizers\Count;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -33,6 +35,12 @@ class OrderResource extends Resource
     protected static ?int $navigationSort = 1;
 
     protected static ?string $navigationLabel = 'My Orders';
+
+    public static function canCreate(): bool
+    {
+        return static::can('create') &&
+            (auth()->user()->balanceInt > config('freeseller.minimum_acount_balance'));
+    }
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -53,7 +61,7 @@ class OrderResource extends Resource
             ->schema([
                 Forms\Components\Select::make('list')
                     ->options(auth()->user()->lists->pluck('name', 'id'))
-                    ->reactive(),
+                    ->live(),
 
                 Forms\Components\Select::make('hub_id')
                     ->label('Select Hub')
@@ -68,7 +76,7 @@ class OrderResource extends Resource
                     ->columns(6)
                     ->required()
                     ->cloneable()
-                    ->reactive()
+                    ->live()
                     ->visible(fn (\Filament\Forms\Get $get) => $get('hub_id') && $get('list'))
                     ->disableItemCreation(
                         fn (?Model $record, $context) => $context == 'edit' &&
@@ -85,6 +93,22 @@ class OrderResource extends Resource
                             ->getSearchResultsUsing(
                                 fn (string $search) => Sku::query()->where('id', $search)->pluck('name', 'id')
                             )
+                            ->options(
+                                function (Get $get) {
+
+                                    $items = collect($get('../../items'))->pluck('sku')
+                                        ->filter()
+                                        ->toArray();
+
+                                    $skus = ResellerList::find($get('../../list'))
+                                        ->skus
+                                        ->filter(fn ($sku) => !in_array($sku->id, $items))
+                                        ->pluck('name', 'id');
+
+                                    return $skus;
+                                }
+                            )
+                            ->preload()
                             ->getOptionLabelUsing(fn ($value): ?string => Sku::find($value)?->name),
                         Forms\Components\Placeholder::make('image')
                             ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
@@ -92,7 +116,9 @@ class OrderResource extends Resource
                                 function (Get $get) {
                                     $media = Sku::find($get('sku'))->getMedia('sharees')->first();
 
-                                    return $media ? (new HtmlString('<img src="' . $media->getUrl('thumb') . '" / >')) : '';
+                                    return $media ?
+                                        (new HtmlString('<img src="' . $media->getUrl('thumb') . '" / >')) :
+                                        '';
                                 }
                             ),
 
@@ -244,7 +270,7 @@ class OrderResource extends Resource
                     ]),
 
                 Forms\Components\TextInput::make('cod')
-                    ->default(1)
+                    //->default(1)
                     ->label('COD (total saleable + courier)')
                     ->reactive()
                     ->afterStateUpdated(function (\Filament\Forms\Set $set, Get $get, $state) {
@@ -253,23 +279,22 @@ class OrderResource extends Resource
                     })
                     ->hint(function (Get $get, $state, \Filament\Forms\Set $set, string $context) {
 
+                        $state = (int) $state;
                         $subtotals = Order::totalSubtotals($get('items'));
                         $courierCharge = Order::courierCharge($get('items'));
                         $cod = $subtotals + $courierCharge;
-                        //cod
 
                         if ($get('cod_update') == 1) {
                             $set('cod', $cod);
                         }
 
                         $lockAmount = (int) auth()->user()->lockAmount->sum('amount');
-                        $balance = auth()->user()->balanceInt - $lockAmount;
+                        $balance = auth()->user()->balanceFloat - $lockAmount;
 
-                        $amount = ($balance + (int) $state) - (Order::totalPayable($get('items')));
+                        $amount = ($balance + $state) - Order::totalPayable($get('items'));
 
                         if ($amount < 0) {
                             $set('error', 1);
-
                             return 'Please recharge your wallet with TK = ' . abs($amount);
                         } elseif ($state > $cod) {
                             $set('error', 1);
@@ -300,7 +325,36 @@ class OrderResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->recordUrl(
+                fn (Model $record) => match ($record->status) {
+                    OrderStatus::WaitingForWholesalerApproval => route('filament.app.resources.orders.edit', [['record' => $record]]),
+                    default => null,
+                },
+            )
+            ->defaultGroup(
+                Tables\Grouping\Group::make('created_at')
+                    ->date()
+                    ->collapsible()
+            )
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('Order#')
+                    ->formatStateUsing(fn ($state) => '<u>' . $state . '</u>')
+                    ->html()
+                    ->action(
+                        Tables\Actions\Action::make('items')
+                            ->label('Products')
+                            ->icon('heroicon-o-bars-4')
+                            ->iconButton()
+                            ->action(function (Order $record, array $data, array $arguments) {
+                            })
+                            ->modalCancelAction(false)
+                            ->modalSubmitAction(false)
+                            ->modalHeading('Products details')
+                            ->modalContent(fn (Model $record) => view('orders.items-status', [
+                                'items' => $record->loadMissing('items.wholesaler')->items,
+                            ])),
+                    ),
                 Tables\Columns\TextColumn::make('consignment_id')
                     ->label('CN'),
                 Tables\Columns\TextColumn::make('created_at')->dateTime(),
@@ -313,7 +367,8 @@ class OrderResource extends Resource
                     ->label('Sallable'),
                 Tables\Columns\TextColumn::make('cod')
                     ->label('COD'),
-                Tables\Columns\TextColumn::make('profit'),
+                Tables\Columns\TextColumn::make('profit')
+                    ->summarize(Sum::make()->label('Total Profit')),
                 Tables\Columns\TextColumn::make('customer.name')->label('Customer Name'),
                 Tables\Columns\TextColumn::make('customer.mobile')->label('Mobile'),
                 // Tables\Columns\TextColumn::make('customer.address')->label('Address'),

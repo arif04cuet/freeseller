@@ -30,7 +30,7 @@ trait EnumToArray
     {
         return self::collection()->filter(fn ($name) => in_array($name, [
             'Delivered',
-            //'Partial_Delivered',
+            'Partial_Delivered',
             'Cancelled'
         ]))->toArray();
     }

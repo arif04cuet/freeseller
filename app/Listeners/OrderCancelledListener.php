@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Enum\OrderItemStatus;
+use App\Enum\TransactionMetaText;
 use App\Events\OrderCancelled;
 use App\Jobs\SendOrderCancelledNotification;
 use App\Models\User;
@@ -34,11 +35,11 @@ class OrderCancelledListener
             }
 
             $reseller->forceTransferFloat($ownerAccount, $floatFn($order->courier_charge), [
-                'description' => 'Courier fee for order #' . $order->id,
+                'description' => TransactionMetaText::COURIER_FEE_DEDUCTED->getLabel($order),
                 'order' => $order->id
             ]);
             $reseller->forceTransferFloat($ownerAccount, $floatFn($order->packaging_charge), [
-                'description' => 'Packaging cost for order #' . $order->id,
+                'description' => TransactionMetaText::PACKAGING_FEE_DEDUCTED->getLabel($order),
                 'order' => $order->id
             ]);
 

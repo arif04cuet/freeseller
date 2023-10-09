@@ -6,6 +6,7 @@ use App\Enum\AddressType;
 use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Jobs\AddParcelToSteadFast;
+use App\Jobs\AddParcelToSteadFastFake;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -34,6 +35,8 @@ class Order extends Model
         'cod' => 'int',
         'courier_charge' => 'int',
         'total_amount' => 'int',
+        'packaging_charge' => 'int',
+        'collected_cod' => 'int'
     ];
 
     //scopes
@@ -101,6 +104,12 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+    public function deliveredItems()
+    {
+        return $this->items()
+            ->where('status', OrderItemStatus::Delivered->value)
+            ->get();
+    }
 
     //accessors
 
@@ -136,7 +145,7 @@ class Order extends Model
     {
         $wholesalers = [];
 
-        foreach ($this->items as $item) {
+        foreach ($this->deliveredItems() as $item) {
             $wholesalers[$item->wholesaler_id][] = $item->wholesaler_price;
         }
 
@@ -162,7 +171,7 @@ class Order extends Model
     public function wholesalers(): EloquentCollection
     {
         return $this->loadMissing('items.wholesaler')
-            ->items
+            ->deliveredItems()
             ->map(fn ($item) => $item->wholesaler)
             ->unique(fn ($item) => $item->id);
     }
@@ -242,10 +251,7 @@ class Order extends Model
     {
         $collection->forceFill(['collected_at' => now()])->save();
 
-        // Notification::make()
-        //     ->title('Success. please send products to collector')
-        //     ->success()
-        //     ->send();
+
 
         //update items status for a wholesaler
         $this->items
@@ -257,9 +263,16 @@ class Order extends Model
                     $item->forceFill(['status' => OrderItemStatus::DeliveredToHub->value])->save();
 
                     //deduct item stock
-                    $item->sku->decrement('quantity', $item->quantity);
+                    //$item->sku->decrement('quantity', $item->quantity);
                 }
             );
+
+        //send message to wholesaler
+        User::sendMessage(
+            users: User::find($collection->wholesaler_id),
+            title: 'Product received from hub for order# ' . $this->id . '. thanks',
+            url: route('filament.app.resources.wholesaler.orders.index', ['tableSearch' => $this->id])
+        );
 
         //check all items collected?
         $notDelivered = $this->refresh()
@@ -270,7 +283,10 @@ class Order extends Model
             $this->forceFill(['status' => OrderStatus::ProcessingForHandOverToCourier->value])->save();
             // add order to steadfast as a parcel
             $order = $this->refresh();
-            AddParcelToSteadFast::dispatchSync($order);
+            if (config('app.env') == 'production')
+                AddParcelToSteadFast::dispatch($order);
+            else
+                AddParcelToSteadFastFake::dispatch($order);
         }
     }
 
@@ -290,19 +306,18 @@ class Order extends Model
     public function addCollector($userId)
     {
         $user = User::find($userId);
-
         if (($user->isHubManager() || $user->isHubMember()) && ($this->status == OrderStatus::WaitingForHubCollection)) {
 
             $this->forceFill(['collector_id' => $user->id])->save();
 
             $code = random_int(100000, 999999);
 
-            User::sendMessage(
-                users: $user,
-                title: 'New order # ' . $this->id . ' assigned to you. please collect',
-                body: 'OTP is ' . $code,
-                url: route('filament.app.resources.hub.orders.index', ['tableSearch' => $this->id])
-            );
+            // User::sendMessage(
+            //     users: $user,
+            //     title: 'New order # ' . $this->id . ' assigned to you. please collect',
+            //     body: 'OTP is ' . $code,
+            //     url: route('filament.app.resources.hub.orders.index', ['tableSearch' => $this->id])
+            // );
 
             //order collections table
             if ($this->collections->count() == 0) {

@@ -4,8 +4,9 @@ namespace App\Enum;
 
 use App\Traits\EnumToArray;
 use Filament\Support\Contracts\HasColor;
+use Filament\Support\Contracts\HasLabel;
 
-enum OrderStatus: string implements HasColor
+enum OrderStatus: string implements HasColor, HasLabel
 {
     use EnumToArray;
 
@@ -35,7 +36,18 @@ enum OrderStatus: string implements HasColor
             self::HandOveredToCourier => 'secondary',
             self::Processing => 'warning',
             self::Delivered => 'success',
-            self::Cancelled => 'danger'
+            self::Cancelled => 'danger',
+            self::Partial_Delivered => 'warning',
+            default => 'warning'
+        };
+    }
+    public function getLabel(): ?string
+    {
+        return match ($this) {
+            self::WaitingForWholesalerApproval => 'Waiting for Manufacturer Approval',
+            self::WaitingForHubCollection => 'Waiting for Hub Collection',
+            self::HandOveredToCourier => 'Handovered to Courier',
+            default => $this->name
         };
     }
 }

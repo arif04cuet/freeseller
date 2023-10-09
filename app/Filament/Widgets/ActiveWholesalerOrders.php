@@ -2,6 +2,8 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enum\OrderItemStatus;
+use App\Enum\OrderStatus;
 use App\Models\Order;
 use Filament\Tables;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -22,6 +24,18 @@ class ActiveWholesalerOrders extends BaseWidget
     {
         return Order::query()
             ->with('items')
+            ->whereHas('items', function ($q) {
+                return $q->whereBelongsTo(auth()->user(), 'wholesaler')
+                    ->whereNotIn('status', [
+                        OrderItemStatus::Cancelled->value,
+                        OrderItemStatus::Returned->value
+                    ]);
+            })
+            ->whereNotIn('status', [
+                OrderStatus::Delivered->value,
+                OrderStatus::Partial_Delivered->value,
+                OrderStatus::Cancelled->value,
+            ])
             ->withSum([
                 'items' => function (Builder $q) {
                     return $q->whereBelongsTo(auth()->user(), 'wholesaler');

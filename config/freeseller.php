@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'steadfast_cod_percentange' => 1,
+    'minimum_acount_balance' => 1000,
     'platform_fee' => 1, //%
     'cod_fee' => 1, //%
     'packaging_fee' => 10, //taka

@@ -24,7 +24,7 @@ class WalletRechargeRequestResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $modelLabel = 'Recharge Approval';
+    protected static ?string $modelLabel = 'Recharge Request';
 
     protected static ?int $navigationSort = 5;
 
@@ -62,6 +62,7 @@ class WalletRechargeRequestResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')->since(),
+                Tables\Columns\TextColumn::make('user.business.name'),
                 Tables\Columns\TextColumn::make('amount'),
                 Tables\Columns\TextColumn::make('bank')->label('Payment Channel'),
                 Tables\Columns\TextColumn::make('tnx_id')->searchable(),

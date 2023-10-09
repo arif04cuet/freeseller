@@ -7,6 +7,7 @@ use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
 use App\Events\OrderCancelled;
 use App\Events\OrderDelivered;
+use App\Events\OrderPartialDelivered;
 use App\Filament\Resources\HubOrderResource\Pages;
 use App\Jobs\AddParcelToSteadFast;
 use App\Models\Order;
@@ -119,8 +120,19 @@ class HubOrderResource extends Resource
                             ->live()
                             ->required(),
                         Forms\Components\Placeholder::make('cod')
-                            ->label('COD (taka)')
+                            ->label('Reseller COD (taka)')
                             ->content(fn (Order $record) => $record->cod),
+                        Forms\Components\Select::make('return_skus')
+                            ->label('Return order items')
+                            ->multiple()
+                            ->options(
+                                fn (Order $record) => $record->items
+                                    ->filter(fn ($item) => $item->status == OrderItemStatus::DeliveredToHub)
+                                    ->pluck('sku.name', 'sku_id')
+                            )
+                            ->visible(fn (Get $get) => $get('status') == OrderStatus::Partial_Delivered->value)
+                            ->live()
+                            ->required(),
                         Forms\Components\TextInput::make('collected_cod')
                             ->numeric()
                             ->visible(fn (Get $get) => $get('status') != OrderStatus::Cancelled->value)
@@ -158,12 +170,64 @@ class HubOrderResource extends Resource
                                         'collected_cod' => isset($data['collected_cod']) ? $data['collected_cod'] : 0,
                                     ]);
 
-                                    $order->refresh();
 
                                     if ($order->status == OrderStatus::Delivered) {
+                                        $order->items()->update([
+                                            'status' => OrderItemStatus::Delivered->value
+                                        ]);
+                                        $order->refresh();
                                         OrderDelivered::dispatch($order);
                                     } else if ($order->status == OrderStatus::Partial_Delivered) {
+
+                                        $returnItems = $order->items()
+                                            ->whereIn('sku_id', $data['return_skus']);
+
+                                        $returnItems->update([
+                                            'status' => OrderItemStatus::Returned->value
+                                        ]);
+
+                                        $items = $returnItems->get();
+
+
+                                        $items->each(
+                                            function ($item) {
+
+                                                //stock update
+                                                $item->sku->increment('quantity', $item->quantity);
+
+                                                //send notification to wholesaler
+                                                User::sendMessage(
+                                                    users: $item->wholesaler,
+                                                    title: $item->returnedMessage(),
+                                                    url: route('filament.app.resources.orders.index', ['tableSearch' => $order->id])
+                                                );
+                                            }
+                                        );
+
+                                        $wholesalerPrice = $items->sum('wholesaler_price');
+                                        $resellerPrice = $items->sum('reseller_price');
+                                        $totalPayable = $order->total_payable - $wholesalerPrice;
+                                        $totalSaleable = $order->total_saleable - $resellerPrice;
+
+                                        $order->update([
+                                            'total_payable' => $totalPayable,
+                                            'total_saleable' => $totalSaleable,
+                                            'profit' => ($totalSaleable - ($totalPayable - $order->courier_charge)),
+                                        ]);
+
+                                        $order->refresh();
+                                        OrderPartialDelivered::dispatch($order);
                                     } else if ($order->status == OrderStatus::Cancelled) {
+
+                                        $order->items()->update([
+                                            'status' => OrderItemStatus::Cancelled->value
+                                        ]);
+
+                                        $order->refresh();
+
+                                        $order->items->each(
+                                            fn ($item) => $item->sku->increment('quantity', $item->quantity)
+                                        );
                                         OrderCancelled::dispatch($order);
                                     }
 
@@ -205,18 +269,21 @@ class HubOrderResource extends Resource
                     ->icon('heroicon-o-bars-4')
                     ->iconButton()
                     ->action(function (Order $record, array $data, array $arguments) {
+                        DB::transaction(function () use ($record, $data) {
+                            //add collector
+                            $record->addCollector(auth()->user()->id);
+                            $record->refresh();
 
-                        //add collector
-                        $record->addCollector(auth()->user()->id);
-                        $record->refresh();
+                            $collection = $record->collections
+                                ->filter(fn ($item) => $item->wholesaler_id == $data['wholesaler'])
+                                ->first();
+                            $record->deliverToCollector($collection);
 
-                        $collection = $record->collections->filter(fn ($item) => $item->wholesaler_id == $data['wholesaler'])->first();
-                        $record->deliverToCollector($collection);
-
-                        //print label
-                        if (isset($data['print'])) {
-                            return redirect(route('order.print.label', ['order' => $record]));
-                        }
+                            //print label
+                            if (isset($data['print'])) {
+                                return redirect(route('order.print.label', ['order' => $record]));
+                            }
+                        });
                     })
                     ->modalActions(
                         fn (Tables\Actions\Action $action, Order $record): array => match ($record->status) {
@@ -262,9 +329,9 @@ class HubOrderResource extends Resource
                             )
                             ->default(1),
                     ])
-                    ->modalHeading('Products details')
-                    ->modalContent(fn (Model $record) => view('orders.items-status', [
-                        'items' => $record->loadMissing('items.wholesaler')->items,
+                    ->modalHeading('Order Items')
+                    ->modalContent(fn (Model $record, Tables\Actions\Action $action) => view('orders.items-status', [
+                        'items' => $record->loadMissing('items.wholesaler')->items
                     ])),
 
                 Tables\Actions\Action::make('collector')
@@ -272,7 +339,7 @@ class HubOrderResource extends Resource
                     ->iconButton()
                     ->label('Assign Collector')
                     ->visible(
-                        fn (Model $record) => $record->wholesalers()->count() > 1 &&
+                        fn (Model $record) => 0 & $record->wholesalers()->count() > 1 &&
                             ($record->status == OrderStatus::WaitingForHubCollection) &&
                             auth()->user()->isHubManager()
                     )

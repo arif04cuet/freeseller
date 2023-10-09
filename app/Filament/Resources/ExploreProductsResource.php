@@ -148,26 +148,26 @@ class ExploreProductsResource extends Resource
             ])
             ->bulkActions([
 
-                Tables\Actions\BulkAction::make('add_to_lilst')
-                    ->visible(auth()->user()->hasRole(SystemRole::Reseller->value))
-                    ->label('Add to List')
-                    ->icon('heroicon-o-plus')
-                    ->successNotificationTitle('Products added to specified list')
-                    ->action(function (Tables\Actions\BulkAction $action, Collection $records, array $data): void {
+                // Tables\Actions\BulkAction::make('add_to_lilst')
+                //     ->visible(auth()->user()->hasRole(SystemRole::Reseller->value))
+                //     ->label('Add to List')
+                //     ->icon('heroicon-o-plus')
+                //     ->successNotificationTitle('Products added to specified list')
+                //     ->action(function (Tables\Actions\BulkAction $action, Collection $records, array $data): void {
 
-                        ResellerList::find($data['list'])
-                            ->products()
-                            ->syncWithoutDetaching($records->pluck('id')->toArray());
+                //         ResellerList::find($data['list'])
+                //             ->products()
+                //             ->syncWithoutDetaching($records->pluck('id')->toArray());
 
-                        $action->success();
-                    })
-                    ->deselectRecordsAfterCompletion()
-                    ->form([
-                        Forms\Components\Select::make('list')
-                            ->label('List')
-                            ->options(auth()->user()->lists->pluck('name', 'id'))
-                            ->required(),
-                    ]),
+                //         $action->success();
+                //     })
+                //     ->deselectRecordsAfterCompletion()
+                //     ->form([
+                //         Forms\Components\Select::make('list')
+                //             ->label('List')
+                //             ->options(auth()->user()->lists->pluck('name', 'id'))
+                //             ->required(),
+                //     ]),
 
             ])
             ->emptyStateActions([]);

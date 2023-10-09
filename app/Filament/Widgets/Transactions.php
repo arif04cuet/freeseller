@@ -24,6 +24,8 @@ class Transactions extends BaseWidget
         return [
 
             Tables\Columns\TextColumn::make('amount_float')
+                ->label('Amount')
+                ->wrap()
                 ->searchable(),
             Tables\Columns\TextColumn::make('type')
                 ->colors([

@@ -6,13 +6,16 @@ use App\Events\NewOrderCreated;
 use App\Events\OrderCancelled;
 use App\Events\OrderDelivered;
 use App\Events\OrderItemApproved;
+use App\Events\OrderPartialDelivered;
 use App\Listeners\ActivateUser;
 use App\Listeners\AddSkuNumnerToImage;
 use App\Listeners\ChangeOrderStatusWhenItemApproved;
 use App\Listeners\CreateWallet;
+use App\Listeners\DecrementItemStockQuantity;
 use App\Listeners\DisburseOrderAmountAction;
 use App\Listeners\LockResellerAmount;
 use App\Listeners\OrderCancelledListener;
+use App\Listeners\OrderDisbursmentForPartialDelivery;
 use App\Listeners\SendNewOrderNotifications;
 use App\Listeners\SendNewSignupEmailNotificationToAdmins;
 use App\Listeners\SendOrderCancelledNotificationListener;
@@ -42,6 +45,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         OrderItemApproved::class => [
             ChangeOrderStatusWhenItemApproved::class,
+            DecrementItemStockQuantity::class
         ],
         Verified::class => [
             ActivateUser::class,
@@ -53,6 +57,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         OrderDelivered::class => [
             DisburseOrderAmountAction::class,
+        ],
+        OrderPartialDelivered::class => [
+            OrderDisbursmentForPartialDelivery::class,
         ],
         OrderCancelled::class => [
             OrderCancelledListener::class

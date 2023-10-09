@@ -8,13 +8,15 @@ use App\Models\OrderItem;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Card;
+use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 
 class CurrentBalance extends BaseWidget
 {
     protected static ?int $sort = 1;
 
-    protected function getCards(): array
+    protected function getStats(): array
     {
         /** @var App\Models\User $user */
         $user = auth()->user();
@@ -51,16 +53,28 @@ class CurrentBalance extends BaseWidget
                 $pendingBalance = $percentageFn($pendingSum, $platformPer + $codPer);
             }
 
-            $cards[] = Card::make('Available Balance (TK)', $balance)
-                ->description('Balance you can windraw')
-                ->color('success');
-            $cards[] = Card::make('Pending Balance (TK)', $pendingBalance)
+            //
+            $msg = 'Balance you can windraw';
+            $color = 'success';
+            if ($user->isReseller() && $balance < config('freeseller.minimum_acount_balance')) {
+                $msg = new HtmlString(
+                    'Your current balance is less than ' . config('freeseller.minimum_acount_balance') .
+                        ' <a class="bg-red-500 font-bold rounded" href="' . route('filament.app.resources.wallet-recharge-requests.index') . '">Recharge</a>'
+                );
+                $color = 'danger';
+            }
+
+            $cards[] = Stat::make('Available Balance (TK)', $balance)
+                ->description($msg)
+                ->color($color);
+
+            $cards[] = Stat::make('Pending Balance (TK)', $pendingBalance)
                 ->description('Balance for your in-progress orders')
                 ->color('warning');
         }
         if ($user->isReseller()) {
             $lockAmount = $user->lockAmount->sum('amount');
-            $cards[] = Card::make('Lock Amount (TK)', $lockAmount)
+            $cards[] = Stat::make('Lock Amount (TK)', $lockAmount)
                 ->description('Balance, currently locked ')
                 ->color('danger');
         }

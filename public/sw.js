@@ -6,10 +6,10 @@ self.addEventListener("install", e => {
 // Fatch resources
 self.addEventListener("fetch", e => {
     e.respondWith(
-        fetch(request).then(function (response) {
+        fetch(e.request).then(function (response) {
             return response;
         }).catch(function (error) {
-            return caches.match(request).then(function (response) {
+            return caches.match(e.request).then(function (response) {
                 return response;
             });
         })
