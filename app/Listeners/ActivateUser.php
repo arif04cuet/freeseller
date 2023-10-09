@@ -18,11 +18,11 @@ class ActivateUser
 
         $user->fresh();
 
-        if (! $user->is_active) {
+        if (!$user->is_active) {
 
             Notification::make()
-                ->title('Your account is inactive. Please wait untill activated')
-                ->danger()
+                ->title('You have successfully created your account but your account is under verification. You will be notified via email when activated')
+                ->success()
                 ->send();
 
             Filament::auth()->logout();

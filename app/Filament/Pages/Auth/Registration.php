@@ -11,11 +11,13 @@ use DB;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Http\Responses\Auth\Contracts\RegistrationResponse;
 use Filament\Notifications\Notification;
 use Filament\Pages\Auth\Register;
 use Hash;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rules\Password;
 
 class Registration extends Register
@@ -49,36 +51,10 @@ class Registration extends Register
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label(__('filament-breezy::default.fields.name'))
-                    ->required(),
-                Forms\Components\TextInput::make('email')
-                    ->label(__('filament-breezy::default.fields.email'))
-                    ->required()
-                    ->email()
-                    ->unique(table: config('filament-breezy.user_model')),
-                Forms\Components\TextInput::make('password')
-                    ->label(__('filament-breezy::default.fields.password'))
-                    ->required()
-                    ->password()
-                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
-                    ->rules([
-                        'required',
-                        Password::min(8),
-                    ]),
-                Forms\Components\TextInput::make('password_confirm')
-                    ->label(__('filament-breezy::default.fields.password_confirm'))
-                    ->required()
-                    ->password()
-                    ->same('password'),
-                Forms\Components\TextInput::make('mobile')
-                    ->label('Mobile')
-                    ->rules('numeric|digits_between:11,11')
-                    ->regex('/^(?:\+?88|0088)?01[15-9]\d{8}$/i')
-                    ->placeholder('01xxxxxxxxx')
-                    ->unique(table: config('filament-breezy.user_model'))
-                    ->required(),
-
+                Forms\Components\Placeholder::make('information')
+                    ->label(new HtmlString('<b></b>'))
+                    ->columnSpanFull()
+                    ->content('Please provide valid information. All provided information will be varified manually before creating your account.'),
                 Forms\Components\Fieldset::make('Business Information')
                     ->schema([
 
@@ -86,24 +62,30 @@ class Registration extends Register
                             ->label('Type')
                             ->options(BusinessType::array())
                             ->enum(BusinessType::class)
+                            ->default(BusinessType::Reseller->value)
                             ->reactive()
                             ->required(),
                         Forms\Components\TextInput::make('business_name')
                             ->label('Name')
+                            ->placeholder('Business Name')
                             ->required(),
                         Forms\Components\TextInput::make('business_url')
                             ->label('FB/Website Url')
+                            ->placeholder('Valid Url')
                             ->url()
                             ->required(),
                         Forms\Components\TextInput::make('business_estd_year')
                             ->label('Estd. Year')
                             ->type('number')
+                            ->placeholder('2020')
                             ->minLength(4)
                             ->maxLength(4)
                             ->rules('min:4,max:4')
                             ->required(),
 
-                        Forms\Components\Fieldset::make('Select closest Hub')
+                        Forms\Components\Fieldset::make(
+                            fn (Get $get) => $get('business_type') == BusinessType::Wholesaler->value ? 'Select closest Hub' : 'Address'
+                        )
                             ->schema([
                                 Forms\Components\Select::make('division')
                                     ->options(Address::whereType(AddressType::Division->value)->pluck('name', 'id'))
@@ -117,6 +99,7 @@ class Registration extends Register
                                     ->reactive(),
 
                                 Forms\Components\Select::make('upazila')
+                                    ->visible(fn (\Filament\Forms\Get $get) => $get('business_type') == BusinessType::Wholesaler->value)
                                     ->options(fn (\Filament\Forms\Get $get) => Address::query()
                                         ->whereType(AddressType::Upazila->value)
                                         ->whereParentId($get('district'))
@@ -124,6 +107,7 @@ class Registration extends Register
                                     ->reactive(),
 
                                 Forms\Components\Select::make('union')
+                                    ->visible(fn (\Filament\Forms\Get $get) => $get('business_type') == BusinessType::Wholesaler->value)
                                     ->options(fn (\Filament\Forms\Get $get) => Address::query()
                                         ->whereType(AddressType::Union->value)
                                         ->whereParentId($get('upazila'))
@@ -138,14 +122,49 @@ class Registration extends Register
                                         ->pluck('name', 'id')),
 
                                 Forms\Components\TextInput::make('address')
+                                    ->placeholder('Full valid addres')
                                     ->visible(fn (\Filament\Forms\Get $get) => $get('business_type') == BusinessType::Reseller->value)
                                     ->label('Address')
                                     ->required(),
                             ])->columns(1),
 
-                        Forms\Components\Checkbox::make('consent_to_terms')->label('I consent to the terms of service and privacy policy.')->required(),
 
                     ]),
+                Forms\Components\Fieldset::make('Owner Information')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label(__('filament-breezy::default.fields.name'))
+                            ->required(),
+                        Forms\Components\TextInput::make('email')
+                            ->label(__('filament-breezy::default.fields.email'))
+                            ->required()
+                            ->email()
+                            ->unique(table: config('filament-breezy.user_model')),
+                        Forms\Components\TextInput::make('password')
+                            ->label(__('filament-breezy::default.fields.password'))
+                            ->required()
+                            ->password()
+                            ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+                            ->rules([
+                                'required',
+                                Password::min(8),
+                            ]),
+                        Forms\Components\TextInput::make('password_confirm')
+                            ->label(__('filament-breezy::default.fields.password_confirm'))
+                            ->required()
+                            ->password()
+                            ->same('password'),
+                        Forms\Components\TextInput::make('mobile')
+                            ->label('Mobile')
+                            ->rules('numeric|digits_between:11,11')
+                            ->regex('/^(?:\+?88|0088)?01[15-9]\d{8}$/i')
+                            ->placeholder('01xxxxxxxxx')
+                            ->unique(table: config('filament-breezy.user_model'))
+                            ->required(),
+                    ]),
+
+                Forms\Components\Checkbox::make('consent_to_terms')->label('I consent to the terms of service and privacy policy.')->required(),
+
             ]);
     }
 

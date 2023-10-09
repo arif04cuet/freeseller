@@ -14,6 +14,7 @@ use App\Listeners\CreateWallet;
 use App\Listeners\DecrementItemStockQuantity;
 use App\Listeners\DisburseOrderAmountAction;
 use App\Listeners\LockResellerAmount;
+use App\Listeners\NewSignupNotification;
 use App\Listeners\OrderCancelledListener;
 use App\Listeners\OrderDisbursmentForPartialDelivery;
 use App\Listeners\SendNewOrderNotifications;
@@ -50,6 +51,7 @@ class EventServiceProvider extends ServiceProvider
         Verified::class => [
             ActivateUser::class,
             CreateWallet::class,
+            NewSignupNotification::class
         ],
 
         MediaHasBeenAdded::class => [
