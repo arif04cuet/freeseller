@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\Order;
 use Bavix\Wallet\Models\Transaction;
 use Filament\Forms;
 use Filament\Tables;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Builder;
 class Transactions extends BaseWidget
 {
     protected static ?int $sort = 3;
+
+    public Order $order;
 
     protected function getTableQuery(): Builder
     {
@@ -22,16 +25,20 @@ class Transactions extends BaseWidget
     protected function getTableColumns(): array
     {
         return [
-
+            Tables\Columns\TextColumn::make('meta.order')
+                ->label('Order#')
+                ->searchable(query: function (Builder $query, string $search): Builder {
+                    return $query
+                        ->where('meta->order', $search);
+                }),
             Tables\Columns\TextColumn::make('amount_float')
-                ->label('Amount')
-                ->wrap()
-                ->searchable(),
+                ->label('Amount'),
             Tables\Columns\TextColumn::make('type')
                 ->colors([
                     'success' => 'deposit',
                     'danger' => 'withdraw',
                 ]),
+
             Tables\Columns\TextColumn::make('meta.description'),
             Tables\Columns\TextColumn::make('created_at')->dateTime(),
         ];

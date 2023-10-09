@@ -382,13 +382,23 @@ class OrderResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\Action::make('track')
-                    ->label('Track Order')
-                    ->url(fn (Order $record) => $record->tracking_url)
-                    ->visible(fn (Order $record) => $record->tracking_code)
-                    ->openUrlInNewTab(),
-                Tables\Actions\EditAction::make()
-                    ->visible(fn (?Model $record) => $record?->status?->value == OrderStatus::WaitingForWholesalerApproval->value),
+                Tables\Actions\ActionGroup::make([
+
+                    Tables\Actions\Action::make('transactions')
+                        ->modalCancelAction(false)
+                        ->modalSubmitAction(false)
+                        ->modalHeading(fn (Order $record) => 'Transactions for order#' . $record->id)
+                        ->modalContent(fn (Model $record) => view('order.transactions', [
+                            'order' => $record,
+                        ])),
+                    Tables\Actions\Action::make('track')
+                        ->label('Track Order')
+                        ->url(fn (Order $record) => $record->tracking_url)
+                        ->visible(fn (Order $record) => $record->tracking_code)
+                        ->openUrlInNewTab(),
+                    Tables\Actions\EditAction::make()
+                        ->visible(fn (?Model $record) => $record?->status?->value == OrderStatus::WaitingForWholesalerApproval->value),
+                ])
             ])
             ->bulkActions([
                 //Tables\Actions\DeleteBulkAction::make(),
