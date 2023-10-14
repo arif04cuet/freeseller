@@ -12,6 +12,8 @@ class PrintOrderLabel extends Controller
      */
     public function __invoke(Request $request, Order $order)
     {
+        $order->loadMissing(['items.sku', 'reseller']);
+
         return view('orders.print-address', compact('order'));
     }
 }

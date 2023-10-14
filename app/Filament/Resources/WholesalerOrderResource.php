@@ -119,7 +119,6 @@ class WholesalerOrderResource extends Resource
                             $wholesalerPendingItems = $record
                                 ->getItemsByWholesaler(auth()->user(), OrderItemStatus::WaitingForWholesalerApproval->value)
                                 ->count();
-                            logger($wholesalerPendingItems);
                             return $wholesalerPendingItems ? $action->label('Approve All') : false;
                         }
                     )

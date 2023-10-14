@@ -7,6 +7,7 @@ use App\Filament\Resources\PaymentChannelResource\Pages;
 use App\Models\PaymentChannel;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -40,6 +41,14 @@ class PaymentChannelResource extends Resource
                     ->placeholder('01xxxxxxxxx')
                     ->unique(ignoreRecord: true)
                     ->required()
+                    ->hintAction(
+                        Forms\Components\Actions\Action::make('copyMyMobile')
+                            ->icon('heroicon-m-clipboard')
+                            ->action(function (Set $set, $state) {
+                                $mobile = auth()->user()->mobile;
+                                $set('mobile_no', $mobile);
+                            })
+                    )
                     ->visible(fn (\Filament\Forms\Get $get) => $get('type') == EnumPaymentChannel::bKash->value),
                 Forms\Components\Grid::make('bank')
                     ->visible(fn (\Filament\Forms\Get $get) => $get('type') == EnumPaymentChannel::Bank->value)

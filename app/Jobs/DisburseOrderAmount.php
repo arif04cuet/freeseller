@@ -40,10 +40,17 @@ class DisburseOrderAmount implements ShouldQueue
             $currier_cod = (int) config('freeseller.steadfast_cod_percentange');
             $dipositedAmount = $amount - $percentageFn($amount, $currier_cod);
 
-            $ownerAccount->depositFloat($floatFn($dipositedAmount), [
-                'description' => TransactionMetaText::ORDER_AMOUNT_DIPOSITED->getLabel($order),
-                'order' => $order->id
-            ]);
+            if ($dipositedAmount > 0) {
+                $ownerAccount->depositFloat($floatFn($dipositedAmount), [
+                    'description' => TransactionMetaText::ORDER_AMOUNT_DIPOSITED->getLabel($order),
+                    'order' => $order->id
+                ]);
+            } else {
+                $ownerAccount->forceWithdrawFloat($floatFn(abs($dipositedAmount)), [
+                    'description' => TransactionMetaText::ORDER_AMOUNT_DIPOSITED->getLabel($order),
+                    'order' => $order->id
+                ]);
+            }
 
 
             //deposit and deduct from wholesalers

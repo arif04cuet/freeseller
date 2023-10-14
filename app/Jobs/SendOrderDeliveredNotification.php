@@ -27,6 +27,14 @@ class SendOrderDeliveredNotification implements ShouldQueue
         $order = $this->order;
 
         User::sendMessage(
+            users: User::platformOwner(),
+            title: 'order#' . $order->id . ' ' . $order->status->getLabel(),
+            body: 'COD = ' . $order->cod . ', Collected Cod=' . $order->collected_cod,
+            url: route('filament.app.resources.orders.index', ['tableSearch' => $order->id]),
+            sent_email: true
+        );
+
+        User::sendMessage(
             users: $order->reseller,
             title: $this->title,
             url: route('filament.app.resources.orders.index', ['tableSearch' => $order->id])

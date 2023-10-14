@@ -42,11 +42,11 @@ class Order extends Model
     //scopes
     public function scopePending(Builder $builder): void
     {
-        $pending = [
-            OrderStatus::Delivered->value,
-            OrderStatus::Cancelled->value,
-        ];
-        $builder->whereNotIn('status', $pending);
+        // $pending = [
+        //     OrderStatus::Delivered->value,
+        //     OrderStatus::Cancelled->value,
+        // ];
+        $builder->where('status', OrderStatus::HandOveredToCourier->value);
     }
 
     public function scopeMine(Builder $builder): void
@@ -110,6 +110,12 @@ class Order extends Model
             ->where('status', OrderItemStatus::Delivered->value)
             ->get();
     }
+    public function approvedItems()
+    {
+        return $this->items()
+            ->where('status', OrderItemStatus::Approved->value)
+            ->get();
+    }
 
     //accessors
 
@@ -168,12 +174,18 @@ class Order extends Model
         $this->forceFill(['status' => OrderStatus::Delivered->value])->save();
     }
 
-    public function wholesalers(): EloquentCollection
+    public function wholesalers($itemStatus = OrderItemStatus::Delivered): EloquentCollection
     {
-        return $this->loadMissing('items.wholesaler')
-            ->deliveredItems()
-            ->map(fn ($item) => $item->wholesaler)
-            ->unique(fn ($item) => $item->id);
+        return match ($itemStatus) {
+            OrderItemStatus::Approved => $this->loadMissing('items.wholesaler')
+                ->approvedItems()
+                ->map(fn ($item) => $item->wholesaler)
+                ->unique(fn ($item) => $item->id),
+            default => $this->loadMissing('items.wholesaler')
+                ->deliveredItems()
+                ->map(fn ($item) => $item->wholesaler)
+                ->unique(fn ($item) => $item->id)
+        };
     }
 
     public static function totalPayable(Collection|array $items): int

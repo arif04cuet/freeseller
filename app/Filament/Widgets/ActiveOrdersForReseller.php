@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ActiveOrdersForReseller extends BaseWidget
 {
-    protected static ?int $sort = 2;
-
+    protected static ?int $sort = 6;
+    protected int | string | array $columnSpan = 6;
     protected static ?string $heading = 'Active Orders';
 
     public static function canView(): bool

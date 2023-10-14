@@ -1,0 +1,1 @@
+@livewire('lock-amount-list')

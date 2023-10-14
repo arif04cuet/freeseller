@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rules\Unique;
 
 class ListResource extends Resource
@@ -39,6 +40,7 @@ class ListResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
+                    ->required()
                     ->unique(modifyRuleUsing: function (Unique $rule, callable $get) {
                         return $rule
                             ->where('name', $get('name'))
@@ -61,6 +63,9 @@ class ListResource extends Resource
                 //
             ])
             ->actions([])
+            ->checkIfRecordIsSelectableUsing(
+                fn (Model $record): bool => !$record->skus()->exists(),
+            )
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);

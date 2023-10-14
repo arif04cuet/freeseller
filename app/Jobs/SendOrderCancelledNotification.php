@@ -24,12 +24,19 @@ class SendOrderCancelledNotification implements ShouldQueue
     {
         $order = $this->order;
 
+        User::sendMessage(
+            users: User::platformOwner(),
+            title: 'Order has been cancelled. Order # = ' . $order->id,
+            url: route('filament.app.resources.orders.index', ['tableSearch' => $order->id]),
+            sent_email: true
+        );
+
         $order->wholesalers()
             ->each(
                 function ($wholesaler) use ($order) {
                     User::sendMessage(
                         users: $wholesaler,
-                        title: 'Order has been cancelled. Order # = ' . $order->id,
+                        title: 'Order has been cancelled. Please collect your product from hub within 3 days. Order # = ' . $order->id,
                         url: route('filament.app.resources.wholesaler.orders.index', ['tableSearch' => $order->id])
                     );
                 }

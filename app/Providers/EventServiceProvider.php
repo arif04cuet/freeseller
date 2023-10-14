@@ -16,6 +16,7 @@ use App\Listeners\DisburseOrderAmountAction;
 use App\Listeners\LockResellerAmount;
 use App\Listeners\NewSignupNotification;
 use App\Listeners\OrderCancelledListener;
+use App\Listeners\OrderDeliveryNotificationToOwner;
 use App\Listeners\OrderDisbursmentForPartialDelivery;
 use App\Listeners\SendNewOrderNotifications;
 use App\Listeners\SendNewSignupEmailNotificationToAdmins;
@@ -64,7 +65,7 @@ class EventServiceProvider extends ServiceProvider
             OrderDisbursmentForPartialDelivery::class,
         ],
         OrderCancelled::class => [
-            OrderCancelledListener::class
+            OrderCancelledListener::class,
         ]
 
     ];

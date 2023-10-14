@@ -13,6 +13,7 @@ use App\Jobs\AddParcelToSteadFast;
 use App\Models\Order;
 use App\Models\User;
 use Closure;
+use Filament\Actions\StaticAction;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -90,7 +91,7 @@ class HubOrderResource extends Resource
                         ->business
                         ->name),
                 Tables\Columns\TextColumn::make('reseller.name')
-                    ->label('Name'),
+                    ->label('Owner'),
                 Tables\Columns\TextColumn::make('reseller.mobile')
                     ->label('Mobile'),
                 Tables\Columns\TextColumn::make('total_saleable'),
@@ -146,10 +147,22 @@ class HubOrderResource extends Resource
                                             $fail('The COD mismatched');
                                         }
 
-                                        if (($get('status') == OrderStatus::Partial_Delivered->value) &&
-                                            ($value < 1 || $value > $record->cod)
-                                        ) {
-                                            $fail('The :attribute is invalid.');
+                                        if (($get('status') == OrderStatus::Partial_Delivered->value)) {
+
+                                            $returnSum = $record->items()
+                                                ->whereIn('sku_id', $get('return_skus'))
+                                                ->get()
+                                                ->sum('reseller_price');
+
+                                            $amount = $record->cod - $returnSum;
+
+                                            $msg = 'Value should be within ' . $record->courier_charge . ' to ' . $amount;
+
+                                            if ($amount == $record->courier_charge)
+                                                $msg = 'Value should be ' . $amount;
+
+                                            if (($value < $record->courier_charge) || ($value > $amount))
+                                                $fail('The :attribute is invalid. ' . $msg);
                                         }
                                     };
                                 },
@@ -190,7 +203,7 @@ class HubOrderResource extends Resource
 
 
                                         $items->each(
-                                            function ($item) {
+                                            function ($item)  use ($order) {
 
                                                 //stock update
                                                 $item->sku->increment('quantity', $item->quantity);
@@ -199,7 +212,7 @@ class HubOrderResource extends Resource
                                                 User::sendMessage(
                                                     users: $item->wholesaler,
                                                     title: $item->returnedMessage(),
-                                                    url: route('filament.app.resources.orders.index', ['tableSearch' => $order->id])
+                                                    url: route('filament.app.resources.wholesaler.orders.index', ['tableSearch' => $order->id])
                                                 );
                                             }
                                         );
@@ -238,6 +251,7 @@ class HubOrderResource extends Resource
                                         ->send();
                                 });
                             } catch (\Throwable $th) {
+                                logger($th);
                                 Notification::make()
                                     ->title('Something went wrong')
                                     ->danger()
@@ -288,7 +302,8 @@ class HubOrderResource extends Resource
                     ->modalActions(
                         fn (Tables\Actions\Action $action, Order $record): array => match ($record->status) {
                             OrderStatus::WaitingForHubCollection => [
-                                $action->makeExtraModalAction('collect', arguments: ['collect' => true]),
+                                $action->makeExtraModalAction('collect', arguments: ['collect' => true])
+                                    ->color('primary'),
                             ],
                             default => []
                         }
@@ -299,10 +314,10 @@ class HubOrderResource extends Resource
 
                         Forms\Components\Select::make('wholesaler')
                             ->label('Select Wholesaler')
-                            ->reactive()
+                            ->live()
                             ->afterStateHydrated(
                                 function (Order $record, \Filament\Forms\Set $set) {
-                                    $wholesalers = $record->wholesalers()
+                                    $wholesalers = $record->wholesalers(OrderItemStatus::Approved)
                                         ->pluck('id');
                                     if ($wholesalers->count() == 1) {
                                         $set('wholesaler', $wholesalers->first());
@@ -325,7 +340,7 @@ class HubOrderResource extends Resource
                         Forms\Components\Checkbox::make('print')
                             ->label('Print Level')
                             ->visible(
-                                fn (Order $record) => ($record->wholesalers()->count() == 1) && ($record->status == OrderStatus::WaitingForHubCollection)
+                                fn (Order $record) => ($record->wholesalers(OrderItemStatus::Approved)->count() == 1) && ($record->status == OrderStatus::WaitingForHubCollection)
                             )
                             ->default(1),
                     ])

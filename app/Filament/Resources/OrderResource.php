@@ -103,13 +103,21 @@ class OrderResource extends Resource
                                     $skus = ResellerList::find($get('../../list'))
                                         ->skus
                                         ->filter(fn ($sku) => !in_array($sku->id, $items))
+                                        ->map(fn ($sku) => [
+                                            'id' => $sku->id,
+                                            'name' => '<div class="flex gap-2">
+                                                <img src="' . $sku->getMedia('*')->first()->getUrl('thumb') . '"/>
+                                                <span>' . $sku->name . '</span>
+                                            </div>'
+                                        ])
                                         ->pluck('name', 'id');
 
                                     return $skus;
                                 }
                             )
                             ->preload()
-                            ->getOptionLabelUsing(fn ($value): ?string => Sku::find($value)?->name),
+                            ->allowHtml(),
+                        //->getOptionLabelUsing(fn ($value): ?string => '<span class="text-blue-500">Tailwind</span>'),
                         Forms\Components\Placeholder::make('image')
                             ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
                             ->content(
@@ -137,7 +145,7 @@ class OrderResource extends Resource
 
                         Forms\Components\TextInput::make('reseller_price')
                             ->label('Sell Price')
-                            ->reactive()
+                            ->live(debounce: 1000)
                             ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
                             ->helperText(fn (\Filament\Forms\Get $get) => 'Wholesaler Price is ' . (int) Sku::find($get('sku'))->price)
                             ->minValue(fn (\Filament\Forms\Get $get) => Sku::find($get('sku'))->wholesalePrice)
@@ -225,6 +233,7 @@ class OrderResource extends Resource
                     ->label('Customer')
                     ->required()
                     ->searchable()
+                    ->searchPrompt('Search by Mobile')
                     ->getSearchResultsUsing(
                         fn (string $search) => Customer::query()
                             ->whereRelation('resellers', 'reseller_id', auth()->user()->id)
@@ -327,7 +336,7 @@ class OrderResource extends Resource
         return $table
             ->recordUrl(
                 fn (Model $record) => match ($record->status) {
-                    OrderStatus::WaitingForWholesalerApproval => route('filament.app.resources.orders.edit', [['record' => $record]]),
+                    OrderStatus::WaitingForWholesalerApproval => route('filament.app.resources.orders.edit', ['record' => $record]),
                     default => null,
                 },
             )

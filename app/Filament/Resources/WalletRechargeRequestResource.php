@@ -15,6 +15,7 @@ use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\Rules\Unique;
 
 class WalletRechargeRequestResource extends Resource
 {
@@ -30,7 +31,7 @@ class WalletRechargeRequestResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->mine();
+        return parent::getEloquentQuery()->mine()->latest();
     }
 
     public static function form(Form $form): Form
@@ -47,6 +48,11 @@ class WalletRechargeRequestResource extends Resource
                     ->options(PaymentChannel::array()),
 
                 Forms\Components\TextInput::make('tnx_id')
+                    ->unique(modifyRuleUsing: function (Unique $rule, callable $get) {
+                        return $rule
+                            ->where('tnx_id', $get('tnx_id'))
+                            ->where('user_id', auth()->user()->id);
+                    }, ignoreRecord: true)
                     ->required(),
 
                 SpatieMediaLibraryFileUpload::make('image')

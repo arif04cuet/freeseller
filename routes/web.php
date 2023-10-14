@@ -1,5 +1,6 @@
 <?php
 
+use App\Helpers\Utils;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\PrintOrderLabel;
 use App\Models\Order;
@@ -20,10 +21,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/mail', function () {
-
-    $floatFn = fn ($number) => number_format($number, 2, '.', '');
-    $percentageFn = fn ($amount, $percentage) => $floatFn((($percentage / 100) * $amount));
-    return $percentageFn(650, 10);
 });
 
 Route::post('/push', function () {

@@ -10,7 +10,7 @@ class UserLockAmount extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     //relations
 

@@ -30,6 +30,7 @@ class OrderItem extends Model
         'reseller_price' => 'int',
         'total_amount' => 'int',
         'quantity' => 'int',
+        'is_returned_to_wholesaler' => 'boolean'
     ];
 
     //relations

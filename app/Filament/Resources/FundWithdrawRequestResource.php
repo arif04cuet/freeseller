@@ -14,6 +14,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\HtmlString;
 
 class FundWithdrawRequestResource extends Resource
 {
@@ -24,7 +25,7 @@ class FundWithdrawRequestResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->when(! auth()->user()->isSuperAdmin(), function ($query) {
+            ->when(!auth()->user()->isSuperAdmin(), function ($query) {
                 $query->whereBelongsTo(auth()->user());
             })
             ->latest();
@@ -49,9 +50,15 @@ class FundWithdrawRequestResource extends Resource
 
                 Forms\Components\TextInput::make('amount')
                     ->numeric()
-                    ->helperText(fn () => 'Available Balance: '.auth()->user()->balance)
+                    ->maxValue(fn () => (int) (auth()->user()->balanceFloat - config('freeseller.minimum_acount_balance')))
+                    ->helperText(
+                        fn () => new HtmlString(
+                            'Available Balance: <b>' . auth()->user()->balanceFloat . '</b> | ' .
+                                'Max withdrwable amount: <b>' . (int) (auth()->user()->balanceFloat - config('freeseller.minimum_acount_balance')) . '</b>'
+                        )
+                    )
                     ->maxValue(auth()->user()->balance)
-                    ->rules('max:'.auth()->user()->balance)
+                    ->rules('max:' . auth()->user()->balance)
                     ->required(),
 
             ]);

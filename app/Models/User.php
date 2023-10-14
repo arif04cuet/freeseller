@@ -190,18 +190,24 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
         string $title,
         string $body = '',
         string $url = '/',
-        $sent_email = false
+        $sent_email = false,
+        array $actions = [],
+        string $color = 'success'
     ): void {
+
+
+        if ($url != '/')
+            $actions[] = Action::make('view')
+                ->button()
+                ->markAsRead()
+                ->url($url);
+
 
         Notification::make()
             ->title($title)
             ->body($body)
-            ->actions([
-                Action::make('view')
-                    ->button()
-                    ->markAsRead()
-                    ->url($url),
-            ])
+            ->color($color)
+            ->actions($actions)
             ->sendToDatabase($users);
 
         //send push Message

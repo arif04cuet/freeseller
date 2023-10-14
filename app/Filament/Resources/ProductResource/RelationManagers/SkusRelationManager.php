@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rules\Unique;
 
 class SkusRelationManager extends RelationManager
 {
@@ -158,8 +159,19 @@ class SkusRelationManager extends RelationManager
                     ->form([
                         Forms\Components\Select::make('list')
                             ->label('List')
-                            ->options(auth()->user()->lists->pluck('name', 'id'))
-                            ->default(fn () => auth()->user()->lists()->latest()->first()->id)
+                            ->relationship(name: 'resellerLists', titleAttribute: 'name')
+                            //->options(auth()->user()->lists->pluck('name', 'id'))
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('name')
+                                    ->required()
+                                    ->unique(modifyRuleUsing: function (Unique $rule, callable $get) {
+                                        return $rule
+                                            ->where('name', $get('name'))
+                                            ->where('user_id', auth()->user()->id);
+                                    }, ignoreRecord: true),
+                            ])
+
+                            ->default(fn () => auth()->user()->lists()?->latest()?->first()?->id)
                             ->required(),
                     ]),
             ])

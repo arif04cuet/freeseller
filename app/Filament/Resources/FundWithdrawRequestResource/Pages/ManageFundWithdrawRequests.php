@@ -5,7 +5,8 @@ namespace App\Filament\Resources\FundWithdrawRequestResource\Pages;
 use App\Enum\WalletRechargeRequestStatus;
 use App\Filament\Resources\FundWithdrawRequestResource;
 use App\Models\User;
-use Filament\Pages\Actions;
+use Filament\Actions;
+use Filament\Actions\StaticAction;
 use Filament\Resources\Pages\ManageRecords;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,6 +18,14 @@ class ManageFundWithdrawRequests extends ManageRecords
     {
         return [
             Actions\CreateAction::make()
+                ->createAnother(false)
+                ->modalSubmitAction(
+                    function (StaticAction $action) {
+
+                        $maxWithdrawAmount = (int) (auth()->user()->balanceFloat - config('freeseller.minimum_acount_balance'));
+                        return $maxWithdrawAmount > 0 ? $action : false;
+                    }
+                )
                 ->using(function (array $data): Model {
 
                     $user = auth()->user();

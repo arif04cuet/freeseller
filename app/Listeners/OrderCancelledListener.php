@@ -23,8 +23,11 @@ class OrderCancelledListener
 
             //marked order items cancelled
             $order->items()->update([
-                'status' => OrderItemStatus::Cancelled->value
+                'status' => OrderItemStatus::Returned->value
             ]);
+
+            //update stock
+            $order->items->each(fn ($item) => $item->sku->increment('quantity', $item->quantity));
 
             //reseller calculations
             $reseller = $order->reseller;

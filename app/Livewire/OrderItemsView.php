@@ -2,8 +2,11 @@
 
 namespace App\Livewire;
 
+use App\Enum\OrderItemStatus;
+use App\Enum\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\User;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Tables;
@@ -14,7 +17,12 @@ use Filament\Tables\Table;
 use Livewire\Component;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Notification;
 
 class OrderItemsView extends Component implements HasForms, HasTable
 {
@@ -65,9 +73,27 @@ class OrderItemsView extends Component implements HasForms, HasTable
                                 ]
                             )),
                     ),
-                Tables\Columns\TextColumn::make('sku.product.name'),
-                Tables\Columns\TextColumn::make('quantity'),
-                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('sku.price')
+                    ->label('Price (Taka)'),
+                Tables\Columns\TextColumn::make('quantity')
+                    ->formatStateUsing(
+                        fn (Model $record, $state) => auth()->user()->isWholesaler() ?
+                            $state . ' (' . $record->sku->quantity . ')' : $state
+                    ),
+                Tables\Columns\TextColumn::make('status')
+                    ->wrap()
+                    ->html()
+                    ->formatStateUsing(
+                        function (Model $record) {
+
+                            $status = $record->status->name;
+
+                            if ($record->is_returned_to_wholesaler)
+                                $status .= '<br/><span class="text-primary-600"> (sent to wholesaler)</span>';
+
+                            return $status;
+                        }
+                    ),
                 Tables\Columns\TextColumn::make('order.note_for_wholesaler')
                     ->label('Reseller Note')
                     ->wrap()
@@ -93,9 +119,87 @@ class OrderItemsView extends Component implements HasForms, HasTable
             ->actions([
                 //
             ])
+            ->checkIfRecordIsSelectableUsing(
+                fn (Model $record): bool => $record->status == OrderItemStatus::Returned && !$record->is_returned_to_wholesaler,
+            )
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    //
+                    Tables\Actions\BulkAction::make('send_otp')
+                        ->visible(fn () => auth()->user()->isHubManager())
+                        ->icon('heroicon-o-envelope')
+                        ->deselectRecordsAfterCompletion()
+                        ->modalHeading('OTP has been sent to wholesaler.')
+                        // ->fillForm(fn (Post $record): array => [
+                        //     'title' => $record->title,
+                        //     'content' => $record->content,
+                        // ])
+                        ->fillForm(
+                            function (Collection $records): array {
+
+                                $otp = random_int(100000, 999999);
+                                logger($otp);
+                                $item = $records->first();
+
+                                Notification::make()
+                                    ->success()
+                                    ->title('OTP sent to wholesaler')
+                                    ->persistent()
+                                    ->send();
+
+                                User::sendMessage(
+                                    users: $item->wholesaler,
+                                    title: 'OTP to collect return product for order=' . $item->order->id,
+                                    body: 'OTP : ' . $otp,
+                                    actions: [
+                                        Action::make('read')
+                                            ->button()
+                                            ->markAsRead()
+                                    ]
+                                );
+
+                                return [
+                                    'sent_otp' => $otp
+                                ];
+                            }
+                        )
+                        ->form([
+                            Forms\Components\TextInput::make('entered_otp')
+                                ->label('Enter OTP to verify')
+                                ->required()
+                                ->numeric(),
+                            Forms\Components\TextInput::make('sent_otp')
+                                ->hidden()
+                        ])
+                        ->action(
+                            function (Collection $records, Form $form, Tables\Actions\BulkAction $action) {
+
+                                $data = $form->getRawState();
+
+                                if ($data['entered_otp'] != $data['sent_otp']) {
+
+                                    Notification::make()
+                                        ->danger()
+                                        ->title('OTP mismatched!')
+                                        ->persistent()
+                                        ->send();
+
+                                    $action->halt();
+                                }
+
+
+                                OrderItem::query()
+                                    ->whereIn('id', $records->pluck('id')->toArray())
+                                    ->update([
+                                        'is_returned_to_wholesaler' => true
+                                    ]);
+
+                                Notification::make()
+                                    ->success()
+                                    ->title('Success!')
+                                    ->persistent()
+                                    ->send();
+                            }
+                        )
                 ]),
             ]);
     }
