@@ -9,6 +9,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
@@ -29,12 +30,27 @@ class OrderTransactions extends Component implements HasForms, HasTable
         return $table
             ->query(
                 Transaction::query()
+                    ->select(
+                        '*',
+                        'meta->order AS order_no'
+                    )
                     ->where('meta->order', $this->order->id)
                     ->whereMorphedTo('payable', auth()->user())
             )
+            ->defaultGroup(
+                Tables\Grouping\Group::make('order_no')
+                    ->collapsible(),
+            )
             ->paginated(false)
             ->columns([
-                Tables\Columns\TextColumn::make('amount_float')
+                Tables\Columns\TextColumn::make('order_no'),
+                Tables\Columns\TextColumn::make('amount')
+                    ->summarize(
+                        Sum::make()
+                            ->label('Profit')
+                            ->formatStateUsing(fn ($state) => (float) ($state / 100))
+                    )
+                    ->formatStateUsing(fn ($state) => (float) ($state / 100))
                     ->label('Amount'),
                 Tables\Columns\TextColumn::make('type')
                     ->colors([

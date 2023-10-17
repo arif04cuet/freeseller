@@ -6,12 +6,16 @@ use App\Models\Order;
 use Bavix\Wallet\Models\Transaction;
 use Filament\Forms;
 use Filament\Tables;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
+use Filament\Widgets\Concerns\CanPoll;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Builder;
 
 class Transactions extends BaseWidget
 {
+    use CanPoll;
+
     protected static ?int $sort = 7;
     protected int | string | array $columnSpan = 6;
 
@@ -25,20 +29,34 @@ class Transactions extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
+            ->defaultGroup(
+                Tables\Grouping\Group::make('order_no')
+                    ->collapsible(),
+            )
 
             ->query(
                 Transaction::query()
+                    ->select(
+                        '*',
+                        'meta->order AS order_no'
+                    )
                     ->whereMorphedTo('payable', auth()->user())
                     ->latest()
             )
             ->columns([
-                Tables\Columns\TextColumn::make('meta.order')
+                Tables\Columns\TextColumn::make('order_no')
                     ->label('Order#')
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query
                             ->where('meta->order', $search);
                     }),
-                Tables\Columns\TextColumn::make('amount_float')
+                Tables\Columns\TextColumn::make('amount')
+                    ->summarize(
+                        Sum::make()
+                            ->label(fn () => auth()->user()->isReseller() ? 'Profit' : 'Sum')
+                            ->formatStateUsing(fn ($state) => (float) ($state / 100))
+                    )
+                    ->formatStateUsing(fn ($state) => (float) ($state / 100))
                     ->label('Amount'),
                 Tables\Columns\TextColumn::make('type')
                     ->colors([

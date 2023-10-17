@@ -2,7 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Enum\OrderItemStatus;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -31,7 +33,7 @@ class SendOrderCancelledNotification implements ShouldQueue
             sent_email: true
         );
 
-        $order->wholesalers()
+        $order->wholesalers(OrderItemStatus::Returned)
             ->each(
                 function ($wholesaler) use ($order) {
                     User::sendMessage(

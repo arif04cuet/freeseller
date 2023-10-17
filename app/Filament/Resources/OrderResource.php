@@ -21,6 +21,8 @@ use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
 
@@ -280,7 +282,8 @@ class OrderResource extends Resource
 
                 Forms\Components\TextInput::make('cod')
                     //->default(1)
-                    ->label('COD (total saleable + courier)')
+                    ->label('COD')
+                    ->helperText('total saleable + courier')
                     ->reactive()
                     ->afterStateUpdated(function (\Filament\Forms\Set $set, Get $get, $state) {
 
@@ -347,6 +350,7 @@ class OrderResource extends Resource
             )
             ->columns([
                 Tables\Columns\TextColumn::make('id')
+                    ->searchable()
                     ->label('Order#')
                     ->formatStateUsing(fn ($state) => '<u>' . $state . '</u>')
                     ->html()
@@ -377,8 +381,17 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('cod')
                     ->label('COD'),
                 Tables\Columns\TextColumn::make('profit')
-                    ->summarize(Sum::make()->label('Total Profit')),
-                Tables\Columns\TextColumn::make('customer.name')->label('Customer Name'),
+                    ->summarize(
+                        Sum::make()
+                            ->label('Total Profit Earned')
+                            ->query(fn (QueryBuilder $query) => $query->whereIn('status', [
+                                OrderStatus::Delivered->value,
+                                OrderStatus::Partial_Delivered->value,
+                            ])),
+                    ),
+                Tables\Columns\TextColumn::make('customer.name')
+                    ->searchable()
+                    ->label('Customer Name'),
                 Tables\Columns\TextColumn::make('customer.mobile')->label('Mobile'),
                 // Tables\Columns\TextColumn::make('customer.address')->label('Address'),
                 // Tables\Columns\TextColumn::make('note')
@@ -387,8 +400,28 @@ class OrderResource extends Resource
                     ->badge(),
 
             ])
+
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->multiple()
+                    ->options(OrderStatus::array()),
+
+                Tables\Filters\Filter::make('created_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('created_from'),
+                        Forms\Components\DatePicker::make('created_until'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
@@ -409,9 +442,7 @@ class OrderResource extends Resource
                         ->visible(fn (?Model $record) => $record?->status?->value == OrderStatus::WaitingForWholesalerApproval->value),
                 ])
             ])
-            ->bulkActions([
-                //Tables\Actions\DeleteBulkAction::make(),
-            ]);
+            ->bulkActions([]);
     }
 
     public static function getRelations(): array

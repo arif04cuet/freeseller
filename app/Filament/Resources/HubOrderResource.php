@@ -83,6 +83,9 @@ class HubOrderResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('consignment_id')
+                    ->searchable()
+                    ->label('CN'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->since(),
                 Tables\Columns\TextColumn::make('reseller')
@@ -108,6 +111,23 @@ class HubOrderResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->multiple()
                     ->options(OrderStatus::array()),
+
+                Tables\Filters\Filter::make('created_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('created_from'),
+                        Forms\Components\DatePicker::make('created_until'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
             ])
             ->actions([
                 Tables\Actions\Action::make('mark_as_delivered')
@@ -381,14 +401,23 @@ class HubOrderResource extends Resource
                     ]),
 
             ])
+            ->checkIfRecordIsSelectableUsing(
+                fn (Model $record): bool => $record->status == OrderStatus::HandOveredToCourier
+            )
             ->bulkActions([
-                // Tables\Actions\BulkAction::make('sent_to_courier')
-                //     ->action(function (Collection $records) {
-                //         dd(Order::addToCourier($records));
-                //     })
-                //     ->requiresConfirmation()
-                //     ->deselectRecordsAfterCompletion()
-                //     ->color('danger')
+                Tables\Actions\ActionGroup::make([
+
+                    Tables\Actions\BulkAction::make('print_list_for_courier')
+                        ->action(function (Collection $records) {
+                            dd($records->toArray());
+                        })
+                        ->modalSubmitAction(false)
+                        ->modalCancelAction(false)
+                        ->icon('heroicon-o-printer')
+                        ->deselectRecordsAfterCompletion()
+                        ->modalContent(fn (Collection $records) => view('orders.order-list-print', ['orders' => $records]))
+                        ->color('success')
+                ]),
             ]);
     }
 

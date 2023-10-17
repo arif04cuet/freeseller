@@ -116,7 +116,12 @@ class Order extends Model
             ->where('status', OrderItemStatus::Approved->value)
             ->get();
     }
-
+    public function returnedItems()
+    {
+        return $this->items()
+            ->where('status', OrderItemStatus::Returned->value)
+            ->get();
+    }
     //accessors
 
     public function trackingUrl(): Attribute
@@ -179,6 +184,10 @@ class Order extends Model
         return match ($itemStatus) {
             OrderItemStatus::Approved => $this->loadMissing('items.wholesaler')
                 ->approvedItems()
+                ->map(fn ($item) => $item->wholesaler)
+                ->unique(fn ($item) => $item->id),
+            OrderItemStatus::Returned => $this->loadMissing('items.wholesaler')
+                ->returnedItems()
                 ->map(fn ($item) => $item->wholesaler)
                 ->unique(fn ($item) => $item->id),
             default => $this->loadMissing('items.wholesaler')
