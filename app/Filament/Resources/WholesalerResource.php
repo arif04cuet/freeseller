@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\WholesalerResource\Pages;
 use App\Models\Address;
 use App\Models\User;
+use App\Notifications\AccountActivationNotification;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Infolists;
@@ -140,7 +141,13 @@ class WholesalerResource extends Resource
                 TextColumn::make('hub')
                     ->getStateUsing(fn (Model $record) => Address::find($record->address->address_id)->name),
                 TextColumn::make('created_at')->datetime(),
-                ToggleColumn::make('is_active'),
+                ToggleColumn::make('is_active')
+                    ->updateStateUsing(
+                        function (Model $record, $state) {
+                            if ($state)
+                                $record->notify(new AccountActivationNotification());
+                        }
+                    ),
             ])
             ->filters([
 
