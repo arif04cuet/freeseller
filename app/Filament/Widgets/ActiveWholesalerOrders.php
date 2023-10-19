@@ -15,7 +15,7 @@ use Notification;
 class ActiveWholesalerOrders extends BaseWidget
 {
     protected static ?int $sort = 6;
-    protected int | string | array $columnSpan = 4;
+    protected int | string | array $columnSpan = 2;
 
     protected static ?string $heading = 'Active Orders';
 
