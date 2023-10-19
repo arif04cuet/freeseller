@@ -25,13 +25,13 @@ class PendingBalance extends Widget implements HasForms, HasActions
     use InteractsWithForms;
 
     protected static string $view = 'filament.widgets.pending-balance';
-    protected int | string | array $columnSpan = 4;
+    protected int | string | array $columnSpan = [
+        'default' => 2,
+        'md' => 1,
+    ];
     protected static ?int $sort = 4;
 
-    protected function getColumns(): int
-    {
-        return 1;
-    }
+
 
     public function listAction(): Action
     {

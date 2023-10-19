@@ -15,7 +15,7 @@ use Illuminate\Support\HtmlString;
 class CurrentBalance extends BaseWidget
 {
     protected static ?int $sort = 3;
-    protected int | string | array $columnSpan = 4;
+    protected int | string | array $columnSpan = 2;
 
     protected function getColumns(): int
     {

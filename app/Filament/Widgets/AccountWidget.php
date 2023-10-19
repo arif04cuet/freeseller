@@ -7,8 +7,7 @@ use Filament\Widgets\Widget;
 class AccountWidget extends Widget
 {
     protected static ?int $sort = -3;
-    protected int | string | array $columnSpan = 4;
-
+    protected int | string | array $columnSpan = 2;
     /**
      * @var view-string
      */

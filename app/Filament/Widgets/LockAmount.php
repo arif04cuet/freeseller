@@ -12,6 +12,7 @@ use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Widgets\Concerns\CanPoll;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Filament\Widgets\Widget;
 use Illuminate\Support\HtmlString;
@@ -20,9 +21,13 @@ class LockAmount extends Widget implements HasForms, HasActions
 {
     use InteractsWithActions;
     use InteractsWithForms;
+    use CanPoll;
 
     protected static ?int $sort = 5;
-    protected int | string | array $columnSpan = 4;
+    protected int | string | array $columnSpan = [
+        'default' => 2,
+        'md' => 1,
+    ];
 
     protected static string $view = 'filament.widgets.lock-amount';
 

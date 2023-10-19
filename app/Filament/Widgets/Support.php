@@ -9,7 +9,7 @@ class Support extends BaseWidget
 {
     protected static ?string $pollingInterval = null;
     protected static ?int $sort = 1;
-    protected int | string | array $columnSpan = 8;
+    protected int | string | array $columnSpan = 2;
 
     protected function getColumns(): int
     {
