@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ResellersResource\Pages;
 use App\Models\User;
+use App\Notifications\AccountActivationNotification;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -139,10 +140,17 @@ class ResellersResource extends Resource
                 TextColumn::make('mobile')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TagsColumn::make('roles.name')
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->badge()
                     ->label('User Type'),
                 TextColumn::make('created_at')->datetime(),
-                ToggleColumn::make('is_active'),
+                ToggleColumn::make('is_active')
+                    ->updateStateUsing(
+                        function (Model $record, $state) {
+                            if ($state)
+                                $record->notify(new AccountActivationNotification());
+                        }
+                    ),
             ])
             ->filters([
 

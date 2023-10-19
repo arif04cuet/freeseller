@@ -85,7 +85,8 @@ class UserResource extends Resource
                 TextColumn::make('mobile')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TagsColumn::make('roles.name'),
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->badge(),
                 TextColumn::make('created_at')->datetime(),
                 ToggleColumn::make('is_active'),
             ])
