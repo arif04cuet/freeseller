@@ -8,6 +8,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TernaryFilter;
@@ -74,9 +76,45 @@ class ResellersResource extends Resource
                 TextInput::make('business.type')
                     ->label('Business Type')
                     ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
-                        $business = $record->business->first();
+                        $business = $record->business;
                         $component->state($business?->type);
                     }),
+            ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Infolists\Components\Section::make('Business Information')
+                    ->schema([
+                        Infolists\Components\Grid::make()
+                            ->columns(4)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('business.name')->label('Name'),
+                                Infolists\Components\TextEntry::make('address.address')->label('Address'),
+                                Infolists\Components\TextEntry::make('business.estd_year')->label('Estd. Year'),
+                                Infolists\Components\TextEntry::make('business.type')->label('Type'),
+                                Infolists\Components\TextEntry::make('business.url')
+                                    ->label('Url')
+                                    ->formatStateUsing(
+                                        fn (Model $record) => $record->business->url ? '<a href="' . $record->business->url . '"><u>FB / Website</u></a>' : 'No website'
+                                    )
+                                    ->html()
+                                    ->openUrlInNewTab()
+                            ])
+
+                    ]),
+                Infolists\Components\Section::make('Owner Information')
+                    ->schema([
+                        Infolists\Components\Grid::make()
+                            ->columns(4)
+                            ->schema([
+                                Infolists\Components\TextEntry::make('name'),
+                                Infolists\Components\TextEntry::make('email'),
+                                Infolists\Components\TextEntry::make('mobile'),
+                            ])
+                    ])
             ]);
     }
 
