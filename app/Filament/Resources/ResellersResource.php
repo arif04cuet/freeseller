@@ -11,10 +11,12 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use STS\FilamentImpersonate\Tables\Actions\Impersonate;
 
@@ -123,6 +125,11 @@ class ResellersResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('id_number')
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        $baseNumber = config('freeseller.base_id_number');
+                        return $query->whereRaw('CONCAT("R","", ? + id) = ?', [$baseNumber, $search]);
+                    }),
                 TextColumn::make('business.name'),
                 TextColumn::make('business.url')
                     ->label('Business Url')
@@ -147,8 +154,16 @@ class ResellersResource extends Resource
                 ToggleColumn::make('is_active')
                     ->updateStateUsing(
                         function (Model $record, $state) {
-                            if ($state)
+                            if ($state) {
+
                                 $record->notify(new AccountActivationNotification());
+                                $record->markAsActive();
+
+                                Notification::make()
+                                    ->title('Activation email has been sent to reellers email ' . $record->email)
+                                    ->success()
+                                    ->send();
+                            }
                         }
                     ),
             ])

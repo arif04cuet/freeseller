@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'base_id_number' => 1000,
     'steadfast_cod_percentange' => 1,
     'minimum_acount_balance' => 1000,
     'platform_fee' => 1, //%
@@ -8,5 +9,6 @@ return [
     'packaging_fee' => 10, //taka
     'delivery_charge' => 120,
     'per_saree_weight' => 500, //g,
-    'support_number' => '01721084083',
+    'support_number' => '01615645860',
+    'platform_bkash' => '01717348147',
 ];

@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Enum\PaymentChannel;
 use App\Enum\WalletRechargeRequestStatus;
 use App\Filament\Resources\WalletRechargeRequestResource\Pages;
+use App\Filament\Resources\WalletRechargeRequestResource\Widgets\WhereToPayment;
+use App\Models\User;
 use App\Models\WalletRechargeRequest;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -105,7 +107,16 @@ class WalletRechargeRequestResource extends Resource
                     ->iconButton()
                     ->visible(fn (Model $record) => ($record->status == WalletRechargeRequestStatus::Pending) && auth()->user()->isSuperAdmin())
                     ->requiresConfirmation()
-                    ->action(fn (Model $record) => $record->markAsApproved()),
+                    ->action(
+                        function (Model $record) {
+                            $record->markAsApproved();
+                            User::sendMessage(
+                                users: $record->user,
+                                title: 'Your recharge has been approved check your balance. tnx=' . $record->tnx_id,
+                                url: route('filament.app.resources.wallet-recharge-requests.index', ['tableSearch' => $record->id])
+                            );
+                        }
+                    ),
                 // Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([]);
@@ -115,6 +126,12 @@ class WalletRechargeRequestResource extends Resource
     {
         return [
             'index' => Pages\ManageWalletRechargeRequests::route('/'),
+        ];
+    }
+    public static function getWidgets(): array
+    {
+        return [
+            WhereToPayment::class
         ];
     }
 }

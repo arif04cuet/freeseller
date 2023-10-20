@@ -89,7 +89,7 @@ class EditProfile extends AuthEditProfile
                 Forms\Components\TextInput::make('mobile')
                     ->label('Mobile')
                     ->rules('numeric|digits_between:11,11')
-                    ->regex('/^(?:\+?88|0088)?01[15-9]\d{8}$/i')
+                    ->regex('/^(?:\+?88|0088)?01[3-9]\d{8}$/i')
                     ->placeholder('01xxxxxxxxx')
                     ->unique(table: config('filament-breezy.user_model'), ignoreRecord: true)
                     ->required(),

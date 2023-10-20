@@ -18,6 +18,7 @@ use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -82,6 +83,29 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
         static::deleting(function ($user) {
             $user->address()->delete();
         });
+    }
+
+    public function idNumber(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value, array $attributes) {
+
+                $baseNumber = config('freeseller.base_id_number');
+
+                $id = '';
+
+                if ($this->isWholesaler())
+
+                    $id = 'W' . ($baseNumber + $attributes['id']);
+
+                elseif ($this->isReseller())
+                    $id = 'R' . ($baseNumber + $attributes['id']);
+                else
+                    $id = '';
+
+                return $id;
+            }
+        );
     }
 
     //scopes
@@ -170,6 +194,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
 
     //functions
 
+
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->business?->logo;
@@ -242,7 +267,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
         $name = $this->name . ' (' . Str::headline($this->roles->first()->name) . ')';
 
         if ($this->isReseller() || $this->isWholesaler()) {
-            $name = $this->business->name;
+            $name = $this->business->name . ' ( ID : ' . $this->id_number . ' )';
         }
 
         return $name;

@@ -224,8 +224,12 @@ class Order extends Model
             return 0;
         }
 
-        $kg = ($quantity * $per_saree_weight) / 1000;
-        $charge = (int) ($delivery_charge + ($kg - 1) * 20);
+        $kg = ceil(($quantity * $per_saree_weight) / 1000);
+
+        if ($kg <= 1)
+            $charge  = $delivery_charge;
+        else
+            $charge = (int) ($delivery_charge + ($kg - 1) * 20);
 
         return $charge;
     }

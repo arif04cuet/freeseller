@@ -8,6 +8,7 @@ use App\Filament\Resources\ProductResource\RelationManagers\SkusRelationManager;
 use App\Models\AttributeValue;
 use App\Models\Product;
 use App\Models\ResellerList;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists;
@@ -94,13 +95,35 @@ class ExploreProductsResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('owner')
-                    ->label('Wholesaler')
-                    ->relationship('owner', 'name', fn (Builder $query) => $query->wholesalers()),
+                    ->label('Business')
+                    ->multiple()
+                    ->preload()
+                    ->relationship('owner', 'name', fn (Builder $query) => $query->wholesalers())
+                    ->getOptionLabelFromRecordUsing(
+                        fn (Model $record) => $record->business->name . '(' . $record->id_number . ')'
+                    )->indicateUsing(function (array $data): ?string {
+
+                        if (empty($data['values'])) {
+                            return null;
+                        }
+                        $businesses = User::with('business')->whereIn('id', $data['values'])
+                            ->get()
+                            ->map(fn ($user) => [
+                                'id' => $user->id,
+                                'name' => $user->business->name . '(' . $user->id_number . ')',
+                            ])
+                            ->pluck('name', 'id')
+                            ->implode(', ');
+                        return 'Business :' . $businesses;
+                    }),
 
                 Tables\Filters\SelectFilter::make('category')
+                    ->searchable()
+                    ->preload()
                     ->relationship('category', 'name'),
 
                 Tables\Filters\SelectFilter::make('color')
+                    ->searchable()
                     ->options(AttributeValue::whereHas('attribute', function ($query) {
                         return $query->whereName('Color');
                     })->pluck('label', 'id'))
@@ -181,19 +204,25 @@ class ExploreProductsResource extends Resource
                     ->heading(
                         fn (Model $record) => $record->name
                     )
-                    ->columns(3)
+                    ->columns(4)
                     ->schema([
                         Infolists\Components\TextEntry::make('productType.name'),
                         Infolists\Components\TextEntry::make('category.name'),
                         Infolists\Components\ViewEntry::make('price')
                             ->label('Price')
                             ->view('tables.columns.product-price'),
+                        Infolists\Components\TextEntry::make('business')
+                            ->label('Manfacture')
+                            ->html()
+                            ->getStateUsing(
+                                fn (Model $record) => '<a href="' . route('filament.app.resources.explore-products.index') . '?tableFilters[owner][values][0]=5"><u>' . $record->owner->business->name . '</u></a>'
+                            ),
                         Infolists\Components\ImageEntry::make('focus_image')
                             ->defaultImageUrl(
                                 fn (Model $record) => $record->getMedia('sharees')->first()->getUrl('thumb')
                             ),
                         Infolists\Components\TextEntry::make('description')
-                            ->columnSpan(2)
+                            ->columnSpan(3)
                             ->html(),
 
                     ]),

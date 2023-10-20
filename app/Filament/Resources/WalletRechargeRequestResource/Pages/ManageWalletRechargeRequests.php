@@ -4,6 +4,7 @@ namespace App\Filament\Resources\WalletRechargeRequestResource\Pages;
 
 use App\Enum\WalletRechargeRequestStatus;
 use App\Filament\Resources\WalletRechargeRequestResource;
+use App\Filament\Resources\WalletRechargeRequestResource\Widgets\WhereToPayment;
 use App\Models\User;
 use Filament\Pages\Actions;
 use Filament\Resources\Pages\ManageRecords;
@@ -41,5 +42,18 @@ class ManageWalletRechargeRequests extends ManageRecords
                     return $item;
                 }),
         ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            WhereToPayment::class
+        ];
+    }
+
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Recharge request created succefully. after approving admin, recharge ammount will be added to your account.';
     }
 }

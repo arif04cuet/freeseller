@@ -17,11 +17,11 @@ class NewSignupNotification
         $owner = User::platformOwner();
 
         $userType = SystemRole::Reseller->name;
-        $url = route('filament.app.resources.resellers.index', ['tableSearch' => $user->id]);
+        $url = route('filament.app.resources.resellers.index', ['tableSearch' => $user->mobile]);
 
         if ($user->isWholesaler()) {
             $userType = SystemRole::Wholesaler->name;
-            $url = route('filament.app.resources.wholesalers.index', ['tableSearch' => $user->id]);
+            $url = route('filament.app.resources.wholesalers.index', ['tableSearch' => $user->mobile]);
 
             $hubId = $user->hub_id;
 

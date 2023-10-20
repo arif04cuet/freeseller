@@ -125,6 +125,11 @@ class WholesalerResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('id_number')
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        $baseNumber = config('freeseller.base_id_number');
+                        return $query->whereRaw('CONCAT("W","", ? + id) = ?', [$baseNumber, $search]);
+                    }),
                 TextColumn::make('business.name'),
                 TextColumn::make('name')
                     ->label('Owner')

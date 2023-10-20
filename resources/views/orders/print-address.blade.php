@@ -9,7 +9,7 @@
 
 @section('content')
     <div class="mx-auto p-16" style="max-width: 800px;">
-        <div class="mb-8 ">Cid# {{ $order->consignment_id }}</div>
+        <div class="mb-8 ">Parcel ID# {{ $order->consignment_id }}</div>
         <div class="flex justify-between mb-8">
             <div class="flex gap-2 items-start">
                 @if ($logo = $business->logo)

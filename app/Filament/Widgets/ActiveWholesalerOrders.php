@@ -100,6 +100,7 @@ class ActiveWholesalerOrders extends BaseWidget
                                 return $wholesalerPendingItems ? $action->label('Approve All') : false;
                             }
                         )
+                        ->modalCancelAction(false)
                         ->modalHeading('Products details')
                         ->modalContent(fn (Model $record) => view('orders.items-status', [
                             'items' => $record->loadMissing('items.wholesaler')->getItemsByWholesaler(auth()->user()),

@@ -159,7 +159,11 @@ class SkusRelationManager extends RelationManager
                     ->form([
                         Forms\Components\Select::make('list')
                             ->label('List')
-                            ->relationship(name: 'resellerLists', titleAttribute: 'name')
+                            ->relationship(
+                                name: 'resellerLists',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn (Builder $query) => $query->whereBelongsTo(auth()->user()),
+                            )
                             //->options(auth()->user()->lists->pluck('name', 'id'))
                             ->createOptionForm([
                                 Forms\Components\TextInput::make('name')
@@ -176,7 +180,7 @@ class SkusRelationManager extends RelationManager
                     ]),
             ])
             ->checkIfRecordIsSelectableUsing(
-                fn (Model $record): bool => $record->resellerLists->count() == 0,
+                fn (Model $record): bool => true,
             );
     }
 

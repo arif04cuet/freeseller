@@ -23,6 +23,7 @@ class ActivateUser
             Notification::make()
                 ->title('You have successfully created your account but your account is under verification. You will be notified via email when activated')
                 ->success()
+                ->persistent()
                 ->send();
 
             Filament::auth()->logout();

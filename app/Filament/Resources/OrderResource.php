@@ -38,11 +38,11 @@ class OrderResource extends Resource
 
     protected static ?string $navigationLabel = 'My Orders';
 
-    public static function canCreate(): bool
-    {
-        return static::can('create') &&
-            (auth()->user()->balanceInt > config('freeseller.minimum_acount_balance'));
-    }
+    // public static function canCreate(): bool
+    // {
+    //     return static::can('create') &&
+    //         (auth()->user()->balanceInt > config('freeseller.minimum_acount_balance'));
+    // }
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -150,7 +150,7 @@ class OrderResource extends Resource
                             ->live(debounce: 1000)
                             ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
                             ->helperText(fn (\Filament\Forms\Get $get) => 'Wholesaler Price is ' . (int) Sku::find($get('sku'))->price)
-                            ->minValue(fn (\Filament\Forms\Get $get) => Sku::find($get('sku'))->wholesalePrice)
+                            ->minValue(fn (\Filament\Forms\Get $get) => Sku::find($get('sku'))->price)
                             ->required()
                             ->afterStateUpdated(function (Get $get, \Filament\Forms\Set $set, ?string $state) {
 
@@ -236,6 +236,12 @@ class OrderResource extends Resource
                     ->required()
                     ->searchable()
                     ->searchPrompt('Search by Mobile')
+                    ->getOptionLabelUsing(
+                        function ($value): ?string {
+                            $customer = Customer::find($value);
+                            return $customer->name . ' ' . $customer->mobile;
+                        }
+                    )
                     ->getSearchResultsUsing(
                         fn (string $search) => Customer::query()
                             ->whereRelation('resellers', 'reseller_id', auth()->user()->id)

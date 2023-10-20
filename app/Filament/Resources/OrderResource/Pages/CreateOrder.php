@@ -8,6 +8,7 @@ use App\Events\NewOrderCreated;
 use App\Filament\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\Sku;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,28 @@ use Illuminate\Support\Facades\DB;
 class CreateOrder extends CreateRecord
 {
     protected static string $resource = OrderResource::class;
+
+    public function beforeFill()
+    {
+
+
+        $user = auth()->user();
+
+        $lockAmount = (int) $user->lockAmount->sum('amount');
+        $balance = $user->balanceFloat - $lockAmount;
+
+        $minimum_amount = config('freeseller.minimum_acount_balance');
+        if ($balance < $minimum_amount) {
+
+            Notification::make()
+                ->title('Your current balance is below' . $minimum_amount . '. please recharge to make order')
+                ->danger()
+                ->persistent()
+                ->send();
+
+            return redirect()->to(route('filament.app.resources.orders.index'));
+        }
+    }
 
     protected function getRedirectUrl(): string
     {
