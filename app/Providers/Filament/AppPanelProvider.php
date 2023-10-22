@@ -30,6 +30,7 @@ class AppPanelProvider extends PanelProvider
             ->default()
             ->id('app')
             ->path('dashboard')
+            ->favicon('/images/favicon.ico')
             ->login(Login::class)
             ->registration(Registration::class)
             ->passwordReset()
