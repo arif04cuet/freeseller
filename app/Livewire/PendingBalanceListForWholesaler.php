@@ -45,8 +45,10 @@ class PendingBalanceListForWholesaler extends Component implements HasForms, Has
                     ->weight(50)
                     ->label('Order#'),
                 Tables\Columns\TextColumn::make('amount')
+                    ->money('BDT')
                     ->summarize(
                         Sum::make()
+                            ->money('BDT')
                             ->label('Total')
                     ),
             ]);

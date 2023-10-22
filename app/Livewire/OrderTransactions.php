@@ -45,9 +45,11 @@ class OrderTransactions extends Component implements HasForms, HasTable
             ->columns([
                 Tables\Columns\TextColumn::make('order_no'),
                 Tables\Columns\TextColumn::make('amount')
+                    ->money('BDT')
                     ->summarize(
                         Sum::make()
                             ->label('Profit')
+                            ->money('BDT')
                             ->formatStateUsing(fn ($state) => (float) ($state / 100))
                     )
                     ->formatStateUsing(fn ($state) => (float) ($state / 100))

@@ -157,7 +157,7 @@ class Order extends Model
         $wholesalers = [];
 
         foreach ($this->deliveredItems() as $item) {
-            $wholesalers[$item->wholesaler_id][] = $item->wholesaler_price;
+            $wholesalers[$item->wholesaler_id][] = $item->wholesaler_price * $item->quantity;
         }
 
         foreach ($wholesalers as $id => $amounts) {

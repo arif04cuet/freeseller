@@ -390,7 +390,7 @@ class OrderResource extends Resource
                     ->summarize(
                         Sum::make()
                             ->label('Total Profit Earned')
-                            ->query(fn (QueryBuilder $query) => $query->whereIn('status', [
+                            ->query(fn (QueryBuilder $query) => $query->where('status', [
                                 OrderStatus::Delivered->value,
                                 OrderStatus::Partial_Delivered->value,
                             ])),

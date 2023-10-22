@@ -38,7 +38,7 @@ class CurrentBalance extends BaseWidget
 
 
         //
-        $msg = 'Balance you can windraw';
+        $msg = 'Balance you can withdraw';
         $color = 'success';
         if ($user->isReseller() && $balance < config('freeseller.minimum_acount_balance')) {
             $msg = new HtmlString(

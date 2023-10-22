@@ -204,7 +204,10 @@ class ExploreProductsResource extends Resource
                     ->heading(
                         fn (Model $record) => $record->name
                     )
-                    ->columns(4)
+                    ->columns([
+                        'default' => 2,
+                        'md' => 4
+                    ])
                     ->schema([
                         Infolists\Components\TextEntry::make('productType.name'),
                         Infolists\Components\TextEntry::make('category.name'),
@@ -212,17 +215,31 @@ class ExploreProductsResource extends Resource
                             ->label('Price')
                             ->view('tables.columns.product-price'),
                         Infolists\Components\TextEntry::make('business')
-                            ->label('Manfacture')
+                            ->label('Manufacturer')
                             ->html()
                             ->getStateUsing(
                                 fn (Model $record) => '<a href="' . route('filament.app.resources.explore-products.index') . '?tableFilters[owner][values][0]=5"><u>' . $record->owner->business->name . '</u></a>'
                             ),
                         Infolists\Components\ImageEntry::make('focus_image')
+                            ->columnSpan([
+                                'default' => 2,
+                                'md' => 1
+                            ])
                             ->defaultImageUrl(
                                 fn (Model $record) => $record->getMedia('sharees')->first()->getUrl('thumb')
                             ),
                         Infolists\Components\TextEntry::make('description')
-                            ->columnSpan(3)
+                            ->columnSpan([
+                                'default' => 'full',
+                                'md' => 3
+                            ])
+                            ->copyable()
+                            ->copyableState(
+                                fn ($state) => strip_tags($state)
+                            )
+                            ->copyMessage('description copied')
+                            ->copyMessageDuration(1500)
+                            ->tooltip('Click to copy text')
                             ->html(),
 
                     ]),

@@ -26,6 +26,7 @@ class SendOrderDeliveredNotification implements ShouldQueue
     {
         $order = $this->order;
 
+        //platform owner
         User::sendMessage(
             users: User::platformOwner(),
             title: 'order#' . $order->id . ' ' . $order->status->getLabel(),
@@ -34,6 +35,7 @@ class SendOrderDeliveredNotification implements ShouldQueue
             sent_email: true
         );
 
+        //reseller
         User::sendMessage(
             users: $order->reseller,
             title: $this->title,

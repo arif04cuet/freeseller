@@ -100,9 +100,9 @@ class HubOrderResource extends Resource
                 Tables\Columns\TextColumn::make('total_saleable'),
                 Tables\Columns\TextColumn::make('cod')
                     ->label('COD'),
-                Tables\Columns\TextColumn::make('items_count')
+                Tables\Columns\TextColumn::make('items_sum_quantity')
                     ->label('Total Items')
-                    ->counts('items'),
+                    ->sum('items', 'quantity'),
                 Tables\Columns\TextColumn::make('status')
                     ->sortable()
                     ->badge(),
@@ -215,9 +215,17 @@ class HubOrderResource extends Resource
                                         $returnItems = $order->items()
                                             ->whereIn('sku_id', $data['return_skus']);
 
+
                                         $returnItems->update([
                                             'status' => OrderItemStatus::Returned->value
                                         ]);
+
+                                        //update others items as delivered
+                                        $order->items()
+                                            ->whereNotIn('sku_id', $data['return_skus'])
+                                            ->update([
+                                                'status' => OrderItemStatus::Delivered->value
+                                            ]);
 
                                         $items = $returnItems->get();
 

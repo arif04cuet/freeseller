@@ -1,7 +1,10 @@
-<div class="fi-ta-text grid gap-y-1 px-3">
+<div class="div">
+    @if ($getLabel())
+        <div>{{ $getLabel() }}</div>
+    @endif
     <div>{{ $getRecord()->price }}</div>
 
     @if ($getRecord()->getOfferPrice())
-        <del> {{ $getRecord()->getAttributes()['price'] }}</del>
+        <del> <span class="text-sm"> {{ $getRecord()->getAttributes()['price'] }} </span> </del>
     @endif
 </div>

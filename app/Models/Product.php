@@ -191,7 +191,7 @@ class Product extends Model implements HasMedia
             ->enableReordering()
             ->panelLayout('grid')
             ->image()
-            ->maxFiles(2)
+            ->maxFiles(5)
             ->columnSpanFull()
             ->enableDownload()
             ->collection('sharees');

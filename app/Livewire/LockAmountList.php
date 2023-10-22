@@ -38,7 +38,8 @@ class LockAmountList extends Component implements HasForms, HasTable
                     ->weight(50)
                     ->label('Order#'),
                 Tables\Columns\TextColumn::make('amount')
-                    ->summarize(Sum::make()->label('Total')),
+                    ->money('BDT')
+                    ->summarize(Sum::make()->label('Total')->money('BDT')),
             ]);
     }
 

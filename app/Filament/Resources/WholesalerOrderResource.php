@@ -122,7 +122,7 @@ class WholesalerOrderResource extends Resource
                             return $wholesalerPendingItems ? $action->label('Approve All') : false;
                         }
                     )
-
+                    ->modalCancelAction(false)
                     ->modalHeading('Items details')
                     ->modalContent(fn (Model $record) => view('orders.items-status', [
                         'items' => $record->loadMissing('items.wholesaler')->getItemsByWholesaler(auth()->user()),

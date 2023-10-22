@@ -42,8 +42,10 @@ class PendingBalanceListForReseller extends Component implements HasForms, HasTa
                 Tables\Columns\TextColumn::make('cod'),
                 Tables\Columns\TextColumn::make('total_payable'),
                 Tables\Columns\TextColumn::make('amount')
+                    ->money('BDT')
                     ->summarize(
                         Sum::make()
+                            ->money('BDT')
                             ->label('Total')
                     ),
             ]);

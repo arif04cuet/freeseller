@@ -13,7 +13,7 @@
         <div class="flex justify-between mb-8">
             <div class="flex gap-2 items-start">
                 @if ($logo = $business->logo)
-                    <img class="w-14 " src="/storage/{{ $logo }}" alt="" srcset="">
+                    <img class="w-12 " src="/storage/{{ $logo }}" alt="" srcset="">
                 @endif
                 <div>
                     <h4 class="text-xl"> {{ $business->name }}</h4>
@@ -52,14 +52,14 @@
                                         class=" py-3.5 px-3 text-right text-sm font-normal text-slate-700 sm:table-cell">
                                         Quantity
                                     </th>
-                                    <th scope="col"
+                                    {{-- <th scope="col"
                                         class=" py-3.5 px-3 text-right text-sm font-normal text-slate-700 sm:table-cell">
                                         Price (Taka)
                                     </th>
                                     <th scope="col"
                                         class="py-3.5 pl-3 pr-4 text-right text-sm font-normal text-slate-700 sm:pr-6 md:pr-0">
                                         Amount (Taka)
-                                    </th>
+                                    </th> --}}
                                 </tr>
                             </thead>
                             <tbody>
@@ -72,12 +72,12 @@
                                         <td class=" px-3 py-4 text-sm text-right text-slate-500 sm:table-cell">
                                             {{ $item->quantity }}
                                         </td>
-                                        <td class="px-3 py-4 text-sm text-right text-slate-500 sm:table-cell">
+                                        {{-- <td class="px-3 py-4 text-sm text-right text-slate-500 sm:table-cell">
                                             {{ $item->reseller_price }}
                                         </td>
                                         <td class="py-4 pl-3 pr-4 text-sm text-right text-slate-500 sm:pr-6 md:pr-0">
                                             {{ $item->total_amount }}
-                                        </td>
+                                        </td> --}}
                                     </tr>
                                 @endforeach
 

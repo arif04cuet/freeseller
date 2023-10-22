@@ -66,7 +66,7 @@ class Registration extends Register
                             ->reactive()
                             ->required(),
                         Forms\Components\TextInput::make('business_name')
-                            ->label('Name')
+                            ->label('Business Name')
                             ->placeholder('Business Name')
                             ->required(),
                         Forms\Components\TextInput::make('business_url')
