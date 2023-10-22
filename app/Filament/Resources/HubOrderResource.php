@@ -305,7 +305,7 @@ class HubOrderResource extends Resource
                     ->iconButton()
                     ->url(fn (Order $record): string => route('order.print.label', $record))
                     ->openUrlInNewTab()
-                    ->visible(fn (Model $record) => $record->status == OrderStatus::ProcessingForHandOverToCourier),
+                    ->visible(fn (Model $record) => $record->status == OrderStatus::HandOveredToCourier),
                 Tables\Actions\Action::make('items')
                     ->label('Products')
                     ->icon('heroicon-o-bars-4')
