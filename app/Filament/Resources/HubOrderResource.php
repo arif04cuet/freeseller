@@ -266,9 +266,6 @@ class HubOrderResource extends Resource
 
                                         $order->refresh();
 
-                                        $order->items->each(
-                                            fn ($item) => $item->sku->increment('quantity', $item->quantity)
-                                        );
                                         OrderCancelled::dispatch($order);
                                     }
 
@@ -341,7 +338,7 @@ class HubOrderResource extends Resource
                     ->form([
 
                         Forms\Components\Select::make('wholesaler')
-                            ->label('Select Wholesaler')
+                            ->label('Select Business')
                             ->live()
                             ->afterStateHydrated(
                                 function (Order $record, \Filament\Forms\Set $set) {
@@ -359,7 +356,7 @@ class HubOrderResource extends Resource
                                     ->items
                                     ->filter(fn ($item) => $item->status == OrderItemStatus::Approved)
                                     ->map(fn ($item) => [
-                                        'name' => $item->wholesaler->name,
+                                        'name' => $item->wholesaler->business->name,
                                         'id' => $item->wholesaler->id,
                                     ])
                                     ->pluck('name', 'id')

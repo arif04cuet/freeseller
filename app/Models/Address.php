@@ -12,11 +12,13 @@ class Address extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'parent_id', 'type'];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'type' => AddressType::class,
     ];
+
+    //scopes
 
     //relations
 

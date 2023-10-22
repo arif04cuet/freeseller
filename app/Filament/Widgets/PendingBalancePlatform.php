@@ -35,7 +35,7 @@ class PendingBalancePlatform extends BaseWidget
 
         return [
             Stat::make('Pending Balance (TK)', $pendingBalance)
-                ->description('Balance for your in-progress orders')
+                //->description('Balance for your in-progress orders')
                 ->color('warning')
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enum\AddressType;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
 use App\Filament\Resources\OrderResource\Pages;
@@ -14,6 +15,7 @@ use Filament\Forms;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Count;
@@ -267,7 +269,7 @@ class OrderResource extends Resource
                     )
                     ->createOptionForm([
                         Forms\Components\Grid::make('customer')
-                            ->columns(2)
+                            ->columns(3)
                             ->schema([
 
                                 Forms\Components\TextInput::make('name')
@@ -278,10 +280,36 @@ class OrderResource extends Resource
                                     ->rules('numeric|digits_between:11,11')
                                     ->placeholder('01xxxxxxxxx')
                                     ->required(),
-                                Forms\Components\Textarea::make('address')
-                                    ->required(),
                                 Forms\Components\TextInput::make('email')
                                     ->email(),
+                                Forms\Components\Fieldset::make('Address')
+                                    ->columns(3)
+                                    ->schema([
+
+                                        Forms\Components\Select::make('district_id')
+                                            ->label('District')
+                                            ->required()
+                                            ->searchable()
+                                            ->live()
+                                            ->afterStateUpdated(fn (Set $set) => $set('upazila_id', []))
+                                            ->options(
+                                                Address::query()
+                                                    ->where('type', AddressType::District->value)
+                                                    ->pluck('name', 'id')
+                                            ),
+                                        Forms\Components\Select::make('upazila_id')
+                                            ->label('Upazila')
+                                            ->required()
+                                            ->searchable()
+                                            ->options(
+                                                fn (Get $get) => !$get('district_id') ? [] : Address::query()
+                                                    ->where('type', AddressType::Upazila->value)
+                                                    ->where('parent_id', $get('district_id'))
+                                                    ->pluck('name', 'id')
+                                            ),
+                                        Forms\Components\Textarea::make('address')
+                                            ->required(),
+                                    ])
 
                             ]),
                     ]),
