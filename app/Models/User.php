@@ -12,10 +12,12 @@ use App\Notifications\PushMessage;
 use Bavix\Wallet\Interfaces\Wallet;
 use Bavix\Wallet\Traits\HasWallet;
 use Bavix\Wallet\Traits\HasWalletFloat;
+use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Models\Contracts\HasName;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -36,7 +38,7 @@ use Laravel\Sanctum\HasApiTokens;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, HasAvatar
+class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, HasAvatar, FilamentUser
 {
     use HasApiTokens, HasFactory, Notifiable;
     use HasPushSubscriptions;
@@ -85,6 +87,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
         });
     }
 
+    //accessors
     public function idNumber(): Attribute
     {
         return Attribute::make(
@@ -194,6 +197,10 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
 
     //functions
 
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return true;
+    }
 
     public function getFilamentAvatarUrl(): ?string
     {
