@@ -64,10 +64,13 @@ class EditProfile extends AuthEditProfile
      */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
+
         $record->update($data);
         $record = $record->fresh();
         $record->business()->update($data['business']);
-        $record->address()->update($data['address']);
+
+        if ($record->isReseller())
+            $record->address()->update($data['address']);
 
         return $record;
     }
