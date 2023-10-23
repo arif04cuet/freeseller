@@ -65,6 +65,7 @@ class OrderResource extends Resource
             ->schema([
                 Forms\Components\Select::make('list')
                     ->options(auth()->user()->lists->pluck('name', 'id'))
+                    ->required()
                     ->live(),
 
                 Forms\Components\Select::make('hub_id')
