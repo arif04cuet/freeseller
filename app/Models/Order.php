@@ -151,7 +151,24 @@ class Order extends Model
     }
 
     // helpers
+    public function calculateProfit(): array
+    {
+        $order = $this;
 
+        $items = $this->returnedItems();
+
+        $wholesalerPrice = $items->sum('wholesaler_price');
+        $resellerPrice = $items->sum('reseller_price');
+
+        $totalPayable = $order->total_payable - $wholesalerPrice;
+        $totalSaleable = $order->total_saleable - $resellerPrice;
+
+        return [
+            'total_payable' => $totalPayable,
+            'total_saleable' => $totalSaleable,
+            'profit' => $order->collected_cod - $totalPayable,
+        ];
+    }
     public function wholsalersAmount(): array
     {
         $wholesalers = [];

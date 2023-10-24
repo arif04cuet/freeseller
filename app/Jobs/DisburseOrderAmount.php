@@ -27,6 +27,12 @@ class DisburseOrderAmount implements ShouldQueue
 
         DB::transaction(function () use ($order) {
 
+            //update order
+            $updatedData = $order->calculateProfit();
+            $updatedData['delivered_at'] = now();
+            $order->forceFill($updatedData)->save();
+
+
             $platformPer = (int) config('freeseller.platform_fee');
             $codPer = (int) config('freeseller.cod_fee');
             $ownerAccount = User::platformOwner();
@@ -108,19 +114,18 @@ class DisburseOrderAmount implements ShouldQueue
                     'order' => $order->id
                 ]);
 
-                $reseller->forceTransferFloat($ownerAccount, $percentageFn($order->profit, $platformPer), [
-                    'description' => TransactionMetaText::PLATFORM_FEE_DEDUCTED->getLabel($order),
-                    'order' => $order->id
-                ]);
-                $reseller->forceTransferFloat($ownerAccount, $percentageFn($order->profit, $codPer), [
-                    'description' => TransactionMetaText::COD_FEE_DEDUCTED->getLabel($order),
-                    'order' => $order->id
-                ]);
+                if ($order->profit) {
+
+                    $reseller->forceTransferFloat($ownerAccount, $percentageFn($order->profit, $platformPer), [
+                        'description' => TransactionMetaText::PLATFORM_FEE_DEDUCTED->getLabel($order),
+                        'order' => $order->id
+                    ]);
+                    $reseller->forceTransferFloat($ownerAccount, $percentageFn($order->profit, $codPer), [
+                        'description' => TransactionMetaText::COD_FEE_DEDUCTED->getLabel($order),
+                        'order' => $order->id
+                    ]);
+                }
             }
-
-
-            //update order
-            $order->forceFill(['delivered_at' => now()])->save();
         });
     }
 }

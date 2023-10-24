@@ -6,7 +6,7 @@ use Filament\Widgets\Widget;
 
 class WhereToPayment extends Widget
 {
-    protected int | string | array $columnSpan = 2;
+    protected int | string | array $columnSpan = 1;
     protected static string $view = 'filament.resources.wallet-recharge-request-resource.widgets.where-to-payment';
     public static function canView(): bool
     {

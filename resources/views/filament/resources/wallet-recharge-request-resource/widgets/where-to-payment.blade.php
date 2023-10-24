@@ -1,8 +1,10 @@
 <x-filament-widgets::widget>
     <x-filament::section>
-        <div class="mb-2">First sent payment to bank/bkash. then create recharge request with transaction id & receipt.
+        <div class="mb-2">First sent payment to bank/bkash. then create recharge request with
+            transaction id & receipt.
         </div>
-        <div class="flex justify-between">
+        <hr />
+        <div class="mt-2 flex justify-between flex-col md:flex-row gap-4">
             <div>
                 <strong> Bank Information</strong>
                 <p>Comming Soon..</p>

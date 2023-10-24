@@ -211,9 +211,11 @@ class OrderResource extends Resource
                                 $subtotals = Order::totalSubtotals($get('items'));
                                 $totalWholesalerAmount = Order::totalWholesaleAmount($get('items'));
                                 $set('total_saleable', $subtotals);
+                                $payable = Order::totalPayable($get('items'));
 
                                 //profit
-                                $profit = $subtotals - ((int) $get('packaging_charge') + $totalWholesalerAmount);
+                                $cod = (int) $get('cod') ?? $subtotals;
+                                $profit = $cod - $payable;
                                 $set('profit', $profit);
 
                                 return '';
@@ -242,14 +244,14 @@ class OrderResource extends Resource
                     ->getOptionLabelUsing(
                         function ($value): ?string {
                             $customer = Customer::find($value);
-                            return $customer->name . ' ' . $customer->mobile;
+                            return $customer->name . '-' . $customer->mobile . ' - ' . $customer->address;
                         }
                     )
                     ->getSearchResultsUsing(
                         fn (string $search) => Customer::query()
                             ->whereRelation('resellers', 'reseller_id', auth()->user()->id)
                             ->select(
-                                DB::raw("CONCAT(customers.name,' ',customers.mobile) as label"),
+                                DB::raw("CONCAT(customers.name,'-',customers.mobile,'- ',customers.address) as label"),
                                 'id'
                             )
                             ->where('name', 'like', "{$search}%")
@@ -414,7 +416,8 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('total_saleable')
                     ->label('Sallable'),
                 Tables\Columns\TextColumn::make('cod')
-                    ->label('COD'),
+                    ->label('Order COD'),
+                Tables\Columns\TextColumn::make('collected_cod'),
                 Tables\Columns\TextColumn::make('profit')
                     ->summarize(
                         Sum::make()

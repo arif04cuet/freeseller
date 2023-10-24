@@ -50,4 +50,13 @@ enum OrderStatus: string implements HasColor, HasLabel
             default => $this->name
         };
     }
+
+    public static function delivery_statuses(): array
+    {
+        return self::collection()->filter(fn ($name) => in_array($name, [
+            'Delivered',
+            'Partial_Delivered',
+            'Cancelled'
+        ]))->toArray();
+    }
 }

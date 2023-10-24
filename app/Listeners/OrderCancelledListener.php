@@ -18,16 +18,15 @@ class OrderCancelledListener
 
         DB::transaction(function () use ($order) {
 
+            //update order
+            $updatedData = $order->calculateProfit();
+            $updatedData['delivered_at'] = now();
+            $order->forceFill($updatedData)->save();
+
+
             $ownerAccount = User::platformOwner();
             $floatFn = fn ($number) => number_format($number, 2, '.', '');
 
-            //marked order items cancelled
-            $order->items()->update([
-                'status' => OrderItemStatus::Returned->value
-            ]);
-
-            //update stock
-            $order->items->each(fn ($item) => $item->sku->increment('quantity', $item->quantity));
 
             //reseller calculations
             $reseller = $order->reseller;
@@ -46,8 +45,6 @@ class OrderCancelledListener
                 'order' => $order->id
             ]);
 
-            //update order
-            $order->forceFill(['delivered_at' => now()])->save();
 
             //notifications
             SendOrderCancelledNotification::dispatch($order->refresh());

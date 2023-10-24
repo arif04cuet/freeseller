@@ -30,7 +30,7 @@ class CreateOrder extends CreateRecord
         if ($balance < $minimum_amount) {
 
             Notification::make()
-                ->title('Your current balance is below' . $minimum_amount . '. please recharge to make order')
+                ->title('Your current balance is below ' . $minimum_amount . '. please recharge to make order')
                 ->danger()
                 ->persistent()
                 ->send();
@@ -60,17 +60,16 @@ class CreateOrder extends CreateRecord
 
             $totalPaypable = Order::totalPayable($items);
             $totalSalable = Order::totalSubtotals($items);
-            $wholesalerAmount = Order::totalWholesaleAmount($items);
-            $packagingCost = Order::packgingCost();
-            $profit = (int) $totalSalable - ((int) $wholesalerAmount + $packagingCost);
+            $courier_charge = Order::courierCharge($items);
+            $profit = (int) $data['cod'] - $totalPaypable;
 
             $orderData = [
                 'tracking_no' => uniqid($prefix),
                 'reseller_id' => auth()->user()->id,
                 'status' => OrderStatus::WaitingForWholesalerApproval->value,
-                'courier_charge' => Order::courierCharge($items),
+                'courier_charge' => $courier_charge,
                 'packaging_charge' => Order::packgingCost(),
-                'total_payable' => Order::totalPayable($items),
+                'total_payable' => $totalPaypable,
                 'total_saleable' => $totalSalable,
                 'profit' => $profit,
                 ...collect($data)->except([

@@ -93,13 +93,16 @@ class HubOrderResource extends Resource
                         ->reseller
                         ->business
                         ->name),
-                Tables\Columns\TextColumn::make('reseller.name')
-                    ->label('Owner'),
-                Tables\Columns\TextColumn::make('reseller.mobile')
-                    ->label('Mobile'),
-                Tables\Columns\TextColumn::make('total_saleable'),
+                // Tables\Columns\TextColumn::make('reseller.name')
+                //     ->label('Owner'),
+                // Tables\Columns\TextColumn::make('reseller.mobile')
+                //     ->label('Mobile'),
+                Tables\Columns\TextColumn::make('total_payable'),
                 Tables\Columns\TextColumn::make('cod')
-                    ->label('COD'),
+                    ->label('Order COD'),
+                Tables\Columns\TextColumn::make('collected_cod')
+                    ->wrap()
+                    ->label('Collected COD'),
                 Tables\Columns\TextColumn::make('items_sum_quantity')
                     ->label('Total Items')
                     ->sum('items', 'quantity'),
@@ -163,26 +166,29 @@ class HubOrderResource extends Resource
                                 function (Order $record, Get $get) {
                                     return function (string $attribute, $value, Closure $fail) use ($get, $record) {
 
-                                        if (($get('status') == OrderStatus::Delivered->value) && ($value != $record->cod)) {
-                                            $fail('The COD mismatched');
+                                        $halfOfCod = ($record->cod) / 2;
+                                        $msg = 'The COD is not correct';
+
+                                        if (($get('status') == OrderStatus::Delivered->value) && ($value < $halfOfCod)) {
+                                            $fail($msg);
                                         }
 
                                         if (($get('status') == OrderStatus::Partial_Delivered->value)) {
 
-                                            $returnSum = $record->items()
-                                                ->whereIn('sku_id', $get('return_skus'))
-                                                ->get()
-                                                ->sum('reseller_price');
+                                            // $returnSum = $record->items()
+                                            //     ->whereIn('sku_id', $get('return_skus'))
+                                            //     ->get()
+                                            //     ->sum('reseller_price');
 
-                                            $amount = $record->cod - $returnSum;
+                                            // $amount = $record->cod - $returnSum;
 
-                                            $msg = 'Value should be within ' . $record->courier_charge . ' to ' . $amount;
+                                            // $msg = 'Value should be within ' . $record->courier_charge . ' to ' . $amount;
 
-                                            if ($amount == $record->courier_charge)
-                                                $msg = 'Value should be ' . $amount;
+                                            // if ($amount == $record->courier_charge)
+                                            //     $msg = 'Value should be ' . $amount;
 
-                                            if (($value < $record->courier_charge) || ($value > $amount))
-                                                $fail('The :attribute is invalid. ' . $msg);
+                                            if (($value < 1) || ($value > $halfOfCod))
+                                                $fail($msg);
                                         }
                                     };
                                 },
@@ -197,7 +203,9 @@ class HubOrderResource extends Resource
                             try {
 
                                 DB::transaction(function () use ($record, $data) {
+
                                     $order = $record;
+
                                     $order->update([
                                         'status' => OrderStatus::from($data['status'])->value,
                                         'collected_cod' => isset($data['collected_cod']) ? $data['collected_cod'] : 0,
@@ -245,24 +253,17 @@ class HubOrderResource extends Resource
                                             }
                                         );
 
-                                        $wholesalerPrice = $items->sum('wholesaler_price');
-                                        $resellerPrice = $items->sum('reseller_price');
-                                        $totalPayable = $order->total_payable - $wholesalerPrice;
-                                        $totalSaleable = $order->total_saleable - $resellerPrice;
-
-                                        $order->update([
-                                            'total_payable' => $totalPayable,
-                                            'total_saleable' => $totalSaleable,
-                                            'profit' => ($totalSaleable - ($totalPayable - $order->courier_charge)),
-                                        ]);
-
                                         $order->refresh();
                                         OrderPartialDelivered::dispatch($order);
                                     } else if ($order->status == OrderStatus::Cancelled) {
 
+                                        //marked order items cancelled
                                         $order->items()->update([
-                                            'status' => OrderItemStatus::Cancelled->value
+                                            'status' => OrderItemStatus::Returned->value
                                         ]);
+
+                                        //update stock
+                                        $order->items->each(fn ($item) => $item->sku->increment('quantity', $item->quantity));
 
                                         $order->refresh();
 
