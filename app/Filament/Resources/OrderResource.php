@@ -6,6 +6,7 @@ use App\Enum\AddressType;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
 use App\Filament\Resources\OrderResource\Pages;
+use App\Filament\Resources\OrderResource\Widgets\OrderInstruction;
 use App\Models\Address;
 use App\Models\Customer;
 use App\Models\Order;
@@ -40,11 +41,13 @@ class OrderResource extends Resource
 
     protected static ?string $navigationLabel = 'My Orders';
 
-    // public static function canCreate(): bool
-    // {
-    //     return static::can('create') &&
-    //         (auth()->user()->balanceInt > config('freeseller.minimum_acount_balance'));
-    // }
+
+    public static function getWidgets(): array
+    {
+        return [
+            OrderInstruction::class
+        ];
+    }
 
     public static function shouldRegisterNavigation(): bool
     {

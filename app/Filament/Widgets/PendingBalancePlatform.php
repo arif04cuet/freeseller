@@ -14,7 +14,7 @@ use Illuminate\Support\HtmlString;
 
 class PendingBalancePlatform extends BaseWidget
 {
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 5;
     protected int | string | array $columnSpan = 1;
 
     protected function getColumns(): int

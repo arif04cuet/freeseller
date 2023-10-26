@@ -16,7 +16,7 @@ class Transactions extends BaseWidget
 {
     use CanPoll;
 
-    protected static ?int $sort = 7;
+    protected static ?int $sort = 8;
     protected int | string | array $columnSpan = 2;
 
     public Order $order;

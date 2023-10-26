@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ActiveOrdersForReseller extends BaseWidget
 {
-    protected static ?int $sort = 6;
+    protected static ?int $sort = 7;
     protected int | string | array $columnSpan = 2;
     protected static ?string $heading = 'Active Orders';
 

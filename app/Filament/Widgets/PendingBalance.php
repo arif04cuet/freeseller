@@ -29,7 +29,7 @@ class PendingBalance extends Widget implements HasForms, HasActions
         'default' => 2,
         'md' => 1,
     ];
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 5;
 
 
 
