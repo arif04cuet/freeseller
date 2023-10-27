@@ -325,7 +325,7 @@ class Order extends Model
             $this->forceFill(['status' => OrderStatus::ProcessingForHandOverToCourier->value])->save();
             // add order to steadfast as a parcel
             $order = $this->refresh();
-            if (config('app.env') == 'production')
+            if (config('services.steadfast.enabled'))
                 AddParcelToSteadFast::dispatch($order);
             else
                 AddParcelToSteadFastFake::dispatch($order);
