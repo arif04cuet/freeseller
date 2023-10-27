@@ -40,7 +40,7 @@ Route::post('/push', function () {
 });
 
 Route::get('/', function () {
-    //return redirect()->to(config('filament.path'));
+    return redirect()->to('/dashboard');
 
     return view('welcome');
 });
