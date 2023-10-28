@@ -17,9 +17,8 @@ class LockResellerAmount
 
         $total = $lockAmount > 0 ? $cp + $lockAmount : $cp;
 
-        UserLockAmount::create([
+        $order->lockAmount()->create([
             'user_id' => $order->reseller->id,
-            'order_id' => $order->id,
             'amount' => $total,
         ]);
     }

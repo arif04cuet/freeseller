@@ -21,6 +21,8 @@ use App\Listeners\OrderDisbursmentForPartialDelivery;
 use App\Listeners\SendNewOrderNotifications;
 use App\Listeners\SendNewSignupEmailNotificationToAdmins;
 use App\Listeners\SendOrderCancelledNotificationListener;
+use App\Models\FundWithdrawRequest;
+use App\Observers\FundWithdrawRequestbserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -75,7 +77,7 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        FundWithdrawRequest::observe(FundWithdrawRequestbserver::class);
     }
 
     /**

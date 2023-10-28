@@ -148,9 +148,8 @@ class WholesalerResource extends Resource
                 TextColumn::make('created_at')->datetime(),
                 ToggleColumn::make('is_active')
                     ->updateStateUsing(
-                        function (Model $record, $state) {
-                            if ($state)
-                                $record->notify(new AccountActivationNotification());
+                        function (User $record, $state) {
+                            $record->toggleUser($state);
                         }
                     ),
             ])

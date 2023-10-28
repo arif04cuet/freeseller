@@ -75,7 +75,7 @@ class AddressResource extends Resource
 
                 Forms\Components\TextInput::make('name')
                     ->columnSpanFull()
-                    ->label(fn (\Filament\Forms\Get $get) => AddressType::tryFrom($get('type'))?->name ? AddressType::tryFrom($get('type'))->name.' Name' : 'Name'),
+                    ->label(fn (\Filament\Forms\Get $get) => AddressType::tryFrom($get('type'))?->name ? AddressType::tryFrom($get('type'))->name . ' Name' : 'Name'),
             ]);
     }
 
@@ -98,7 +98,7 @@ class AddressResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                //Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 

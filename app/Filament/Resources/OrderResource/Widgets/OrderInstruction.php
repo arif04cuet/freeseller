@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\OrderResource\Widgets;
 
+use App\Models\Order;
 use Filament\Widgets\Widget;
 
 class OrderInstruction extends Widget
@@ -12,5 +13,16 @@ class OrderInstruction extends Widget
     public static function canView(): bool
     {
         return auth()->user()->isReseller();
+    }
+
+    protected function getViewData(): array
+    {
+
+        return [
+            'lock_amount' => config('freeseller.delivery_charge') + config('freeseller.packaging_fee'),
+            'platform_fee' => config('freeseller.platform_fee'),
+            'cod_fee' => config('freeseller.cod_fee'),
+            'total_fee' => config('freeseller.platform_fee') + config('freeseller.cod_fee'),
+        ];
     }
 }

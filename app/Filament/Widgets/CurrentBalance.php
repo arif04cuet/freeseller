@@ -30,14 +30,14 @@ class CurrentBalance extends BaseWidget
         /** @var App\Models\User $user */
         $user = auth()->user();
 
-        $balance = $user->balanceFloat;
+        $balance = $user->active_balance;
 
-        if ($user->isReseller()) {
+        // if ($user->isReseller()) {
 
-            //minus lock amount from balance
-            $lockAmount = (int) auth()->user()->lockAmount->sum('amount');
-            $balance = $balance - $lockAmount;
-        }
+        //     //minus lock amount from balance
+        //     $lockAmount = auth()->user()->lock_amount_sum;
+        //     $balance = $balance - $lockAmount;
+        // }
 
 
         //

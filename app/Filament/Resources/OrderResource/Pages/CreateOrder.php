@@ -16,11 +16,10 @@ use Illuminate\Support\Facades\DB;
 class CreateOrder extends CreateRecord
 {
     protected static string $resource = OrderResource::class;
+    protected static bool $canCreateAnother = false;
 
     public function beforeFill()
     {
-
-
         $user = auth()->user();
 
         $lockAmount = (int) $user->lockAmount->sum('amount');

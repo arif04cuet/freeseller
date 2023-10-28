@@ -323,8 +323,10 @@ class OrderResource extends Resource
                 Forms\Components\TextInput::make('cod')
                     //->default(1)
                     ->label('COD')
+                    ->required()
                     ->helperText('total saleable + courier')
-                    ->reactive()
+                    ->live(debounce: 1000)
+                    ->numeric()
                     ->afterStateUpdated(function (\Filament\Forms\Set $set, Get $get, $state) {
 
                         $set('cod_update', 2);
@@ -337,7 +339,7 @@ class OrderResource extends Resource
                         $cod = $subtotals + $courierCharge;
 
                         if ($get('cod_update') == 1) {
-                            $set('cod', $cod);
+                            //$set('cod', $cod);
                         }
 
                         $lockAmount = (int) auth()->user()->lockAmount->sum('amount');
@@ -345,15 +347,17 @@ class OrderResource extends Resource
 
                         $amount = ($balance + $state) - Order::totalPayable($get('items'));
 
-                        if ($amount < 0) {
-                            $set('error', 1);
-                            return 'Please recharge your wallet with TK = ' . abs($amount);
-                        } elseif ($state > $cod) {
-                            $set('error', 1);
+                        if ($get('cod_update') != 1) {
 
-                            return 'COD can\'t be grater than ' . $cod;
+                            if ($amount < 0) {
+                                $set('error', 1);
+                                return 'Please recharge your wallet with TK = ' . abs($amount);
+                            } elseif ($state > $cod) {
+                                $set('error', 1);
+
+                                return 'COD can\'t be grater than ' . $cod;
+                            }
                         }
-
                         $set('error', 0);
 
                         return '';

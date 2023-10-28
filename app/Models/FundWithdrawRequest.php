@@ -6,11 +6,15 @@ use App\Enum\WalletRechargeRequestStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\DB;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class FundWithdrawRequest extends Model
+class FundWithdrawRequest extends Model implements HasMedia
 {
     use HasFactory;
+    use InteractsWithMedia;
 
     protected $guarded = ['id'];
 
@@ -21,6 +25,11 @@ class FundWithdrawRequest extends Model
     ];
 
     //relations
+
+    public function lockAmount(): MorphOne
+    {
+        return $this->morphOne(UserLockAmount::class, 'entity');
+    }
 
     /**
      * Get the user that owns the FundWithdrawRequest
@@ -47,6 +56,10 @@ class FundWithdrawRequest extends Model
     }
 
     //helpers
+    public function isApproved()
+    {
+        return $this->status == WalletRechargeRequestStatus::Approved;
+    }
 
     public function markAsApproved()
     {
@@ -73,8 +86,8 @@ class FundWithdrawRequest extends Model
 
             User::sendMessage(
                 users: $user,
-                title: 'Fund withdrawal request has been approved with id = ' . $this->id,
-                url: route('filament.resources.fund-withdraw-requests.index', ['tableSearch' => $this->id]),
+                title: 'Your fund withdrawal request has been approved with id = ' . $this->id,
+                url: route('filament.app.resources.fund-withdraw-requests.index', ['tableSearch' => $this->id]),
             );
         });
     }

@@ -153,7 +153,7 @@ class UsersRelationManager extends RelationManager
                             'mobile' => $data['mobile'],
                         ];
 
-                        if (! empty($data['password'])) {
+                        if (!empty($data['password'])) {
                             $userData['password'] = Hash::make($data['password']);
                         }
 
@@ -170,7 +170,7 @@ class UsersRelationManager extends RelationManager
 
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                //Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 }

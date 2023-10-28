@@ -6,8 +6,8 @@
         <div class="font-bold">FreeSeller Charges</div>
         <hr class="my-2" />
         <ul>
-            <li>COD Charge: {{ config('freeseller.cod_fee') }} %</li>
-            <li>Platform Fee: {{ config('freeseller.platform_fee') }} %</li>
+            <li>COD Charge: {{ config('freeseller.cod_fee') }}%</li>
+            <li>Platform Fee: {{ config('freeseller.platform_fee') }}%</li>
         </ul>
         {{-- <p class="mt-2 text-sm italic">* FreeSeller can changes charge any time</p> --}}
     </div>

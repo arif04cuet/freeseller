@@ -104,7 +104,7 @@ class UserResource extends Resource
                     ->redirectTo(route('filament.app.pages.dashboard')),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                //Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 

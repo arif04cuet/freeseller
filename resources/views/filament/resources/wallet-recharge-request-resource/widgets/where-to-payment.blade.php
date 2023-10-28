@@ -15,7 +15,7 @@
             </div>
 
             <div>
-                <strong> bKash</strong>
+                <strong> bKash (Personal)</strong>
                 <p>01717348147</p>
                 {{-- <p>{{ config('freeseller.platform_bkash') }}</p> --}}
             </div>

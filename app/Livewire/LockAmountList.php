@@ -28,25 +28,29 @@ class LockAmountList extends Component implements HasForms, HasTable
         return $table
             ->query(
                 UserLockAmount::query()
-                    ->selectRaw('order_id,sum(amount) as amount')
                     ->whereBelongsTo($user)
-                    ->groupBy('order_id')
+
             )
             ->paginated(false)
             ->columns([
-                Tables\Columns\TextColumn::make('order_id')
-                    ->weight(50)
-                    ->label('Order#'),
+                Tables\Columns\TextColumn::make('id')
+                    ->label('for')
+                    ->getStateUsing(fn (UserLockAmount $record) => $record->details()['label']),
+
+                Tables\Columns\TextColumn::make('entity_id')
+                    ->url(fn (UserLockAmount $record) => $record->details()['url'])
+                    ->openUrlInNewTab()
+                    ->label('Id#'),
                 Tables\Columns\TextColumn::make('amount')
                     ->money('BDT')
                     ->summarize(Sum::make()->label('Total')->money('BDT')),
             ]);
     }
 
-    public function getTableRecordKey(Model $record): string
-    {
-        return $record->order_id;
-    }
+    // public function getTableRecordKey(Model $record): string
+    // {
+    //     return $record->order_id;
+    // }
 
 
     public function render()

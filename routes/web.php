@@ -5,6 +5,7 @@ use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\PrintOrderLabel;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\UserLockAmount;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/mail', function () {
+    return (int) (auth()->user()->active_balance - config('freeseller.minimum_acount_balance'));
 });
 
 Route::post('/push', function () {

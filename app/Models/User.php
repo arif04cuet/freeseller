@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enum\AddressType;
 use App\Enum\BusinessType;
 use App\Enum\SystemRole;
+use App\Notifications\AccountActivationNotification;
 use App\Notifications\EmailNotification;
 use App\Notifications\PushMessage;
 use Bavix\Wallet\Interfaces\Wallet;
@@ -88,6 +89,23 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
     }
 
     //accessors
+
+    //balance considering lock amount
+    public function activeBalance(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value): float => (float) ($this->balanceFloat - $this->lockAmount->sum('amount'))
+        );
+    }
+
+    public function lockAmountSum(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value): int => (int) $this->lockAmount->sum('amount')
+        );
+    }
+
+
     public function idNumber(): Attribute
     {
         return Attribute::make(
@@ -204,7 +222,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
 
     public function getFilamentAvatarUrl(): ?string
     {
-        return $this->business?->logo;
+        return 'storage/' . $this->business?->logo;
     }
 
     public function autoActivation()
@@ -322,5 +340,24 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
     {
         $this->is_active = 1;
         $this->save();
+    }
+    public function markAsInActive()
+    {
+        $this->is_active = 0;
+        $this->save();
+    }
+
+    public function toggleUser($state)
+    {
+        if ($state) {
+            $this->markAsActive();
+            $this->notify(new AccountActivationNotification());
+            Notification::make()
+                ->title('Activation email has been sent to reellers email ' . $this->email)
+                ->success()
+                ->send();
+        } else {
+            $this->markAsInActive();
+        }
     }
 }

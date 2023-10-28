@@ -14,6 +14,11 @@ class UserLockAmount extends Model
 
     //relations
 
+    public function entity()
+    {
+        return $this->morphTo();
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -21,6 +26,30 @@ class UserLockAmount extends Model
 
     public function order(): BelongsTo
     {
-        return $this->belongsTo(Order::class);
+        return $this->entity();
+    }
+
+    //helper functions
+
+    public function details(): array
+    {
+        $type = $this->entity_type;
+        $id = $this->entity_id;
+
+        return match ($type) {
+            Order::class => [
+                'label' => 'Order',
+                'url' => route('filament.app.resources.orders.index', ['tableSearch' => $id])
+            ],
+            FundWithdrawRequest::class =>
+            [
+                'label' => 'Fund withdraw request',
+                'url' => route('filament.app.resources.fund-withdraw-requests.index', ['tableSearch' => $id])
+            ],
+            default => [
+                'label' => (new \ReflectionClass($type))->getShortName(),
+                'url' => $id
+            ]
+        };
     }
 }
