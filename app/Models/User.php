@@ -222,7 +222,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
 
     public function getFilamentAvatarUrl(): ?string
     {
-        return 'storage/' . $this->business?->logo;
+        return '/storage/' . $this->business?->logo;
     }
 
     public function autoActivation()
