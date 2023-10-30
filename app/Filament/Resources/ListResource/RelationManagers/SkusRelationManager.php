@@ -167,6 +167,10 @@ class SkusRelationManager extends RelationManager
                                 $zipFileName = $folderName . '.zip';
                                 $destination = public_path($tmpDir . '/' . $zipFileName);
 
+                                $tmpDirPath = public_path('tmp');
+                                $command = "cd $tmpDirPath; zip -r $zipFileName $folderName";
+                                exec($command);
+
                                 // if ($zip->open(public_path($tmpDir . '/' . $zipFileName), \ZipArchive::CREATE) == true) {
                                 //     $files = File::files(public_path($folder));
                                 //     foreach ($files as $key => $value) {
@@ -178,7 +182,7 @@ class SkusRelationManager extends RelationManager
                                 //     File::isDirectory($folder) && File::deleteDirectory($folder);
                                 // }
 
-                                $this->zip_files($folder, $destination);
+                                //$this->zip_files($folder, $destination);
                                 File::isDirectory($folder) && File::deleteDirectory($folder);
 
                                 if (File::exists(public_path($tmpDir . '/' . $zipFileName)))
