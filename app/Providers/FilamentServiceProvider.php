@@ -9,6 +9,7 @@ use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Contracts\View\View;
 
 class FilamentServiceProvider extends ServiceProvider
 {
@@ -32,11 +33,17 @@ class FilamentServiceProvider extends ServiceProvider
 
             FilamentAsset::register([
                 Js::make('example-local-script', asset('js/enable-push.js')),
+                Js::make('page-loader-external', 'https://cdn.jsdelivr.net/npm/pace-js@latest/pace.min.js'),
             ]);
 
             FilamentView::registerRenderHook(
                 'panels::head.start',
-                fn (): string => new HtmlString('<link rel="manifest" href="/manifest.json" />'),
+                fn (): string => new HtmlString('<link rel="manifest" href="/manifest.json" />')
+            );
+
+            FilamentView::registerRenderHook(
+                'panels::footer',
+                fn (): View => view('app.footer'),
             );
 
             // Filament::pushMeta([
