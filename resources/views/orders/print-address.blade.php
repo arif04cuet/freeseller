@@ -9,8 +9,12 @@
 
 @section('content')
     <div class="mx-auto p-16" style="max-width: 800px;">
-        <div class="mb-8 ">Parcel ID# {{ $order->consignment_id }}</div>
-        <div class="flex justify-between mb-8">
+        <div class="mb-4 ">
+            <div>Parcel ID# {{ $order->consignment_id }}</div>
+            <div class="font-bold">Marchant Mobile# {{ $reseller->mobile }}</div>
+        </div>
+        <div class="flex justify-between gap-4 flex-col md:flex-row">
+
             <div class="flex gap-2 items-start">
                 @if ($logo = $business->logo)
                     <img class="w-12 " src="/storage/{{ $logo }}" alt="" srcset="">

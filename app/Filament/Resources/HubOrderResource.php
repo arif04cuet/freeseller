@@ -297,7 +297,7 @@ class HubOrderResource extends Resource
                     ->iconButton()
                     ->requiresConfirmation()
                     ->visible(fn (Order $record) => !$record->consignment_id && ($record->status == OrderStatus::ProcessingForHandOverToCourier))
-                    ->action(fn (Order $record) => AddParcelToSteadFast::dispatchSync($record)),
+                    ->action(fn (Order $record) => $record->addToCourier($record)),
                 Tables\Actions\Action::make('print_address')
                     ->icon('heroicon-o-printer')
                     ->iconButton()

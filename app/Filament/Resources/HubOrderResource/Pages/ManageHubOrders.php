@@ -29,8 +29,15 @@ class ManageHubOrders extends ManageRecords
 
     public function getTabs(): array
     {
-        return [
 
+        return [
+            'All' => ListRecords\Tab::make()
+                ->badge(
+                    Order::query()->count()
+                )
+                ->query(
+                    fn ($query) => $query
+                ),
             OrderStatus::WaitingForWholesalerApproval->name => ListRecords\Tab::make()
                 ->badge(
                     Order::query()->whereIn('status', [

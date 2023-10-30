@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ListResource\RelationManagers;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
@@ -159,17 +160,26 @@ class SkusRelationManager extends RelationManager
                                 //zip and download
                                 $zip = new \ZipArchive();
                                 $zipFileName = $folderName . '.zip';
-                                if ($zip->open(public_path($folder . '/' . $zipFileName), \ZipArchive::CREATE) == true) {
+                                if ($zip->open(public_path($tmpDir . '/' . $zipFileName), \ZipArchive::CREATE) == true) {
                                     $files = File::files(public_path($folder));
                                     foreach ($files as $key => $value) {
                                         $relativeName = basename($value);
                                         $zip->addFile($value, $relativeName);
                                     }
                                     $zip->close();
+
+                                    File::isDirectory($folder) && File::deleteDirectory($folder);
                                 }
 
-                                return response()->download(public_path($folder . '/' . $zipFileName))
-                                    ->deleteFileAfterSend();
+                                if (File::exists(public_path($tmpDir . '/' . $zipFileName)))
+                                    return response()
+                                        ->download(public_path($tmpDir . '/' . $zipFileName))
+                                        ->deleteFileAfterSend();
+                                else
+                                    Notification::make()
+                                        ->title('Something went wrong. please try again')
+                                        ->danger()
+                                        ->send();
                             }
                         ),
                     ExportBulkAction::make()
@@ -193,13 +203,13 @@ class SkusRelationManager extends RelationManager
 
     public static function imageXY($img, $data): array
     {
-        $pad = 30;
+        $pad = 10;
         switch ($data['watermark_position']) {
             case 'top_left':
                 $x = $y = $pad;
                 break;
             case 'top_right':
-                $x = $img->width() - ($pad + 20);
+                $x = $img->width() - ($pad + 10);
                 $y = $pad;
                 break;
 
@@ -209,7 +219,7 @@ class SkusRelationManager extends RelationManager
                 break;
 
             case 'bottom_right':
-                $x = $img->width() - ($pad + 20);
+                $x = $img->width() - ($pad + 10);
                 $y = $img->height() - $pad;
                 break;
             default:

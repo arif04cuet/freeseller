@@ -66,7 +66,8 @@ class ExploreProductsResource extends Resource
                         Tables\Actions\Action::make('View Image')
                             ->action(function (Product $record): void {
                             })
-                            ->modalActions([])
+                            ->modalSubmitAction(false)
+                            ->modalCancelAction(false)
                             ->modalContent(fn (Model $record) => view(
                                 'products.gallery',
                                 [

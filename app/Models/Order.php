@@ -331,13 +331,16 @@ class Order extends Model
             $this->forceFill(['status' => OrderStatus::ProcessingForHandOverToCourier->value])->save();
             // add order to steadfast as a parcel
             $order = $this->refresh();
-            if (config('services.steadfast.enabled'))
-                AddParcelToSteadFast::dispatch($order);
-            else
-                AddParcelToSteadFastFake::dispatch($order);
+            $this->addToCourier($order);
         }
     }
-
+    public function addToCourier($order): void
+    {
+        if (config('services.steadfast.enabled'))
+            AddParcelToSteadFast::dispatch($order);
+        else
+            AddParcelToSteadFastFake::dispatch($order);
+    }
     public function getWholesalerWiseItems()
     {
         $wholesalers = [];

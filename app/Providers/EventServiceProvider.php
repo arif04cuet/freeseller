@@ -45,7 +45,7 @@ class EventServiceProvider extends ServiceProvider
 
         NewOrderCreated::class => [
             SendNewOrderNotifications::class,
-            LockResellerAmount::class,
+            //LockResellerAmount::class,
         ],
         OrderItemApproved::class => [
             ChangeOrderStatusWhenItemApproved::class,
