@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\ListResource\RelationManagers;
 
+use App\Jobs\AddWaterMarkToMedia;
+use App\Jobs\ZipAndSendToReseller;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -10,9 +12,11 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Table;
+use Illuminate\Bus\Batch;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\File;
 use Intervention\Image\Facades\Image;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
@@ -20,6 +24,7 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Throwable;
 use ZipArchive;
 
 class SkusRelationManager extends RelationManager
@@ -131,10 +136,12 @@ class SkusRelationManager extends RelationManager
                             function (Collection $records, array $data) {
 
                                 $folderName = uniqid();
-                                $tmpDir = 'tmp';
-                                $folder = $tmpDir . '/' . $folderName;
+                                $dirname = public_path('tmp');
+                                $folder = $dirname . '/' . $folderName;
+
                                 !File::isDirectory($folder) && File::makeDirectory($folder, 0777, true, true);
 
+                                $watermarkJobs = [];
                                 foreach ($records as $sku) {
 
                                     $images = $sku->getMedia('sharees');
@@ -144,56 +151,39 @@ class SkusRelationManager extends RelationManager
                                     }
 
                                     foreach ($images as $media) {
-
-                                        $path = $media->getPath();
-
-                                        if (!File::exists($path)) {
-                                            continue;
-                                        }
-
-                                        $img = Image::make($path);
-                                        [$x, $y] = self::imageXY($img, $data);
-                                        $img->text($sku->waterMarkText(), $x, $y);
-
-                                        $savePath = $folder . '/' . uniqid("$sku->id-") . '.png';
-                                        $img->save($savePath);
+                                        $watermarkJobs[] = new AddWaterMarkToMedia(
+                                            $media,
+                                            $sku,
+                                            $data['watermark_position'],
+                                            $folder
+                                        );
                                     }
                                 }
 
                                 //zip and download
                                 //exec("tar -zcvf archive.tar.gz /folder/tozip");
 
-                                $zip = new \ZipArchive();
+                                // $zip = new \ZipArchive();
                                 $zipFileName = $folderName . '.zip';
-                                $destination = public_path($tmpDir . '/' . $zipFileName);
+                                // $destination = public_path($tmpDir . '/' . $zipFileName);
 
-                                $tmpDirPath = public_path('tmp');
-                                $command = "cd $tmpDirPath; zip -r $zipFileName $folderName";
-                                exec($command);
+                                // $tmpDirPath = public_path('tmp');
+                                // $command = "cd $tmpDirPath; zip -r $zipFileName $folderName";
+                                // exec($command);
+                                $user = auth()->user();
+                                $batch = Bus::batch($watermarkJobs)
+                                    ->then(function (Batch $batch) use ($folderName, $user) {
 
-                                // if ($zip->open(public_path($tmpDir . '/' . $zipFileName), \ZipArchive::CREATE) == true) {
-                                //     $files = File::files(public_path($folder));
-                                //     foreach ($files as $key => $value) {
-                                //         $relativeName = basename($value);
-                                //         $zip->addFile($value, $relativeName);
-                                //     }
-                                //     $zip->close();
+                                        ZipAndSendToReseller::dispatch($user, $folderName);
+                                    })->catch(function (Batch $batch, Throwable $e) {
+                                        // First batch job failure detected...
+                                    })->finally(function (Batch $batch) use ($folder, $dirname, $zipFileName) {
+                                    })->dispatch();
 
-                                //     File::isDirectory($folder) && File::deleteDirectory($folder);
-                                // }
-
-                                //$this->zip_files($folder, $destination);
-                                File::isDirectory($folder) && File::deleteDirectory($folder);
-
-                                if (File::exists(public_path($tmpDir . '/' . $zipFileName)))
-                                    return response()
-                                        ->download(public_path($tmpDir . '/' . $zipFileName))
-                                        ->deleteFileAfterSend();
-                                else
-                                    Notification::make()
-                                        ->title('Something went wrong. please try again')
-                                        ->danger()
-                                        ->send();
+                                Notification::make()
+                                    ->title('Success. your download will be avilable after a minute in notification sections')
+                                    ->success()
+                                    ->send();
                             }
                         ),
                     ExportBulkAction::make()

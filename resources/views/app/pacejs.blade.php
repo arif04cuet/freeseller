@@ -1,3 +1,5 @@
+<script src="https://cdn.jsdelivr.net/npm/pace-js@latest/pace.min.js"></script>
+
 <style>
     .pace {
         -webkit-pointer-events: none;

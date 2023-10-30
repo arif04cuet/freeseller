@@ -66,22 +66,32 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('list')
-                    ->options(auth()->user()->lists->pluck('name', 'id'))
-                    ->required()
-                    ->live(),
+                Forms\Components\Grid::make()
+                    ->columns([
+                        'default' => 2,
+                        'xl' => 2
+                    ])
+                    ->schema([
 
-                Forms\Components\Select::make('hub_id')
-                    ->label('Select Hub')
-                    ->required()
-                    ->visible(fn (\Filament\Forms\Get $get) => !empty($get('list')))
-                    ->options(fn (\Filament\Forms\Get $get) => ResellerList::hubsInList($get('list')))
-                    ->disabledOn('edit')
-                    ->reactive(),
+                        Forms\Components\Select::make('list')
+                            ->options(auth()->user()->lists->pluck('name', 'id'))
+                            ->required()
+                            ->live(),
 
+                        Forms\Components\Select::make('hub_id')
+                            ->label('Select Hub')
+                            ->required()
+                            ->visible(fn (\Filament\Forms\Get $get) => !empty($get('list')))
+                            ->options(fn (\Filament\Forms\Get $get) => ResellerList::hubsInList($get('list')))
+                            ->disabledOn('edit')
+                            ->reactive(),
+                    ]),
                 Repeater::make('items')
                     ->columnSpanFull()
-                    ->columns(6)
+                    ->columns([
+                        'default' => 3,
+                        'md' => 6
+                    ])
                     ->required()
                     ->cloneable()
                     ->live()
@@ -97,6 +107,10 @@ class OrderResource extends Resource
                             ->visible(fn (\Filament\Forms\Get $get) => $get('../../hub_id') && $get('../../list'))
                             ->reactive()
                             ->required()
+                            ->columnSpan([
+                                'default' => 'full',
+                                'md' => 2
+                            ])
                             ->searchable()
                             ->getSearchResultsUsing(
                                 fn (string $search) => Sku::query()->where('id', $search)->pluck('name', 'id')
@@ -126,17 +140,18 @@ class OrderResource extends Resource
                             ->preload()
                             ->allowHtml(),
                         //->getOptionLabelUsing(fn ($value): ?string => '<span class="text-blue-500">Tailwind</span>'),
-                        Forms\Components\Placeholder::make('image')
-                            ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
-                            ->content(
-                                function (Get $get) {
-                                    $media = Sku::find($get('sku'))->getMedia('sharees')->first();
+                        // Forms\Components\Placeholder::make('image')
+                        //     ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
+                        //     ->visibleFrom('md')
+                        //     ->content(
+                        //         function (Get $get) {
+                        //             $media = Sku::find($get('sku'))->getMedia('sharees')->first();
 
-                                    return $media ?
-                                        (new HtmlString('<img src="' . $media->getUrl('thumb') . '" / >')) :
-                                        '';
-                                }
-                            ),
+                        //             return $media ?
+                        //                 (new HtmlString('<img src="' . $media->getUrl('thumb') . '" / >')) :
+                        //                 '';
+                        //         }
+                        //     ),
 
                         Forms\Components\TextInput::make('quantity')
                             ->reactive()
@@ -176,7 +191,11 @@ class OrderResource extends Resource
                     ]),
 
                 Forms\Components\Grid::make('total')
-                    ->columns(5)
+                    ->columnSpanFull()
+                    ->columns([
+                        'default' => 3,
+                        'xl' => 5
+                    ])
                     ->schema([
                         Forms\Components\TextInput::make('courier_charge')
                             ->required()
@@ -204,7 +223,7 @@ class OrderResource extends Resource
 
                                 $set('total_payable', $total_payable);
 
-                                return 'wholesale price + courier + packaging cost';
+                                return '';
                             }),
                         Forms\Components\TextInput::make('total_saleable')
                             ->required()
@@ -349,13 +368,16 @@ class OrderResource extends Resource
 
                         if ($get('cod_update') != 1) {
 
-                            if ($amount < 0) {
-                                $set('error', 1);
-                                return 'Please recharge your wallet with TK = ' . abs($amount);
-                            } elseif ($state > $cod) {
-                                $set('error', 1);
+                            // temporary solution.
+                            if (config('freeseller.minimum_acount_balance') > 0) {
+                                if ($amount < 0) {
+                                    $set('error', 1);
+                                    return 'Please recharge your wallet with TK = ' . abs($amount);
+                                } elseif ($state > $cod) {
+                                    $set('error', 1);
 
-                                return 'COD can\'t be grater than ' . $cod;
+                                    return 'COD can\'t be grater than ' . $cod;
+                                }
                             }
                         }
                         $set('error', 0);

@@ -33,7 +33,7 @@ class FilamentServiceProvider extends ServiceProvider
 
             FilamentAsset::register([
                 Js::make('example-local-script', asset('js/enable-push.js')),
-                Js::make('page-loader-external', 'https://cdn.jsdelivr.net/npm/pace-js@latest/pace.min.js'),
+                //Js::make('page-loader-external', 'https://cdn.jsdelivr.net/npm/pace-js@latest/pace.min.js'),
             ]);
 
             FilamentView::registerRenderHook(
@@ -42,8 +42,8 @@ class FilamentServiceProvider extends ServiceProvider
             );
 
             FilamentView::registerRenderHook(
-                'panels::footer',
-                fn (): View => view('app.footer'),
+                'panels::head.start',
+                fn (): View => view('app.pacejs'),
             );
 
             // Filament::pushMeta([
