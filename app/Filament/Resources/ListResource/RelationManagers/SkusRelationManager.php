@@ -18,6 +18,9 @@ use Intervention\Image\Facades\Image;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use ZipArchive;
 
 class SkusRelationManager extends RelationManager
 {
@@ -158,18 +161,25 @@ class SkusRelationManager extends RelationManager
                                 }
 
                                 //zip and download
+                                //exec("tar -zcvf archive.tar.gz /folder/tozip");
+
                                 $zip = new \ZipArchive();
                                 $zipFileName = $folderName . '.zip';
-                                if ($zip->open(public_path($tmpDir . '/' . $zipFileName), \ZipArchive::CREATE) == true) {
-                                    $files = File::files(public_path($folder));
-                                    foreach ($files as $key => $value) {
-                                        $relativeName = basename($value);
-                                        $zip->addFile($value, $relativeName);
-                                    }
-                                    $zip->close();
+                                $destination = public_path($tmpDir . '/' . $zipFileName);
 
-                                    File::isDirectory($folder) && File::deleteDirectory($folder);
-                                }
+                                // if ($zip->open(public_path($tmpDir . '/' . $zipFileName), \ZipArchive::CREATE) == true) {
+                                //     $files = File::files(public_path($folder));
+                                //     foreach ($files as $key => $value) {
+                                //         $relativeName = basename($value);
+                                //         $zip->addFile($value, $relativeName);
+                                //     }
+                                //     $zip->close();
+
+                                //     File::isDirectory($folder) && File::deleteDirectory($folder);
+                                // }
+
+                                $this->zip_files($folder, $destination);
+                                File::isDirectory($folder) && File::deleteDirectory($folder);
 
                                 if (File::exists(public_path($tmpDir . '/' . $zipFileName)))
                                     return response()
@@ -228,5 +238,32 @@ class SkusRelationManager extends RelationManager
         }
 
         return [$x, $y];
+    }
+    function zip_files($source, $destination)
+    {
+        $zip = new ZipArchive();
+        if ($zip->open($destination, ZIPARCHIVE::CREATE) === true) {
+            $source = realpath($source);
+
+            if (is_dir($source)) {
+                $iterator = new RecursiveDirectoryIterator($source);
+                $iterator->setFlags(RecursiveDirectoryIterator::SKIP_DOTS);
+                $files = new RecursiveIteratorIterator($iterator, RecursiveIteratorIterator::SELF_FIRST);
+
+                foreach ($files as $file) {
+                    $file = realpath($file);
+
+                    if (is_dir($file)) {
+                        $zip->addEmptyDir(str_replace($source . DIRECTORY_SEPARATOR, '', $file . DIRECTORY_SEPARATOR));
+                    } else if (is_file($file)) {
+                        $zip->addFile($file, str_replace($source . DIRECTORY_SEPARATOR, '', $file));
+                    }
+                }
+            } else if (is_file($source)) {
+                $zip->addFile($source, basename($source));
+            }
+        }
+
+        return $zip->close();
     }
 }
