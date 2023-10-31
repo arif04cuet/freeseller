@@ -43,19 +43,7 @@ class CreateOrder extends CreateRecord
                     }
 
 
-                    return new HtmlString(
-                        '<div class="w-1/2 mx-auto">
-                        <p class="flex justify-between">
-                        <span>Total Items =</span>
-                        <strong>' . count($data['items']) . '</strong>
-                        </p>
-                        <p class="flex justify-between">
-                        <span>Cod Taka =</span>
-                        <strong>' . $data['cod'] . '</strong>
-                        </p>
-                        </div>
-                        '
-                    );
+                    return new HtmlString(view('order.overview', $data)->render());
                 }
             )
             ->action(fn () => $this->create())
@@ -109,7 +97,7 @@ class CreateOrder extends CreateRecord
         $balance = $user->balanceFloat - $lockAmount;
 
         $minimum_amount = config('freeseller.minimum_acount_balance');
-        if ($balance < $minimum_amount) {
+        if ($minimum_amount && ($balance < $minimum_amount)) {
 
             Notification::make()
                 ->title('Your current balance is below ' . $minimum_amount . '. please recharge to make order')
