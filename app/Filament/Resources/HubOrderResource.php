@@ -82,9 +82,13 @@ class HubOrderResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')
-                    ->searchable(),
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->where('id', $search);
+                    }),
                 Tables\Columns\TextColumn::make('consignment_id')
-                    ->searchable()
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->where('consignment_id', $search);
+                    })
                     ->label('CN'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->since(),
