@@ -34,7 +34,8 @@
     </tbody>
     <tfoot>
         <tr>
-            <th scope="row" class="pt-6 pl-6 pr-3 text-sm font-bold text-right text-slate-500 sm:table-cell md:pl-0">
+            <th colspan="2" scope="row"
+                class="pt-6 pl-6 pr-3 text-sm font-bold text-right text-slate-500 sm:table-cell md:pl-0">
                 COD
             </th>
 
