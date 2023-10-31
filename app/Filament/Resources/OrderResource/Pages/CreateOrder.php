@@ -28,6 +28,7 @@ class CreateOrder extends CreateRecord
         return Action::make('create')
             ->label(__('filament-panels::resources/pages/create-record.form.actions.create.label'))
             ->requiresConfirmation()
+            ->modalIconColor('success')
             ->visible(fn () => empty($this->form->getRawState()['error']))
             ->modalHeading('Order Summary')
             ->modalDescription(
