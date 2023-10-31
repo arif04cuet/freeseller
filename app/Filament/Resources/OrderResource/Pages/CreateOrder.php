@@ -6,17 +6,103 @@ use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Events\NewOrderCreated;
 use App\Filament\Resources\OrderResource;
+use App\Models\Address;
 use App\Models\Order;
 use App\Models\Sku;
+use Filament\Actions\Action;
+use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 
 class CreateOrder extends CreateRecord
 {
     protected static string $resource = OrderResource::class;
     protected static bool $canCreateAnother = false;
+
+    // protected function getCreateFormAction(): Action
+    // {
+    //     return Action::make('create')
+    //         ->label(__('filament-panels::resources/pages/create-record.form.actions.create.label'))
+    //         ->requiresConfirmation()
+    //         ->visible(fn () => empty($this->form->getRawState()['error']))
+    //         ->modalHeading('Order Summary')
+    //         ->modalDescription(
+    //             function (Action $action) {
+    //                 try {
+    //                     $data = $this->form->getState();
+    //                 } catch (\Throwable $th) {
+    //                     //$this->create();
+    //                     $action->modalSubmitActionLabel('ok');
+    //                     $action->color('danger');
+    //                     $action->modalCancelAction(false);
+
+    //                     return 'Error. Fill all the required fields';
+
+    //                     //$action->cancel();
+    //                 }
+
+
+    //                 return new HtmlString(
+    //                     '<div class="w-1/2 mx-auto">
+    //                     <p class="flex justify-between">
+    //                     <span>Total Items =</span>
+    //                     <strong>' . count($data['items']) . '</strong>
+    //                     </p>
+    //                     <p class="flex justify-between">
+    //                     <span>Cod Taka =</span>
+    //                     <strong>' . $data['cod'] . '</strong>
+    //                     </p>
+    //                     </div>
+    //                     '
+    //                 );
+    //             }
+    //         )
+    //         ->action(fn () => $this->create())
+    //         ->keyBindings(['mod+s']);
+    // }
+
+
+    public function getDefaultValues(): array
+    {
+        $request = request();
+
+        $data = [];
+
+        $data['list'] = $request->get('list', 0);
+        $data['hub_id'] = Address::query()->hubs()->first()->id;
+        $items = $request->get('skus', '');
+        if ($items)
+            $data['items'] = collect(explode(',', $items))
+                ->filter(fn ($item) => count(explode('-', $item)) == 2)
+                ->map(
+                    function ($item) {
+                        list($product, $sku) = explode('-', $item);
+                        return [
+                            "product" => $product,
+                            "sku" => $sku,
+                            "quantity" => 1,
+                            "reseller_price" => null,
+                            "subtotal" => null,
+                            "status" => null
+                        ];
+                    }
+                )->toArray();
+
+        return $data;
+    }
+
+    protected function fillForm(): void
+    {
+        $this->callHook('beforeFill');
+
+        $this->form->fill($this->getDefaultValues());
+
+        $this->callHook('afterFill');
+    }
 
     public function beforeFill()
     {
@@ -37,6 +123,7 @@ class CreateOrder extends CreateRecord
             return redirect()->to(route('filament.app.resources.orders.index'));
         }
     }
+
 
     protected function getRedirectUrl(): string
     {
@@ -111,10 +198,10 @@ class CreateOrder extends CreateRecord
         });
     }
 
-    protected function getFormActions(): array
-    {
-        $formData = $this->form->getRawState();
+    // protected function getFormActions(): array
+    // {
+    //     $formData = $this->form->getRawState();
 
-        return $formData['error'] ? [$this->getCancelFormAction()] : parent::getFormActions();
-    }
+    //     return $formData['error'] ? [$this->getCancelFormAction()] : parent::getFormActions();
+    // }
 }

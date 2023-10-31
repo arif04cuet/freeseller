@@ -25,6 +25,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
@@ -82,7 +83,9 @@ class OrderResource extends Resource
                             ->label('Select Hub')
                             ->required()
                             ->visible(fn (\Filament\Forms\Get $get) => !empty($get('list')))
-                            ->options(fn (\Filament\Forms\Get $get) => ResellerList::hubsInList($get('list')))
+                            //->options(fn (\Filament\Forms\Get $get) => ResellerList::hubsInList($get('list')))
+                            ->options(Address::query()->hubs()->pluck('name', 'id'))
+                            ->default(fn () => Address::query()->hubs()->first()->id)
                             ->disabledOn('edit')
                             ->reactive(),
                     ]),
@@ -113,7 +116,19 @@ class OrderResource extends Resource
                             ])
                             ->searchable()
                             ->getSearchResultsUsing(
-                                fn (string $search) => Sku::query()->where('id', $search)->pluck('name', 'id')
+                                fn (string $search) => Sku::query()
+                                    ->where('id', $search)
+                                    ->where('quantity', '>', 0)
+                                    ->pluck('name', 'id')
+                            )
+                            ->getOptionLabelUsing(
+                                function ($value): ?string {
+                                    $sku = Sku::find($value);
+                                    return  '<div class="flex gap-2">
+                            <img src="' . $sku->getMedia('*')->first()->getUrl('thumb') . '"/>
+                            <span>' . $sku->name . '</span>
+                        </div>';
+                                }
                             )
                             ->options(
                                 function (Get $get) {
@@ -124,7 +139,7 @@ class OrderResource extends Resource
 
                                     $skus = ResellerList::find($get('../../list'))
                                         ->skus
-                                        ->filter(fn ($sku) => !in_array($sku->id, $items))
+                                        ->filter(fn ($sku) => $sku->quantity && !in_array($sku->id, $items))
                                         ->map(fn ($sku) => [
                                             'id' => $sku->id,
                                             'name' => '<div class="flex gap-2">

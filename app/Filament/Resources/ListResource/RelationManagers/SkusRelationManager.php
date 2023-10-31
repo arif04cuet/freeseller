@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ListResource\RelationManagers;
 use App\Jobs\AddWaterMarkToMedia;
 use App\Jobs\ZipAndSendToReseller;
 use App\Models\Product;
+use Arr;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\HtmlString;
 use Intervention\Image\Facades\Image;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -48,6 +50,7 @@ class SkusRelationManager extends RelationManager
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->with('product.category'))
             ->columns([
+                Tables\Columns\TextColumn::make('sku_id'),
                 SpatieMediaLibraryImageColumn::make('image')
                     ->collection('sharees')
                     ->action(
@@ -65,7 +68,9 @@ class SkusRelationManager extends RelationManager
                     )
                     ->conversion('thumb'),
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->html()
+                    ->formatStateUsing(fn (Model $record) => $record->quantity ? $record->name : '<span class="text-primary-600">' . $record->name . '</span>'),
                 Tables\Columns\TextColumn::make('product.price')
                     ->label('Price')
                     ->formatStateUsing(fn (Model $record, $state) => '<div class="fi-ta-text grid gap-y-1 px-3">
@@ -114,8 +119,41 @@ class SkusRelationManager extends RelationManager
                 Tables\Actions\DetachAction::make(),
 
             ])
+            ->checkIfRecordIsSelectableUsing(
+                fn (Model $record): bool => $record->quantity > 0,
+            )
             ->bulkActions([
                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\BulkAction::make('create_order')
+                        ->label('Create New Order')
+                        ->icon('heroicon-o-plus')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalDescription(
+                            function (Collection $records) {
+                                return new HtmlString('
+                                <p>Total Items = ' . $records->count() . '</p>
+                                <hr class="my-4"/>
+                                <ol class="list-decimal mx-auto text-left">
+                                ' . $records->map(fn ($sku, $index) => '<li>' . $index + 1 . '. ' . $sku->name . '</li>')->implode('') . '
+                                </ol>
+                                ');
+                            }
+                        )
+                        ->modalSubmitActionLabel('Yes, Create')
+                        ->action(
+                            function (RelationManager $livewire, Collection $records, array $data) {
+                                $data = [];
+                                $data['list'] = $livewire->getOwnerRecord()->id;
+
+                                $data['skus'] = $records
+                                    ->map(fn ($item) => $item->product->id . '-' . $item->id)
+                                    ->implode(',');
+
+                                //$qString = Arr::query($data);
+                                return redirect()->route('filament.app.resources.orders.create', $data);
+                            }
+                        ),
                     Tables\Actions\DetachBulkAction::make(),
                     Tables\Actions\BulkAction::make('export_images')
                         ->label('Download Images')

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enum\AddressType;
 use App\Enum\SystemRole;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,7 +20,10 @@ class Address extends Model
     ];
 
     //scopes
-
+    public function scopeHubs(Builder $query): void
+    {
+        $query->whereType(AddressType::Hub->value);
+    }
     //relations
 
     public function parent()
