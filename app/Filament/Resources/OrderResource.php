@@ -286,13 +286,15 @@ class OrderResource extends Resource
                     )
                     ->getSearchResultsUsing(
                         fn (string $search) => Customer::query()
-                            ->whereRelation('resellers', 'reseller_id', auth()->user()->id)
                             ->select(
                                 DB::raw("CONCAT(customers.name,'-',customers.mobile,'- ',customers.address) as label"),
                                 'id'
                             )
-                            ->where('name', 'like', "{$search}%")
-                            ->orWhere('mobile', 'like', "{$search}%")
+                            ->mine()
+                            ->where(
+                                fn ($query) => $query->where('name', 'like', "{$search}%")
+                                    ->orWhere('mobile', 'like', "{$search}%")
+                            )
                             ->pluck('label', 'id')
                     )
                     ->createOptionAction(

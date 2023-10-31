@@ -23,47 +23,44 @@ class CreateOrder extends CreateRecord
     protected static string $resource = OrderResource::class;
     protected static bool $canCreateAnother = false;
 
-    // protected function getCreateFormAction(): Action
-    // {
-    //     return Action::make('create')
-    //         ->label(__('filament-panels::resources/pages/create-record.form.actions.create.label'))
-    //         ->requiresConfirmation()
-    //         ->visible(fn () => empty($this->form->getRawState()['error']))
-    //         ->modalHeading('Order Summary')
-    //         ->modalDescription(
-    //             function (Action $action) {
-    //                 try {
-    //                     $data = $this->form->getState();
-    //                 } catch (\Throwable $th) {
-    //                     //$this->create();
-    //                     $action->modalSubmitActionLabel('ok');
-    //                     $action->color('danger');
-    //                     $action->modalCancelAction(false);
+    protected function getCreateFormAction(): Action
+    {
+        return Action::make('create')
+            ->label(__('filament-panels::resources/pages/create-record.form.actions.create.label'))
+            ->requiresConfirmation()
+            ->visible(fn () => empty($this->form->getRawState()['error']))
+            ->modalHeading('Order Summary')
+            ->modalDescription(
+                function (Action $action) {
+                    try {
+                        $data = $this->form->getState();
+                    } catch (\Throwable $th) {
+                        return;
 
-    //                     return 'Error. Fill all the required fields';
+                        return 'Error. Fill all the required fields';
 
-    //                     //$action->cancel();
-    //                 }
+                        //$action->cancel();
+                    }
 
 
-    //                 return new HtmlString(
-    //                     '<div class="w-1/2 mx-auto">
-    //                     <p class="flex justify-between">
-    //                     <span>Total Items =</span>
-    //                     <strong>' . count($data['items']) . '</strong>
-    //                     </p>
-    //                     <p class="flex justify-between">
-    //                     <span>Cod Taka =</span>
-    //                     <strong>' . $data['cod'] . '</strong>
-    //                     </p>
-    //                     </div>
-    //                     '
-    //                 );
-    //             }
-    //         )
-    //         ->action(fn () => $this->create())
-    //         ->keyBindings(['mod+s']);
-    // }
+                    return new HtmlString(
+                        '<div class="w-1/2 mx-auto">
+                        <p class="flex justify-between">
+                        <span>Total Items =</span>
+                        <strong>' . count($data['items']) . '</strong>
+                        </p>
+                        <p class="flex justify-between">
+                        <span>Cod Taka =</span>
+                        <strong>' . $data['cod'] . '</strong>
+                        </p>
+                        </div>
+                        '
+                    );
+                }
+            )
+            ->action(fn () => $this->create())
+            ->keyBindings(['mod+s']);
+    }
 
 
     public function getDefaultValues(): array
