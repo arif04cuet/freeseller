@@ -60,3 +60,11 @@ Route::name('verification.')
 Route::middleware(['auth'])->group(function () {
     Route::get('/orders/{order}/print', PrintOrderLabel::class)->name('order.print.label');
 });
+
+
+Route::get('/backup/db', function () {
+    $output = '';
+    $comand = "/usr/bin/mysqldump -h sdb-65.hosting.stackcp.net -u freeseller-35303339fa34 -p'sddpzp0zhj' freeseller-35303339fa34  --no-tablespaces > /home/sites/26a/9/971c75b864/Backup/DB/db_`date +\%s`.sql";
+    exec($comand, $output);
+    return 'done';
+});
