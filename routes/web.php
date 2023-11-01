@@ -57,4 +57,6 @@ Route::name('verification.')
 
 //####
 //Route::get('/orders/{order}/track', PrintOrderLabel::class)->name('order.print.label');
-Route::get('/orders/{order}/print', PrintOrderLabel::class)->name('order.print.label');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/orders/{order}/print', PrintOrderLabel::class)->name('order.print.label');
+});

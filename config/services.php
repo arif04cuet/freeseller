@@ -15,6 +15,7 @@ return [
     */
     'steadfast' => [
         'enabled' => env('STEADFAST_ENABLED', false),
+        'merchant_id' => env('STEADFAST_MERCHANT_ID', ''),
         'base_url' => env('STEADFAST_BASE_URL'),
         'key' => env('STEADFAST_API_KEY'),
         'secret' => env('STEADFAST_SECRET_KEY'),
