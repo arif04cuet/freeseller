@@ -15,9 +15,9 @@
             <div>Merchant ID# {{ config('services.steadfast.merchant_id') }}</div>
 
         </div>
-        <div class="flex justify-between gap-3 sm:flex-col md:flex-row">
+        <div class="flex justify-between gap-3">
 
-            <div class="flex gap-2 items-start">
+            <div class="flex gap-2 items-start w-3/6">
                 @if ($logo = $business->logo)
                     <img class="w-12 " src="/storage/{{ $logo }}" alt="" srcset="">
                 @endif
@@ -32,7 +32,7 @@
                 </div>
 
             </div>
-            <div class="">
+            <div class="w-2/6">
                 <h4 class="text-xl"> {{ $customer->name }}</h4>
                 <p>{{ $customer->mobile }}</p>
                 <p>{{ $customer->address }}</p>
