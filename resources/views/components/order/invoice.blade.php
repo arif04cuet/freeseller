@@ -7,7 +7,7 @@
         $customer = $order->customer;
     @endphp
 
-    <div class="mx-auto p-4 max-w-3xl">
+    <div class="mx-auto pt-5 max-w-3xl">
         <div class="mb-4 flex justify-between font-bold">
             <div>Parcel ID# {{ $order->consignment_id }}</div>
             <div class="">মার্চেন্ট ফোন নাম্বার # {{ $reseller->mobile }}</div>

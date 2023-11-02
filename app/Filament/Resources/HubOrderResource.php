@@ -422,7 +422,7 @@ class HubOrderResource extends Resource
 
                     Tables\Actions\BulkAction::make('bulk-print')
                         ->icon('heroicon-o-printer')
-                        ->label('Bulk Print')
+                        ->label('Bulk Print Invoice')
                         ->color('success')
                         ->deselectRecordsAfterCompletion()
                         ->action(
@@ -434,6 +434,7 @@ class HubOrderResource extends Resource
 
                     Tables\Actions\BulkAction::make('print_list_for_courier')
                         ->icon('heroicon-o-printer')
+                        ->label('Order List for Courier')
                         ->deselectRecordsAfterCompletion()
                         ->color('success')
                         ->action(
