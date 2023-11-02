@@ -101,7 +101,7 @@ class ActiveWholesalerOrders extends BaseWidget
                             }
                         )
                         ->modalCancelAction(false)
-                        ->modalHeading('Products details')
+                        ->modalHeading(fn (Model $record) => 'Products list for order # ' . $record->id)
                         ->modalContent(fn (Model $record) => view('orders.items-status', [
                             'items' => $record->loadMissing('items.wholesaler')->getItemsByWholesaler(auth()->user()),
                         ])),

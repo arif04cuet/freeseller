@@ -7,6 +7,7 @@ use App\Enum\SystemRole;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Address extends Model
@@ -26,9 +27,14 @@ class Address extends Model
     }
     //relations
 
-    public function parent()
+    public function parent(): BelongsTo
     {
         return $this->belongsTo(Address::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(Address::class, 'parent_id');
     }
 
     public function addresses(): HasMany

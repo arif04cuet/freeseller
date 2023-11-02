@@ -123,7 +123,7 @@ class WholesalerOrderResource extends Resource
                         }
                     )
                     ->modalCancelAction(false)
-                    ->modalHeading('Items details')
+                    ->modalHeading(fn (Model $record) => 'Products list for order # ' . $record->id)
                     ->modalContent(fn (Model $record) => view('orders.items-status', [
                         'items' => $record->loadMissing('items.wholesaler')->getItemsByWholesaler(auth()->user()),
                     ]))

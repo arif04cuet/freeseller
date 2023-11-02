@@ -1,7 +1,8 @@
 @extends('layout.print')
-
 @section('content')
-    <x-order.invoice :order="$order" />
+    @foreach ($orders as $order)
+        <x-order.invoice :order="$order" />
+    @endforeach
     <script>
         window.print();
     </script>

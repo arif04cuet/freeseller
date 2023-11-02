@@ -121,22 +121,25 @@ class HubOrderResource extends Resource
 
                 Tables\Filters\Filter::make('created_at')
                     ->form([
-                        Forms\Components\DatePicker::make('created_from'),
-                        Forms\Components\DatePicker::make('created_until'),
+                        Forms\Components\DatePicker::make('created_from')->native(false)
+                            ->closeOnDateSelection(),
+                        Forms\Components\DatePicker::make('created_until')->native(false)
+                            ->closeOnDateSelection(),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('updated_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('updated_at', '<=', $date),
                             );
                     })
             ])
             ->actions([
+
                 Tables\Actions\Action::make('mark_as_delivered')
                     ->label('Mark as Delivered?')
                     ->icon('heroicon-o-check')
@@ -374,7 +377,7 @@ class HubOrderResource extends Resource
                             )
                             ->default(1),
                     ])
-                    ->modalHeading('Order Items')
+                    ->modalHeading(fn (Model $record) => 'Products list for order # ' . $record->id)
                     ->modalContent(fn (Model $record, Tables\Actions\Action $action) => view('orders.items-status', [
                         'items' => $record->loadMissing('items.wholesaler')->items
                     ])),
@@ -417,16 +420,29 @@ class HubOrderResource extends Resource
             ->bulkActions([
                 Tables\Actions\ActionGroup::make([
 
+                    Tables\Actions\BulkAction::make('bulk-print')
+                        ->icon('heroicon-o-printer')
+                        ->label('Bulk Print')
+                        ->color('success')
+                        ->deselectRecordsAfterCompletion()
+                        ->action(
+                            function (Collection $records) {
+                                $record_ids = $records->pluck('id')->join(',');
+                                return redirect(route('orders.print.invoice', ['orders' => $record_ids]));
+                            }
+                        ),
+
                     Tables\Actions\BulkAction::make('print_list_for_courier')
-                        ->action(function (Collection $records) {
-                            dd($records->toArray());
-                        })
-                        ->modalSubmitAction(false)
-                        ->modalCancelAction(false)
                         ->icon('heroicon-o-printer')
                         ->deselectRecordsAfterCompletion()
-                        ->modalContent(fn (Collection $records) => view('orders.order-list-print', ['orders' => $records]))
                         ->color('success')
+                        ->action(
+                            function (Collection $records) {
+                                $record_ids = $records->pluck('id')->join(',');
+                                return redirect(route('orders.print.courier', ['orders' => $record_ids]));
+                            }
+                        ),
+
                 ]),
             ]);
     }

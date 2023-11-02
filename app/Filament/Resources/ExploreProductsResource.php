@@ -101,7 +101,10 @@ class ExploreProductsResource extends Resource
                     ->preload()
                     ->relationship('owner', 'name', fn (Builder $query) => $query->wholesalers())
                     ->getOptionLabelFromRecordUsing(
-                        fn (Model $record) => $record->business->name . '(' . $record->id_number . ')'
+                        function (Model $record) {
+                            $record->loadMissing('business');
+                            return  $record->business->name . '(' . $record->id_number . ')';
+                        }
                     )->indicateUsing(function (array $data): ?string {
 
                         if (empty($data['values'])) {

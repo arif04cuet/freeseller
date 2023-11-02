@@ -3,6 +3,8 @@
 use App\Helpers\Utils;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\PrintOrderLabel;
+use App\Http\Controllers\PrintOrdersCourierLabel;
+use App\Http\Controllers\PrintOrdersLabel;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\UserLockAmount;
@@ -59,6 +61,8 @@ Route::name('verification.')
 //Route::get('/orders/{order}/track', PrintOrderLabel::class)->name('order.print.label');
 Route::middleware(['auth'])->group(function () {
     Route::get('/orders/{order}/print', PrintOrderLabel::class)->name('order.print.label');
+    Route::get('/orders/print/invoices', PrintOrdersLabel::class)->name('orders.print.invoice');
+    Route::get('/orders/print/courier', PrintOrdersCourierLabel::class)->name('orders.print.courier');
 });
 
 
