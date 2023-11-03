@@ -24,6 +24,10 @@
                                     CN #
                                 </th>
                                 <th scope="col"
+                                    class=" py-3.5 px-3 text-center text-sm font-normal text-slate-700 sm:table-cell">
+                                    COD
+                                </th>
+                                <th scope="col"
                                     class=" py-3.5 px-3 text-right text-sm font-normal text-slate-700 sm:table-cell">
                                     Reseller
                                 </th>
@@ -43,6 +47,11 @@
                                         {{ $order->consignment_id }}
                                     </td>
 
+                                    </td>
+                                    <td class=" px-3 py-2 text-sm text-center text-slate-500 sm:table-cell">
+                                        {{ $order->cod }}
+                                    </td>
+
                                     <td class=" px-3 py-2 text-sm text-right text-slate-500 sm:table-cell">
                                         {{ $reseller->business->name }} ( {{ $reseller->id_number }})
                                     </td>
@@ -53,7 +62,7 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <th scope="row" colspan="3" class="text-left pt-2 text-sm font-bold">
+                                <th scope="row" colspan="4" class="text-left pt-2 text-sm font-bold">
                                     Total Parcel : {{ $orders->count() }}
                                 </th>
 
