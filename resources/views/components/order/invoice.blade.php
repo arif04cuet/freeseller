@@ -7,8 +7,8 @@
         $customer = $order->customer;
     @endphp
 
-    <div class="mx-auto pt-5 max-w-3xl">
-        <div class="mb-4 flex justify-between font-bold">
+    <div class="mx-auto pt-5 max-w-3xl break-inside-avoid">
+        <div class="mb-4 flex justify-between font-bold px-2">
             <div>Parcel ID# {{ $order->consignment_id }}</div>
             <div class="">মার্চেন্ট ফোন নাম্বার # {{ $reseller->mobile }}</div>
             <div>Merchant ID# {{ config('services.steadfast.merchant_id') }}</div>

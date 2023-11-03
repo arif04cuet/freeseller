@@ -370,12 +370,12 @@ class HubOrderResource extends Resource
                                     ->pluck('name', 'id')
 
                             ),
-                        Forms\Components\Checkbox::make('print')
-                            ->label('Print Level')
-                            ->visible(
-                                fn (Order $record) => ($record->wholesalers(OrderItemStatus::Approved)->count() == 1) && ($record->status == OrderStatus::WaitingForHubCollection)
-                            )
-                            ->default(1),
+                        // Forms\Components\Checkbox::make('print')
+                        //     ->label('Print Level')
+                        //     ->visible(
+                        //         fn (Order $record) => ($record->wholesalers(OrderItemStatus::Approved)->count() == 1) && ($record->status == OrderStatus::WaitingForHubCollection)
+                        //     )
+                        //     ->default(1),
                     ])
                     ->modalHeading(fn (Model $record) => 'Products list for order # ' . $record->id)
                     ->modalContent(fn (Model $record, Tables\Actions\Action $action) => view('orders.items-status', [

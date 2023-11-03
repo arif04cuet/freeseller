@@ -12,6 +12,7 @@ class ChangeOrderStatusWhenItemApproved
     public function handle(OrderItemApproved $event): void
     {
         $item = $event->item;
+        $item->loadMissing(['order', 'wholesaler']);
         $order = $item->order;
 
         if ($order->status->value == OrderStatus::WaitingForWholesalerApproval->value) {

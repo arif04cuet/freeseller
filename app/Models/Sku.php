@@ -51,6 +51,7 @@ class Sku extends Model implements HasMedia
 
     public function price(): Attribute
     {
+        $this->loadMissing('product');
         $product = $this->product;
         $isVarientPrice = $product->productType->is_varient_price;
 

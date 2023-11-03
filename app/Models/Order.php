@@ -113,18 +113,21 @@ class Order extends Model
     public function deliveredItems()
     {
         return $this->items()
+            ->with(['wholesaler'])
             ->where('status', OrderItemStatus::Delivered->value)
             ->get();
     }
     public function approvedItems()
     {
         return $this->items()
+            ->with(['wholesaler'])
             ->where('status', OrderItemStatus::Approved->value)
             ->get();
     }
     public function returnedItems()
     {
         return $this->items()
+            ->with(['wholesaler'])
             ->where('status', OrderItemStatus::Returned->value)
             ->get();
     }

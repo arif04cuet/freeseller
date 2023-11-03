@@ -35,7 +35,11 @@ class OrderItemsView extends Component implements HasForms, HasTable
     {
         return $table
             ->paginated(false)
-            ->query(OrderItem::query()->whereIn('id', $this->itemIds))
+            ->query(
+                OrderItem::query()
+                    ->with(['wholesaler', 'wholesaler.business'])
+                    ->whereIn('id', $this->itemIds)
+            )
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
                     ->action(
