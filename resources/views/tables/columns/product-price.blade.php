@@ -1,7 +1,7 @@
 <div class="div">
-    @if ($getLabel())
+    {{-- @if (!is_null($getLabel()))
         <div>{{ $getLabel() }}</div>
-    @endif
+    @endif --}}
     <div>{{ $getRecord()->price }}</div>
 
     @if ($getRecord()->getOfferPrice())

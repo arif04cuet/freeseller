@@ -35,6 +35,7 @@ class ViewSku extends Component implements HasForms, HasInfolists
                             ->label('Available qnt.'),
                         Infolists\Components\TextEntry::make('product.category.name'),
                         Infolists\Components\TextEntry::make('product.price')
+                            ->label('Price')
                             ->html()
                             ->formatStateUsing(fn (Model $record) => view('tables.columns.product-price', [
                                 'getRecord' => fn () => $record->product

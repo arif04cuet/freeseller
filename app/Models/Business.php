@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enum\BusinessType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
@@ -27,7 +28,15 @@ class Business extends Model implements HasMedia
             $model->number = self::unique_code(9);
         });
     }
-
+    //scopes
+    public function scopeReseller(Builder $builder): void
+    {
+        $builder->whereType(BusinessType::Reseller->value);
+    }
+    public function scopeWholesaler(Builder $builder): void
+    {
+        $builder->whereType(BusinessType::Wholesaler->value);
+    }
     //helper functions
 
     public function registerMediaConversions(Media $media = null): void

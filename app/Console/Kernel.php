@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping();
 
         $schedule->command('app:delete-backup')->daily();
+        $schedule->command('app:delete-image-zip')->daily();
     }
 
     /**

@@ -30,7 +30,7 @@ class PendingBalanceListForWholesaler extends Component implements HasForms, Has
             ->query(
 
                 OrderItem::query()
-                    ->selectRaw('order_id,sum(wholesaler_price) as amount')
+                    ->selectRaw('order_id,sum(wholesaler_price * quantity) as amount')
                     ->where('status', OrderItemStatus::DeliveredToHub->value)
                     ->whereHas('order', function ($query) {
                         return $query->pending();

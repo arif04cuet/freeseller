@@ -10,6 +10,7 @@ use App\Events\OrderDelivered;
 use App\Events\OrderPartialDelivered;
 use App\Filament\Resources\HubOrderResource\Pages;
 use App\Jobs\AddParcelToSteadFast;
+use App\Models\Business;
 use App\Models\Order;
 use App\Models\User;
 use Closure;
@@ -54,6 +55,7 @@ class HubOrderResource extends Resource
         return parent::getEloquentQuery()
             ->with([
                 'reseller',
+                'reseller.business'
             ])->mine()->latest();
     }
 
@@ -115,6 +117,24 @@ class HubOrderResource extends Resource
                     ->badge(),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('business_id')
+                    ->label('Business')
+                    ->preload()
+                    ->options(Business::query()->wholesaler()->pluck('name', 'id'))
+                    ->query(
+                        function (Builder $query, array $data): Builder {
+                            $businessId = $data['value'];
+                            logger($businessId);
+                            return $query
+                                ->when($businessId, function ($q) use ($businessId) {
+                                    return $q->whereHas('items', function ($q) use ($businessId) {
+                                        return $q->whereHas('wholesaler', function ($q) use ($businessId) {
+                                            return $q->whereRelation('business', 'id', $businessId);
+                                        });
+                                    });
+                                });
+                        }
+                    ),
                 Tables\Filters\SelectFilter::make('status')
                     ->multiple()
                     ->options(OrderStatus::array()),

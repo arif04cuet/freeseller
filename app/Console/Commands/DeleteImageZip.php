@@ -4,14 +4,14 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
-class DeleteBackup extends Command
+class DeleteImageZip extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'app:delete-backup';
+    protected $signature = 'app:delete-image-zip';
 
     /**
      * The console command description.
@@ -25,7 +25,7 @@ class DeleteBackup extends Command
      */
     public function handle()
     {
-        $comand = 'cd /home/sites/26a/9/971c75b864/Backup/DB;find . -type f -mtime +2 -name \*.sql -exec rm -rf {} \;';
+        $comand = 'cd /home/sites/26a/9/971c75b864/public_html/github/freeseller/public/tmp;find . -type f -name \*.zip -exec rm -rf {} \;';
         exec($comand);
     }
 }

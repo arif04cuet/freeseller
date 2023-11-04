@@ -28,11 +28,11 @@ class PendingBalanceListForReseller extends Component implements HasForms, HasTa
                 Order::query()
                     ->select([
                         '*',
-                        DB::raw('cod - total_payable AS amount')
+                        DB::raw('profit AS amount')
                     ])
                     ->pending()
                     ->whereBelongsTo($user, 'reseller')
-                    ->whereColumn('cod', '>', 'total_payable')
+                //->whereColumn('cod', '>', 'total_payable')
             )
             ->paginated(false)
             ->columns([
@@ -42,6 +42,7 @@ class PendingBalanceListForReseller extends Component implements HasForms, HasTa
                 Tables\Columns\TextColumn::make('cod'),
                 Tables\Columns\TextColumn::make('total_payable'),
                 Tables\Columns\TextColumn::make('amount')
+                    ->label('Profit')
                     ->money('BDT')
                     ->summarize(
                         Sum::make()

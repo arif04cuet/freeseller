@@ -76,8 +76,7 @@ class PendingBalance extends Widget implements HasForms, HasActions
         return Order::query()
             ->pending()
             ->whereBelongsTo($user, 'reseller')
-            ->whereColumn('cod', '>', 'total_payable')
-            ->sum(DB::raw('cod - total_payable'));
+            ->sum('profit');
     }
 
     public function wholesalerPendingSum(User $user): int
@@ -88,7 +87,7 @@ class PendingBalance extends Widget implements HasForms, HasActions
                 return $query->pending();
             })
             ->whereBelongsTo($user, 'wholesaler')
-            ->sum('wholesaler_price');
+            ->sum(DB::raw('wholesaler_price * quantity'));
     }
 
 

@@ -50,9 +50,6 @@ class ActiveWholesalerOrders extends BaseWidget
                     return $q->whereBelongsTo(auth()->user(), 'wholesaler');
                 },
             ], 'wholesaler_price')
-            ->whereHas('items', function ($q) {
-                return $q->whereBelongsTo(auth()->user(), 'wholesaler');
-            })
             ->latest();
     }
 
