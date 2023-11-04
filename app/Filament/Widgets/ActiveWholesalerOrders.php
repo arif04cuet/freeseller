@@ -5,6 +5,8 @@ namespace App\Filament\Widgets;
 use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Models\Order;
+use App\Models\OrderItem;
+use DB;
 use Filament\Actions\StaticAction;
 use Filament\Tables;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -28,6 +30,12 @@ class ActiveWholesalerOrders extends BaseWidget
     {
         return Order::query()
             ->with('items')
+            ->addSelect([
+                'total' => OrderItem::query()
+                    ->whereColumn('order_id', 'orders.id')
+                    ->whereBelongsTo(auth()->user(), 'wholesaler')
+                    ->selectRaw('sum(wholesaler_price * quantity) as total')
+            ])
             ->whereHas('items', function ($q) {
                 return $q->whereBelongsTo(auth()->user(), 'wholesaler')
                     ->whereNotIn('status', [
@@ -45,11 +53,7 @@ class ActiveWholesalerOrders extends BaseWidget
                     return $q->whereBelongsTo(auth()->user(), 'wholesaler');
                 },
             ], 'quantity')
-            ->withSum([
-                'items' => function (Builder $q) {
-                    return $q->whereBelongsTo(auth()->user(), 'wholesaler');
-                },
-            ], 'wholesaler_price')
+            //->sum('total')
             ->latest();
     }
 
@@ -109,8 +113,11 @@ class ActiveWholesalerOrders extends BaseWidget
             Tables\Columns\TextColumn::make('items_sum_quantity')
                 ->label('Products'),
 
-            Tables\Columns\TextColumn::make('items_sum_wholesaler_price')
+            Tables\Columns\TextColumn::make('total')
                 ->label('Amount'),
+            // ->getStateUsing(
+            //     fn (Model $record) => $record->items_sum_wholesaler_price * $record->items_sum_quantity
+            // ),
             Tables\Columns\TextColumn::make('created_at')
                 ->since()
 

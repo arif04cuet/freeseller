@@ -28,7 +28,7 @@ class EditOrder extends EditRecord
 
         $data['list'] = explode('-', $data['tracking_no'])[0];
 
-        $items = Order::with('items')->find($data['id'])
+        $items = Order::with(['items', 'items.sku', 'items.sku.product'])->find($data['id'])
             ->items
             ->map(function ($item) {
 
@@ -52,7 +52,13 @@ class EditOrder extends EditRecord
 
         return DB::transaction(function () use ($data, $record) {
 
-            $items = $data['items'];
+            $items =  collect($data['items'])
+                ->map(
+                    function ($item) {
+                        $item['subtotal'] = (int) $item['reseller_price'] * (int) $item['quantity'];
+                        return $item;
+                    }
+                )->toArray();
 
             $totalPaypable = Order::totalPayable($items);
             $totalSalable = Order::totalSubtotals($items);
@@ -80,7 +86,7 @@ class EditOrder extends EditRecord
 
             // create items
 
-            collect($data['items'])
+            collect($items)
                 ->each(function ($item) use ($record) {
 
                     $dbItem = $record->items()->where('sku_id', $item['sku'])->first();
@@ -111,13 +117,8 @@ class EditOrder extends EditRecord
 
             // delete old skus
 
-            // $skus = collect($data)->pluck('sku')->toArray();
-            // $record->refresh()->items->each(
-            //     fn ($item) => in_array(
-            //         $item->sku_id,
-            //         $skus
-            //     ) ? 0 : $item->delete()
-            // );
+            $skus = collect($items)->pluck('sku')->toArray();
+            $record->refresh()->items()->whereNotIn('sku_id', $skus)->delete();
 
             return $record;
         });

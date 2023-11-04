@@ -26,5 +26,6 @@ php artisan config:cache
 # Clear and cache views
 php artisan view:cache
 
+php artisan icons:cache
 # Turn off maintenance mode
 php artisan up
