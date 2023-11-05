@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Jobs\LowStockNotification;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -18,6 +19,8 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('app:delete-backup')->daily();
         $schedule->command('app:delete-image-zip')->daily();
+
+        $schedule->job(new LowStockNotification)->daily();
     }
 
     /**

@@ -250,6 +250,10 @@ class Order extends Model
             return 0;
         }
 
+        // for temporary
+        if ($quantity <= 3)
+            return $delivery_charge;
+
         $kg = ceil(($quantity * $per_saree_weight) / 1000);
 
         if ($kg <= 1)

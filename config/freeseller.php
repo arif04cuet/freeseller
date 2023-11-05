@@ -11,4 +11,5 @@ return [
     'per_saree_weight' => 500, //g,
     'support_number' => '01615645860',
     'platform_bkash' => '01717348147',
+    'low_stock_threshold' => 5
 ];

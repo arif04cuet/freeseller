@@ -61,6 +61,10 @@ class Sku extends Model implements HasMedia
     }
 
     //helpers
+    public static function lowStockThreshold()
+    {
+        return config('freeseller.low_stock_threshold');
+    }
 
     public function waterMarkText()
     {
