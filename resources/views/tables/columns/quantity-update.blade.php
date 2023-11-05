@@ -4,7 +4,7 @@
 
 @endphp
 <div>
-    <input placeholder="new qnt" type="number" wire:model.lazy="{{ $name . '.qnt' }}" />
+    <input placeholder="update new qnt" type="number" wire:model.lazy="{{ $name . '.qnt' }}" />
     @if (isset($this->updatedSkus[$getRecord()->id]['status']))
         saved
     @endif

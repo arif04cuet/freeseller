@@ -57,6 +57,8 @@ class SkusResource extends Resource
                     Tables\Columns\TextColumn::make('id'),
                     Tables\Columns\TextColumn::make('name'),
                     Tables\Columns\TextColumn::make('quantity')
+                        ->formatStateUsing(fn ($state) => '<b>' . $state . '</b>' . ' pieces available')
+                        ->html()
                         ->sortable(),
                     QuantityUpdate::make('update_quantity')
                 ])->from('md'),
