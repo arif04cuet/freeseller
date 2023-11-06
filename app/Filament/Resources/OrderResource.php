@@ -481,7 +481,10 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('customer.name')
                     ->searchable()
                     ->label('Customer Name'),
-                Tables\Columns\TextColumn::make('customer.mobile')->label('Mobile'),
+                Tables\Columns\TextColumn::make('customer.mobile')
+                    ->formatStateUsing(fn ($state) => '<a href="tel:' . $state . '"><u>' . $state . '</u></a>')
+                    ->html()
+                    ->label('Mobile'),
                 // Tables\Columns\TextColumn::make('customer.address')->label('Address'),
                 // Tables\Columns\TextColumn::make('note')
                 //     ->wrap(),

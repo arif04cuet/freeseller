@@ -80,7 +80,7 @@ class ExploreProductsResource extends Resource
                             )),
                     )
                     ->conversion('thumb'),
-                Tables\Columns\TextColumn::make('productType.name'),
+
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 \App\Tables\Columns\ProductPrice::make('price'),
@@ -95,6 +95,7 @@ class ExploreProductsResource extends Resource
                 Tables\Columns\TextColumn::make('skus_sum_quantity')
                     ->label('Total')
                     ->sum('skus', 'quantity'),
+                Tables\Columns\TextColumn::make('productType.name'),
                 Tables\Columns\TextColumn::make('category.name'),
 
             ])
@@ -226,7 +227,7 @@ class ExploreProductsResource extends Resource
                             ->label('Manufacturer')
                             ->html()
                             ->getStateUsing(
-                                fn (Model $record) => '<a href="' . route('filament.app.resources.explore-products.index') . '?tableFilters[owner][values][0]=5"><u>' . $record->owner->business->name . '</u></a>'
+                                fn (Model $record) => '<a href="' . route('filament.app.resources.explore-products.index') . '?tableFilters[owner][values][0]=' . $record->owner->id . '"><u>' . $record->owner->business->name . '</u></a>'
                             ),
                         Infolists\Components\ImageEntry::make('focus_image')
                             ->columnSpan([
