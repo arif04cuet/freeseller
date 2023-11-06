@@ -23,6 +23,7 @@ class NewProducts extends BaseWidget
         $date = Carbon::today()->subDays(7);
 
         return $table
+            ->defaultPaginationPageOption(5)
             ->query(
                 Sku::query()
                     ->with('product')
@@ -30,33 +31,35 @@ class NewProducts extends BaseWidget
                     ->latest()
             )
             ->columns([
-                SpatieMediaLibraryImageColumn::make('image')
-                    ->collection('sharees')
-                    ->action(
-                        Tables\Actions\Action::make('View Image')
-                            ->action(function (Model $record): void {
-                            })
-                            ->modalSubmitAction(false)
-                            ->modalCancelAction(false)
-                            ->modalContent(fn (Model $record) => view(
-                                'products.gallery',
-                                [
-                                    'medias' => $record->getMedia('sharees'),
-                                ]
-                            )),
-                    )
-                    ->conversion('thumb'),
-                Tables\Columns\TextColumn::make('name')
-                    ->url(fn (Sku $record) => route('filament.app.resources.explore-products.view', ['record' => $record->product->id]))
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('product.price')
-                    ->label('Price')
-                    ->formatStateUsing(fn (Model $record, $state) => view('products.sku.price', ['product' => $record->product]))
-                    ->html(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Uploaded at')
-                    ->since()
+                Tables\Columns\Layout\Split::make([
 
+                    SpatieMediaLibraryImageColumn::make('image')
+                        ->collection('sharees')
+                        ->action(
+                            Tables\Actions\Action::make('View Image')
+                                ->action(function (Model $record): void {
+                                })
+                                ->modalSubmitAction(false)
+                                ->modalCancelAction(false)
+                                ->modalContent(fn (Model $record) => view(
+                                    'products.gallery',
+                                    [
+                                        'medias' => $record->getMedia('sharees'),
+                                    ]
+                                )),
+                        )
+                        ->conversion('thumb'),
+                    Tables\Columns\TextColumn::make('name')
+                        ->url(fn (Sku $record) => route('filament.app.resources.explore-products.view', ['record' => $record->product->id]))
+                        ->searchable(),
+                    Tables\Columns\TextColumn::make('product.price')
+                        ->label('Price')
+                        ->formatStateUsing(fn (Model $record, $state) => view('products.sku.price', ['product' => $record->product]))
+                        ->html(),
+                    Tables\Columns\TextColumn::make('created_at')
+                        ->label('Uploaded at')
+                        ->since()
+                ])->from('md')
             ]);
     }
 }
