@@ -10,9 +10,11 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class SkusResource extends Resource
@@ -25,7 +27,8 @@ class SkusResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
-    protected static ?string $navigationLabel = 'My Skus';
+    protected static ?string $modelLabel = 'My Stock';
+    protected static ?string $pluralModelLabel = 'My Stock';
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -36,10 +39,14 @@ class SkusResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->whereRelation('product', 'owner_id', auth()->user()->id)
+            ->mine()
             ->orderBy('quantity', 'asc');
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getEloquentQuery()->sum('quantity');
+    }
 
     public static function form(Form $form): Form
     {
@@ -54,25 +61,50 @@ class SkusResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\Layout\Split::make([
-                    Tables\Columns\TextColumn::make('id'),
-                    Tables\Columns\TextColumn::make('name'),
+                    SpatieMediaLibraryImageColumn::make('image')
+                        ->collection('sharees')
+                        ->action(
+                            Tables\Actions\Action::make('View Image')
+                                ->action(function (Model $record): void {
+                                })
+                                ->modalSubmitAction(false)
+                                ->modalCancelAction(false)
+                                ->modalContent(fn (Model $record) => view(
+                                    'products.gallery',
+                                    [
+                                        'medias' => $record->getMedia('sharees'),
+                                    ]
+                                )),
+                        )
+                        ->conversion('thumb'),
+                    Tables\Columns\TextColumn::make('name')
+                        ->searchable(),
+                    Tables\Columns\TextColumn::make('product.price')
+                        ->label('Price')
+                        ->formatStateUsing(fn (Model $record, $state) => view('products.sku.price', ['product' => $record->product]))
+                        ->html(),
                     Tables\Columns\TextColumn::make('quantity')
                         ->formatStateUsing(fn ($state) => '<b>' . $state . '</b>' . ' pieces available')
-                        ->html()
-                        ->sortable(),
+                        ->html(),
                     QuantityUpdate::make('update_quantity')
                 ])->from('md'),
 
             ])
             ->filters([
                 Tables\Filters\Filter::make('quantity')
-                    ->label(fn () => "Low Stock ( quantity <" . Sku::lowStockThreshold() . ")")
                     ->default()
+                    ->form([
+                        Forms\Components\TextInput::make('value')
+                            ->default(5)
+                            ->label('Stock Under')
+                    ])
                     ->query(
-                        fn (Builder $query): Builder => $query->where('quantity', '<', Sku::lowStockThreshold())
+                        function (Builder $query, array $data): Builder {
+                            return $query->when($data['value'], fn ($query) => $query->where('quantity', '<', $data['value']));
+                        }
                     ),
                 Tables\Filters\SelectFilter::make('product')
-                    ->relationship('product', 'name')
+                    ->relationship('product', 'name', modifyQueryUsing: fn ($query) => $query->mine())
                     ->preload()
                     ->searchable(),
 

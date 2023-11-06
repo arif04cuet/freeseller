@@ -234,7 +234,7 @@ class ExploreProductsResource extends Resource
                                 'md' => 1
                             ])
                             ->defaultImageUrl(
-                                fn (Model $record) => $record->getMedia('sharees')->first()->getUrl('thumb')
+                                fn (Model $record) => $record->getMedia('sharees')->first()?->getUrl('thumb')
                             ),
                         Infolists\Components\TextEntry::make('description')
                             ->columnSpan([

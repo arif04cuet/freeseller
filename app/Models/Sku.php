@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Events\SkuCreated;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,13 @@ class Sku extends Model implements HasMedia
     protected $dispatchesEvents = [
         'created' => SkuCreated::class,
     ];
+
+    //scopes
+
+    public function scopeMine(Builder $builder): void
+    {
+        $builder->whereRelation('product', 'owner_id', auth()->user()->id);
+    }
 
     //relations
 

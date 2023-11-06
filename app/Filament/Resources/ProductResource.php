@@ -142,7 +142,6 @@ class ProductResource extends Resource
                             ->modalContent(fn (Product $record) => view('products.single-image', ['url' => $record->getMedia('sharees')->first()->getUrl()])),
                     )
                     ->conversion('thumb'),
-                Tables\Columns\TextColumn::make('productType.name'),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 \App\Tables\Columns\ProductPrice::make('price'),
@@ -156,6 +155,7 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('skus_sum_quantity')
                     ->label('Total Stock')
                     ->sum('skus', 'quantity'),
+                Tables\Columns\TextColumn::make('productType.name'),
                 Tables\Columns\TextColumn::make('category.name'),
                 Tables\Columns\TextColumn::make('owner.name'),
             ])
