@@ -136,7 +136,7 @@ class Order extends Model
     public function trackingUrl(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, array $attributes) => 'https://steadfast.com.bd/t/' . $attributes['tracking_code']
+            get: fn ($value, array $attributes) => 'https://steadfastcourier.com/t/' . $attributes['tracking_code']
         );
     }
 
@@ -160,6 +160,7 @@ class Order extends Model
     }
 
     // helpers
+
     public function calculateProfit(): array
     {
         $order = $this;

@@ -315,7 +315,7 @@ class HubOrderResource extends Resource
 
                 Tables\Actions\Action::make('track')
                     ->label('Track Order')
-                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
+                    ->url(fn (Order $record) => $record->tracking_url)
                     ->visible(fn (Order $record) => $record->tracking_code)
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('send_to_courier')

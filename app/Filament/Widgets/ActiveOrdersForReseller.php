@@ -60,7 +60,7 @@ class ActiveOrdersForReseller extends BaseWidget
                 Tables\Columns\TextColumn::make('tracking_code')
                     ->label('Track')
                     ->formatStateUsing(fn () => 'Track Order')
-                    ->url(fn (Order $record) => 'https://steadfast.com.bd/t/' . $record->tracking_code)
+                    ->url(fn (Order $record) => $record->tracking_url)
                     ->openUrlInNewTab(),
                 Tables\Columns\TextColumn::make('items_sum_quantity')
                     ->label('Products')
