@@ -28,6 +28,10 @@
                                     COD
                                 </th>
                                 <th scope="col"
+                                    class=" py-3.5 px-3 text-center text-sm font-normal text-slate-700 sm:table-cell">
+                                    Customer
+                                </th>
+                                <th scope="col"
                                     class=" py-3.5 px-3 text-right text-sm font-normal text-slate-700 sm:table-cell">
                                     Reseller
                                 </th>
@@ -50,6 +54,10 @@
                                     </td>
                                     <td class=" px-3 py-2 text-sm text-center text-slate-500 sm:table-cell">
                                         {{ $order->cod }}
+                                    </td>
+
+                                    <td class=" px-3 py-2 text-sm text-center text-slate-500 sm:table-cell">
+                                        {{ $order->customer->name }} ({{ $order->customer->mobile }})
                                     </td>
 
                                     <td class=" px-3 py-2 text-sm text-right text-slate-500 sm:table-cell">

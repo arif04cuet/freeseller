@@ -15,7 +15,11 @@ class PrintOrdersCourierLabel extends Controller
 
         $orderIds = explode(',', $request->get('orders', ''));
 
-        $orders = Order::query()->with(['reseller', 'reseller.business'])
+        $orders = Order::query()->with([
+            'reseller',
+            'reseller.business',
+            'customer',
+        ])
             ->whereIn('id', $orderIds)
             ->orderBy('id', 'asc')
             ->get();
