@@ -77,6 +77,8 @@ class FundWithdrawRequestResource extends Resource
                 Tables\Columns\TextColumn::make('user.business.name'),
                 Tables\Columns\TextColumn::make('amount')
                     ->label('Requested Amount'),
+                Tables\Columns\TextColumn::make('paymentChannel.type')
+                    ->label('Channel'),
                 Tables\Columns\TextColumn::make('status')
                     ->colors([
                         'warning' => WalletRechargeRequestStatus::Pending->value,
@@ -152,6 +154,10 @@ class FundWithdrawRequestResource extends Resource
                                     ->label('Lock Amount'),
                                 Forms\Components\TextInput::make('active_balance')
                             ]),
+                        Forms\Components\ViewField::make('payment_channel')
+                            ->columnSpanFull()
+                            ->view('fund.view-payment-channel'),
+
                         SpatieMediaLibraryFileUpload::make('image')
                             ->required()
                             ->label('Tnx Receipt')
