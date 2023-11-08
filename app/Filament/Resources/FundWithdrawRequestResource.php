@@ -35,6 +35,8 @@ class FundWithdrawRequestResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $minimumBalance = config('freeseller.minimum_acount_balance') ?: 1000;
+
         return $form
             ->schema([
 
@@ -55,10 +57,12 @@ class FundWithdrawRequestResource extends Resource
                     ->helperText(
                         fn () => new HtmlString(
                             'Available Balance: <b>' . auth()->user()->active_balance . '</b> | ' .
-                                'Max withdrwable amount: <b>' . (int) (auth()->user()->active_balance - config('freeseller.minimum_acount_balance')) . '</b>'
+                                'Max withdrwable amount: <b>' . (int) (auth()->user()->active_balance - $minimumBalance) . '</b>'
                         )
                     )
-                    ->maxValue(fn () => (int) (auth()->user()->active_balance - config('freeseller.minimum_acount_balance')))
+                    ->maxValue(
+                        fn () => (int) (auth()->user()->active_balance - $minimumBalance)
+                    )
                     ->required(),
 
             ]);
