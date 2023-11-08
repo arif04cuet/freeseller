@@ -62,6 +62,8 @@ class PaymentChannelResource extends Resource
                             ->required(),
                         Forms\Components\TextInput::make('account_number')
                             ->required(),
+                        Forms\Components\TextInput::make('branch_name')
+                            ->required(),
                     ]),
             ]);
     }
@@ -76,6 +78,7 @@ class PaymentChannelResource extends Resource
                 Tables\Columns\TextColumn::make('bank_routing_no'),
                 Tables\Columns\TextColumn::make('account_name'),
                 Tables\Columns\TextColumn::make('account_number'),
+                Tables\Columns\TextColumn::make('branch_name'),
 
             ])
             ->filters([

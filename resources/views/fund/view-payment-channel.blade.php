@@ -5,6 +5,7 @@
     <p>Bank Name: {{ $getRecord()->paymentChannel->bank_name }}</p>
     <p>A/C Name: {{ $getRecord()->paymentChannel->account_name }}</p>
     <p>A/C Number: {{ $getRecord()->paymentChannel->account_number }}</p>
+    <p>Branch Name: {{ $getRecord()->paymentChannel->branch_name }}</p>
     <p>Routing Number: {{ $getRecord()->paymentChannel->bank_routing_no }}</p>
 @else
     <p>Mobile Number : {{ $getRecord()->paymentChannel->mobile }}</p>
