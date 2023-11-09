@@ -473,10 +473,10 @@ class OrderResource extends Resource
                     ->summarize(
                         Sum::make()
                             ->label('Total Profit Earned')
-                        // ->query(fn (QueryBuilder $query) => $query->whereIn('status', [
-                        //     OrderStatus::Delivered->value,
-                        //     OrderStatus::Partial_Delivered->value,
-                        // ])),
+                            ->query(fn (QueryBuilder $query) => $query->whereIn('status', [
+                                OrderStatus::Delivered->value,
+                                OrderStatus::Partial_Delivered->value,
+                            ])),
                     ),
                 Tables\Columns\TextColumn::make('customer.name')
                     ->searchable()
