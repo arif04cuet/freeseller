@@ -214,7 +214,7 @@ class HubOrderResource extends Resource
                                             // if ($amount == $record->courier_charge)
                                             //     $msg = 'Value should be ' . $amount;
 
-                                            if (($value < 1) || ($value > $halfOfCod))
+                                            if (($value < 1) || ($value > $record->cod))
                                                 $fail($msg);
                                         }
                                     };
