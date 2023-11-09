@@ -77,25 +77,29 @@ class ListOrders extends ListRecords
                 ),
 
             OrderStatus::Cancelled->name => ListRecords\Tab::make()
-                ->label('Return')
                 ->badge(
                     static::getResource()::getEloquentQuery()
-                        ->whereIn('status', [
-                            OrderStatus::Cancelled->value,
-                            OrderStatus::Partial_Delivered->value,
-                        ])->count()
+                        ->where('status', OrderStatus::Cancelled->value)->count()
                 )
                 ->query(
                     fn ($query) => $query
                         ->with('items')
                         ->mine()
-                        ->whereIn('status', [
-                            OrderStatus::Cancelled->value,
-                            OrderStatus::Partial_Delivered->value,
-                        ])
+                        ->where('status', OrderStatus::Cancelled->value)
                         ->latest()
                 ),
-
+            OrderStatus::Partial_Delivered->name => ListRecords\Tab::make()
+                ->badge(
+                    static::getResource()::getEloquentQuery()
+                        ->where('status', OrderStatus::Partial_Delivered->value)->count()
+                )
+                ->query(
+                    fn ($query) => $query
+                        ->with('items')
+                        ->mine()
+                        ->where('status', OrderStatus::Partial_Delivered->value)
+                        ->latest()
+                ),
             OrderStatus::Delivered->name => ListRecords\Tab::make()
                 ->badge(
                     static::getResource()::getEloquentQuery()->where('status', OrderStatus::Delivered->value)->count()

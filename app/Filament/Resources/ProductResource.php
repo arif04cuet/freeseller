@@ -42,7 +42,7 @@ class ProductResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->mine();
+        return parent::getEloquentQuery()->mine()->latest();
     }
 
     public static function getNavigationBadge(): ?string
@@ -73,12 +73,14 @@ class ProductResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('price')
                     ->numeric()
+                    ->minValue(1)
+                    ->required()
                     ->live()
                     ->afterStateHydrated(
                         fn (?Model $record, $component, $state) => $component->state((int)$record?->getAttributes()['price'])
-                    )
-                    ->visible(fn (\Filament\Forms\Get $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price)
-                    ->required(fn (\Filament\Forms\Get $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price),
+                    ),
+                // ->visible(fn (\Filament\Forms\Get $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price)
+                // ->required(fn (\Filament\Forms\Get $get) => $get('product_type_id') && !ProductType::find($get('product_type_id'))?->is_varient_price),
 
                 Forms\Components\Grid::make()
                     ->columns(4)
@@ -115,6 +117,7 @@ class ProductResource extends Resource
                     ]),
 
                 Forms\Components\RichEditor::make('description')
+                    ->rule('min:20')
                     ->required(),
 
                 SpatieMediaLibraryFileUpload::make('image')
