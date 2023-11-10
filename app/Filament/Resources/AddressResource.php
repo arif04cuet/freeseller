@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enum\AddressType;
 use App\Filament\Resources\AddressResource\Pages;
+use App\Filament\Resources\AddressResource\RelationManagers\ChildrenRelationManager;
 use App\Filament\Resources\AddressResource\RelationManagers\UsersRelationManager;
 use App\Models\Address;
 use Filament\Forms;
@@ -91,8 +92,7 @@ class AddressResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('type')
-                    ->options(AddressType::array())
-                    ->default(AddressType::Hub->value),
+                    ->options(AddressType::array()),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -105,7 +105,10 @@ class AddressResource extends Resource
     public static function getRelations(): array
     {
         return [
-            UsersRelationManager::class,
+
+            ChildrenRelationManager::class,
+            UsersRelationManager::class
+
         ];
     }
 
@@ -118,8 +121,8 @@ class AddressResource extends Resource
         ];
     }
 
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getEloquentQuery()->whereType(AddressType::Hub->value)->count();
-    }
+    // public static function getNavigationBadge(): ?string
+    // {
+    //     return static::getEloquentQuery()->whereType(AddressType::Hub->value)->count();
+    // }
 }
