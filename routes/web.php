@@ -32,10 +32,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/mail', function () {
 
 
-    $request = new AddPathaoParcelRequest(Order::find(134));
+    $request = new GetAccessTokenRequest();
     $response = $request->send();
     //$errors = $response->ok() ? $response->json() : $response->json('message');
-    return $response->json('data');
+    return $response->json();
 });
 
 Route::post('/push', function () {
