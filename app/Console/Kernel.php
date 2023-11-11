@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Jobs\LowStockNotification;
+use App\Jobs\SavePathaoToken;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -21,6 +22,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:delete-image-zip')->daily();
 
         $schedule->job(new LowStockNotification)->daily();
+        $schedule->job(new SavePathaoToken)->daily();
     }
 
     /**

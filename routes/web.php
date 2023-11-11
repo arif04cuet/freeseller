@@ -5,6 +5,12 @@ use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\PrintOrderLabel;
 use App\Http\Controllers\PrintOrdersCourierLabel;
 use App\Http\Controllers\PrintOrdersLabel;
+use App\Http\Integrations\Pathao\Requests\AddPathaoParcelRequest;
+use App\Http\Integrations\Pathao\Requests\GetAccessTokenRequest;
+use App\Http\Integrations\Pathao\Requests\GetAreasRequest;
+use App\Http\Integrations\Pathao\Requests\GetCitiesRequest;
+use App\Http\Integrations\Pathao\Requests\GetZonesRequest;
+use App\Jobs\SavePathaoToken;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\UserLockAmount;
@@ -24,7 +30,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/mail', function () {
-    return (int) (auth()->user()->active_balance - config('freeseller.minimum_acount_balance'));
+
+
+    $request = new AddPathaoParcelRequest(Order::find(134));
+    $response = $request->send();
+    //$errors = $response->ok() ? $response->json() : $response->json('message');
+    return $response->json('data');
 });
 
 Route::post('/push', function () {

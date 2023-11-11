@@ -1,5 +1,7 @@
 <?php
 
+use App\Enum\Courier;
+
 return [
     'base_id_number' => 1000,
     'steadfast_cod_percentange' => 1,
@@ -11,5 +13,6 @@ return [
     'per_saree_weight' => 500, //g,
     'support_number' => '01615645860',
     'platform_bkash' => '01717348147',
-    'low_stock_threshold' => 5
+    'low_stock_threshold' => 5,
+    'default_courier' => Courier::SteadFast->value
 ];

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\Courier;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +18,7 @@ class Customer extends Model
 
     protected $casts = [
         'is_inside_dhaka' => 'boolean',
+        'courier' => Courier::class
     ];
 
     //scopes
@@ -59,15 +61,29 @@ class Customer extends Model
 
     public function formateAddress($address): string
     {
-        $this->loadMissing(['upazila', 'district']);
+        if ($this->courier == Courier::Pathao) {
+
+            $districtId = $this->district_id;
+            $upazilaId = $this->upazila_id;
+
+            if ($upazilas = cache('pathao_district_' . $districtId))
+                $address .= ', ' . $upazilas[$upazilaId];
+
+            if ($districts = cache('pathao_district_list'))
+                $address .= ', ' . $districts[$districtId];
+
+            return $address;
+        } else {
+            $this->loadMissing(['upazila', 'district']);
 
 
-        if ($upazila = $this->upazila)
-            $address .= ', ' . $upazila->name;
+            if ($upazila = $this->upazila)
+                $address .= ', ' . $upazila->name;
 
-        if ($district = $this->district)
-            $address .= ', ' . $district->name;
+            if ($district = $this->district)
+                $address .= ', ' . $district->name;
 
-        return $address;
+            return $address;
+        }
     }
 }

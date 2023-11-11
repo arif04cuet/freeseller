@@ -3,10 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Enum\AddressType;
+use App\Enum\Courier;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\Widgets\OrderInstruction;
+use App\Http\Integrations\Pathao\Requests\GetAreasRequest;
+use App\Http\Integrations\Pathao\Requests\GetCitiesRequest;
+use App\Http\Integrations\Pathao\Requests\GetZonesRequest;
 use App\Models\Address;
 use App\Models\Customer;
 use App\Models\Order;
@@ -305,6 +309,7 @@ class OrderResource extends Resource
                     ->createOptionAction(
                         fn ($action, \Filament\Forms\Set $set) => $action->action(
                             function ($data) use ($set) {
+                                $data['courier'] = config('freeseller.default_courier');
                                 $customer = Customer::updateOrCreate(
                                     ['mobile' => $data['mobile']],
                                     $data
@@ -340,19 +345,120 @@ class OrderResource extends Resource
                                             ->live()
                                             ->afterStateUpdated(fn (Set $set) => $set('upazila_id', []))
                                             ->options(
-                                                Address::query()
-                                                    ->where('type', AddressType::District->value)
-                                                    ->pluck('name', 'id')
+                                                function () {
+                                                    if (config('freeseller.default_courier') == Courier::Pathao->value) {
+
+                                                        if ($cacheList = cache('pathao_district_list'))
+                                                            return $cacheList;
+
+                                                        $request = new GetCitiesRequest();
+                                                        $response = $request->send();
+                                                        $items = collect($response->json('data.data'))
+                                                            ->map(fn ($item) => [
+                                                                'id' => $item['city_id'],
+                                                                'name' => $item['city_name'],
+                                                            ])
+                                                            ->pluck('name', 'id');
+
+                                                        cache(
+                                                            [
+                                                                'pathao_district_list' => $items->toArray()
+                                                            ]
+                                                        );
+
+                                                        return $items;
+                                                    } else {
+                                                        return Address::query()
+                                                            ->where('type', AddressType::District->value)
+                                                            ->pluck('name', 'id');
+                                                    }
+                                                }
+
                                             ),
                                         Forms\Components\Select::make('upazila_id')
                                             ->label('Upazila')
                                             ->required()
                                             ->searchable()
                                             ->options(
-                                                fn (Get $get) => !$get('district_id') ? [] : Address::query()
-                                                    ->where('type', AddressType::Upazila->value)
-                                                    ->where('parent_id', $get('district_id'))
-                                                    ->pluck('name', 'id')
+
+                                                function (Get $get) {
+
+                                                    if (!$get('district_id'))
+                                                        return [];
+
+                                                    if (config('freeseller.default_courier') == Courier::Pathao->value) {
+
+                                                        $cacheKey = 'pathao_district_' . $get('district_id');
+
+                                                        if ($cacheList = cache($cacheKey))
+                                                            return $cacheList;
+
+
+                                                        $request = new GetZonesRequest($get('district_id'));
+                                                        $response = $request->send();
+                                                        $items = collect($response->json('data.data'))
+                                                            ->map(fn ($item) => [
+                                                                'id' => $item['zone_id'],
+                                                                'name' => $item['zone_name'],
+                                                            ])
+                                                            ->pluck('name', 'id');
+
+                                                        cache(
+                                                            [
+                                                                $cacheKey => $items->toArray()
+                                                            ]
+                                                        );
+
+                                                        return $items;
+                                                    } else {
+                                                        return Address::query()
+                                                            ->where('type', AddressType::Upazila->value)
+                                                            ->where('parent_id', $get('district_id'))
+                                                            ->pluck('name', 'id');
+                                                    }
+                                                }
+
+                                            ),
+                                        Forms\Components\Select::make('area_id')
+                                            ->label('Area')
+                                            ->required()
+                                            ->searchable()
+                                            ->visible(fn () => config('freeseller.default_courier') == Courier::Pathao->value)
+                                            ->options(
+
+                                                function (Get $get) {
+
+                                                    if (!$get('upazila_id'))
+                                                        return [];
+
+                                                    if (config('freeseller.default_courier') == Courier::Pathao->value) {
+
+                                                        $cacheKey = 'pathao_upazila_' . $get('upazila_id');
+
+                                                        if ($cacheList = cache($cacheKey))
+                                                            return $cacheList;
+
+
+
+                                                        $request = new GetAreasRequest($get('upazila_id'));
+                                                        $response = $request->send();
+                                                        $items = collect($response->json('data.data'))
+                                                            ->map(fn ($item) => [
+                                                                'id' => $item['area_id'],
+                                                                'name' => $item['area_name'],
+                                                            ])
+                                                            ->pluck('name', 'id');
+
+                                                        cache(
+                                                            [
+                                                                $cacheKey => $items->toArray()
+                                                            ]
+                                                        );
+
+                                                        return $items;
+                                                    }
+                                                }
+
                                             ),
                                         Forms\Components\Textarea::make('address')
                                             ->required(),

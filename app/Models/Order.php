@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Enum\AddressType;
+use App\Enum\Courier;
 use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
+use App\Jobs\AddParcelToPathao;
 use App\Jobs\AddParcelToSteadFast;
 use App\Jobs\AddParcelToSteadFastFake;
 use Filament\Notifications\Notification;
@@ -344,9 +346,17 @@ class Order extends Model
     }
     public function addToCourier($order): void
     {
-        if (config('services.steadfast.enabled'))
+        if (
+            config('services.steadfast.enabled') &&
+            (config('freeseller.default_courier') == Courier::SteadFast->value)
+        ) {
             AddParcelToSteadFast::dispatch($order);
-        else
+        } elseif (
+            config('services.pathao.enabled') &&
+            (config('freeseller.default_courier') == Courier::Pathao->value)
+        ) {
+            AddParcelToPathao::dispatch($order);
+        } else
             AddParcelToSteadFastFake::dispatch($order);
     }
     public function getWholesalerWiseItems()

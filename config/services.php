@@ -13,6 +13,15 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+    'pathao' => [
+        'enabled' => env('PATHAO_ENABLED', false),
+        'merchant_email' => env('PATHAO_MERCHANT_EMAIL'),
+        'merchant_password' => env('PATHAO_MERCHANT_PASSWORD', ''),
+        'base_url' => env('PATHAO_BASE_URL'),
+        'client_id' => env('PATHAO_CLIENT_ID', ''),
+        'client_secret' => env('PATHAO_CLIENT_SECRET'),
+        'store_id' => env('PATHAO_STORE_ID')
+    ],
     'steadfast' => [
         'enabled' => env('STEADFAST_ENABLED', false),
         'merchant_id' => env('STEADFAST_MERCHANT_ID', ''),

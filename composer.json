@@ -22,6 +22,7 @@
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.8",
         "pxlrbt/filament-excel": "^2.1",
+        "saloonphp/cache-plugin": "^2.0",
         "saloonphp/laravel-plugin": "^2.0",
         "saloonphp/saloon": "^2.0",
         "stechstudio/filament-impersonate": "^3.5"
