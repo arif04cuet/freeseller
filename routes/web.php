@@ -31,11 +31,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/mail', function () {
 
-
-    $request = new GetAccessTokenRequest();
-    $response = $request->send();
-    //$errors = $response->ok() ? $response->json() : $response->json('message');
-    return $response->json();
+    SavePathaoToken::dispatch();
+    return 'ok';
+    // $request = new GetAccessTokenRequest();
+    // $response = $request->send();
+    // //$errors = $response->ok() ? $response->json() : $response->json('message');
+    // return $response->json();
 });
 
 Route::post('/push', function () {
