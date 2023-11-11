@@ -29,6 +29,7 @@ class Order extends Model
 
     protected $casts = [
         'status' => OrderStatus::class,
+        'courier' => Courier::class,
         'collected_at' => 'datetime',
         'delivered_at' => 'datetime',
         'delivery_action_at' => 'datetime',
@@ -138,7 +139,7 @@ class Order extends Model
     public function trackingUrl(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, array $attributes) => 'https://steadfastcourier.com/t/' . $attributes['tracking_code']
+            get: fn ($value, array $attributes) => $this->getTrackingUrl()
         );
     }
 
@@ -163,6 +164,14 @@ class Order extends Model
 
     // helpers
 
+    public function getTrackingUrl(): string
+    {
+        return match ($this->courier) {
+            Courier::Pathao => 'https://merchant.pathao.com/tracking?consignment_id=' . $this->consignment_id . '&phone=' . $this->customer->mobile,
+            Courier::SteadFast => 'https://steadfastcourier.com/t/' . $this->tracking_code,
+            default => ''
+        };
+    }
     public function calculateProfit(): array
     {
         $order = $this;
