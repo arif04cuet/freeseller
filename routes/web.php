@@ -31,12 +31,25 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/mail', function () {
 
-    SavePathaoToken::dispatch();
+
+    $request = new GetAccessTokenRequest();
+    $response = $request->send();
+    //$errors = $response->ok() ? $response->json() : $response->json('message');
+    //return $response->json();
+
+    $expireIn = $response->json('expires_in');
+    $refreshToken = $response->json('refresh_token');
+
+    cache([
+        'pathao_access_token' => $response->json('access_token'),
+    ], $expireIn);
+
+
+    cache([
+        'pathao_refresh_token' => $refreshToken,
+    ]);
+
     return 'ok';
-    // $request = new GetAccessTokenRequest();
-    // $response = $request->send();
-    // //$errors = $response->ok() ? $response->json() : $response->json('message');
-    // return $response->json();
 });
 
 Route::post('/push', function () {
