@@ -166,6 +166,8 @@ class Order extends Model
 
     public function getTrackingUrl(): string
     {
+        $this->loadMissing(['customer']);
+
         return match ($this->courier) {
             Courier::Pathao => 'https://merchant.pathao.com/tracking?consignment_id=' . $this->consignment_id . '&phone=' . $this->customer->mobile,
             Courier::SteadFast => 'https://steadfastcourier.com/t/' . $this->tracking_code,
@@ -355,6 +357,9 @@ class Order extends Model
     }
     public function addToCourier($order): void
     {
+        if (config('freeseller.add_parcel_manually'))
+            return;
+
         if (
             config('services.steadfast.enabled') &&
             (config('freeseller.default_courier') == Courier::SteadFast->value)

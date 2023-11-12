@@ -16,6 +16,7 @@ use App\Models\User;
 use Closure;
 use Filament\Actions\StaticAction;
 use Filament\Forms;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Notifications\Notification;
@@ -117,6 +118,17 @@ class HubOrderResource extends Resource
                     ->badge(),
             ])
             ->filters([
+                Tables\Filters\Filter::make('no_cn')
+                    ->label('No CN')
+                    ->query(
+                        function (Builder $query, array $data) {
+                            return $query->when(
+                                $data['isActive'],
+                                fn ($q) => $q->whereNull('consignment_id')->whereIn('status', [OrderStatus::ProcessingForHandOverToCourier->value])
+                            );
+                        }
+                    ),
+
                 Tables\Filters\SelectFilter::make('business_id')
                     ->label('Business')
                     ->preload()
@@ -435,10 +447,77 @@ class HubOrderResource extends Resource
 
             ])
             ->checkIfRecordIsSelectableUsing(
-                fn (Model $record): bool => $record->status == OrderStatus::HandOveredToCourier
+                function (Model $record): bool {
+
+                    $statusArray = [OrderStatus::HandOveredToCourier];
+
+                    if (config('freeseller.add_parcel_manually'))
+                        $statusArray[] = OrderStatus::ProcessingForHandOverToCourier;
+
+                    return in_array($record->status, $statusArray);
+                }
+
             )
             ->bulkActions([
                 Tables\Actions\ActionGroup::make([
+
+                    Tables\Actions\BulkAction::make('add-cn-manually')
+                        ->icon('heroicon-o-printer')
+                        ->label('Add CN Manually')
+                        ->color('success')
+                        ->visible(fn () => config('freeseller.add_parcel_manually'))
+                        ->deselectRecordsAfterCompletion()
+
+                        ->fillForm(
+                            fn (Collection $records): array => [
+                                'orders' => $records
+                                    ->filter(fn ($order) => !$order->consignment_id)
+                                    ->map(fn ($order) => [
+                                        'id' => $order->id,
+                                        'cn' => null,
+                                        'tracking_code' => null,
+                                    ])->toArray()
+                            ]
+                        )
+                        ->form([
+                            Forms\Components\Repeater::make('orders')
+                                ->addable(false)
+                                ->reorderable(false)
+                                ->schema(
+                                    [
+                                        Forms\Components\Grid::make()
+                                            ->columns(3)
+                                            ->schema([
+                                                Forms\Components\TextInput::make('id')
+                                                    ->label('Order Id')
+                                                    ->readOnly(),
+                                                Forms\Components\TextInput::make('cn')
+                                                    ->required(),
+                                                Forms\Components\TextInput::make('tracking_code')
+                                                    ->required(),
+                                            ])
+
+                                    ]
+                                )
+                        ])
+                        ->action(
+                            function (Collection $records, array $data) {
+
+                                foreach ($data['orders'] as $orderArr) {
+                                    $order = Order::find($orderArr['id']);
+                                    $order && $order->update([
+                                        'consignment_id' => $orderArr['cn'],
+                                        'tracking_code' => $orderArr['tracking_code'],
+                                        'status' => OrderStatus::HandOveredToCourier->value,
+                                    ]);
+                                }
+
+                                Notification::make()
+                                    ->title('CN updated successfully. please check')
+                                    ->success()
+                                    ->send();
+                            }
+                        ),
 
                     Tables\Actions\BulkAction::make('bulk-print')
                         ->icon('heroicon-o-printer')

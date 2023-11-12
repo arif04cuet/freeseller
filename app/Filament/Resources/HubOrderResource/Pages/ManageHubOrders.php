@@ -59,7 +59,13 @@ class ManageHubOrders extends ManageRecords
                 ->query(
                     fn ($query) => $query->where('status', OrderStatus::WaitingForHubCollection->value)
                 ),
-
+            OrderStatus::ProcessingForHandOverToCourier->name => ListRecords\Tab::make()
+                ->badge(
+                    Order::query()->where('status', OrderStatus::ProcessingForHandOverToCourier->value)->count()
+                )
+                ->query(
+                    fn ($query) => $query->where('status', OrderStatus::ProcessingForHandOverToCourier->value)
+                ),
             OrderStatus::HandOveredToCourier->name => ListRecords\Tab::make()
                 ->badge(
                     Order::query()->where('status', OrderStatus::HandOveredToCourier->value)->count()
