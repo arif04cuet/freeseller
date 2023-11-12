@@ -14,5 +14,5 @@ return [
     'support_number' => '01615645860',
     'platform_bkash' => '01717348147',
     'low_stock_threshold' => 5,
-    'default_courier' => Courier::Pathao->value
+    'default_courier' => Courier::SteadFast->value
 ];
