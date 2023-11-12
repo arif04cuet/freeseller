@@ -119,45 +119,48 @@ class WholesalerOrderResource extends Resource
                             $wholesalerPendingItems = $record
                                 ->getItemsByWholesaler(auth()->user(), OrderItemStatus::WaitingForWholesalerApproval->value)
                                 ->count();
-                            return $wholesalerPendingItems ? $action->label('Approve All') : false;
+                            return $wholesalerPendingItems && ($record->status != OrderStatus::Cancelled) ? $action->label('Approve All') : false;
                         }
                     )
                     ->modalCancelAction(false)
+                    ->extraModalFooterActions([
+                        Tables\Actions\Action::make('cancel')
+                            ->label('Reject')
+                            ->visible(fn (Model $record) => $record?->status == OrderStatus::WaitingForWholesalerApproval)
+                            ->requiresConfirmation()
+                            ->color('danger')
+                            ->form([
+                                forms\Components\Textarea::make('cancel_note')
+                                    ->required()
+                            ])
+                            ->cancelParentActions()
+                            ->action(
+                                function (Model $record, array $data, $action) {
+
+                                    $wholesaler = auth()->user();
+
+                                    $record->update([
+                                        'status' => OrderStatus::Cancelled->value,
+                                        'cancelled_note' => $data['cancel_note'],
+                                        'cancelled_by' => $wholesaler->id
+                                    ]);
+                                    $record->items()
+                                        ->where('wholesaler_id', $wholesaler->id)
+                                        ->update([
+                                            'status' => OrderItemStatus::Cancelled->value
+                                        ]);
+
+                                    Notification::make()
+                                        ->title('Order cancelled successfully')
+                                        ->send();
+                                }
+                            ),
+
+                    ])
                     ->modalHeading(fn (Model $record) => 'Products list for order # ' . $record->id)
                     ->modalContent(fn (Model $record) => view('orders.items-status', [
                         'items' => $record->loadMissing('items.wholesaler')->getItemsByWholesaler(auth()->user()),
-                    ]))
-                    ->form([
-                        // Forms\Components\CheckboxList::make('items')
-                        //     ->visible(
-                        //         fn (Model $record) => $record->loadMissing('items.sku')
-                        //             ->getItemsByWholesaler(auth()->user(), OrderItemStatus::WaitingForWholesalerApproval->value)
-                        //             ->count()
-                        //     )
-                        //     ->label('Approve or Reject Items')
-                        //     ->options(
-                        //         fn (Model $record) => $record->loadMissing('items.sku')
-                        //             ->getItemsByWholesaler(auth()->user(), OrderItemStatus::WaitingForWholesalerApproval->value)
-                        //             ->map(fn ($item) => [
-                        //                 'id' => $item->id,
-                        //                 'name' => $item->sku->name,
-                        //             ])
-                        //             ->pluck('name', 'id')
-                        //     )
-                        //     ->required(),
-
-                        // Forms\Components\TextInput::make('collector_code')
-                        //     ->numeric()
-                        //     ->required()
-                        //     ->helperText('Ask 6 digits code from collector')
-                        //     ->minLength(6)
-                        //     ->maxLength(6)
-                        //     ->visible(
-                        //         fn (Order $record) => $record->collector?->id &&
-                        //             is_null($record->collections->filter(fn ($item) => $item->wholesaler_id == auth()->user()->id)->first()?->collected_at) &&
-                        //             auth()->user()->isWholesaler()
-                        //     ),
-                    ]),
+                    ])),
 
             ])
             ->bulkActions([

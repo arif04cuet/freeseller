@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enum\AddressType;
 use App\Enum\Courier;
+use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
 use App\Filament\Resources\OrderResource\Pages;
@@ -21,6 +22,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification as NotificationsNotification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Count;
@@ -33,6 +35,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
+use Notification;
 
 class OrderResource extends Resource
 {
@@ -624,9 +627,37 @@ class OrderResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
 
+                    Tables\Actions\Action::make('cancel')
+                        ->visible(fn (Model $record) => $record?->status == OrderStatus::WaitingForWholesalerApproval)
+                        ->requiresConfirmation()
+                        ->color('danger')
+                        ->icon('heroicon-m-trash')
+                        ->form([
+                            forms\Components\Textarea::make('cancel_note')
+                                ->required()
+                        ])
+                        ->action(
+                            function (Model $record, array $data, $action) {
+
+                                $record->update([
+                                    'status' => OrderStatus::Cancelled->value,
+                                    'cancelled_note' => $data['cancel_note'],
+                                    'cancelled_by' => auth()->user()->id
+                                ]);
+                                $record->items()->update([
+                                    'status' => OrderItemStatus::Cancelled->value
+                                ]);
+
+                                NotificationsNotification::make()
+                                    ->title('Order cancelled successfully')
+                                    ->send();
+                            }
+                        ),
+
                     Tables\Actions\Action::make('transactions')
                         ->modalCancelAction(false)
                         ->modalSubmitAction(false)
+                        ->visible(fn (Order $record) => $record->delivered_at)
                         ->modalHeading(fn (Order $record) => 'Transactions for order#' . $record->id)
                         ->modalContent(fn (Model $record) => view('order.transactions', [
                             'order' => $record,
