@@ -117,6 +117,8 @@ class HubOrderResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->sortable()
                     ->badge(),
+                Tables\Columns\TextColumn::make('cancelled_note')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\Filter::make('no_cn')

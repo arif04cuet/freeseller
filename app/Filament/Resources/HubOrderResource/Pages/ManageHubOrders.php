@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\HubOrderResource\Pages;
 
+use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Filament\Resources\HubOrderResource;
 use App\Models\Order;
@@ -80,13 +81,16 @@ class ManageHubOrders extends ManageRecords
                     Order::query()->whereIn('status', [
                         OrderStatus::Cancelled->value,
                         OrderStatus::Partial_Delivered->value,
-                    ])->count()
+                    ])
+                        ->whereDoesntHave('items', fn ($q) => $q->where('status', OrderItemStatus::Cancelled->value))
+                        ->count()
                 )
                 ->query(
                     fn ($query) => $query->whereIn('status', [
                         OrderStatus::Cancelled->value,
                         OrderStatus::Partial_Delivered->value,
                     ])
+                        ->whereDoesntHave('items', fn ($q) => $q->where('status', OrderItemStatus::Cancelled->value))
                 ),
 
             OrderStatus::Delivered->name => ListRecords\Tab::make()
@@ -95,6 +99,18 @@ class ManageHubOrders extends ManageRecords
                 )
                 ->query(
                     fn ($query) => $query->where('status', OrderStatus::Delivered->value)
+                ),
+
+            'Trashed' => ListRecords\Tab::make()
+                ->badge(
+                    Order::query()
+                        ->with('items')
+                        ->whereHas('items', fn ($q) => $q->where('status', OrderItemStatus::Cancelled->value))
+                        ->count()
+                )
+                ->query(
+                    fn ($query) => $query->with('items')
+                        ->whereHas('items', fn ($q) => $q->where('status', OrderItemStatus::Cancelled->value))
                 ),
 
 
