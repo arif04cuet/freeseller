@@ -12,6 +12,7 @@ use App\Filament\Resources\HubOrderResource\Pages;
 use App\Jobs\AddParcelToSteadFast;
 use App\Models\Business;
 use App\Models\Order;
+use App\Models\Sku;
 use App\Models\User;
 use Closure;
 use Filament\Actions\StaticAction;
@@ -189,10 +190,24 @@ class HubOrderResource extends Resource
                             ->label('Return order items')
                             ->multiple()
                             ->options(
-                                fn (Order $record) => $record->items
+                                fn (Order $record) => $record->loadMissing('items')
+                                    ->items
                                     ->filter(fn ($item) => $item->status == OrderItemStatus::DeliveredToHub)
-                                    ->pluck('sku.name', 'sku_id')
+                                    ->map(
+                                        function ($item) {
+                                            $sku = $item->sku;
+                                            return [
+                                                'id' => $sku->id,
+                                                'name' => '<div class="flex gap-2">
+                                            <img src="' . $sku->getMedia('*')->first()->getUrl('thumb') . '"/>
+                                            <span>' . $sku->name . '</span>
+                                        </div>'
+                                            ];
+                                        }
+                                    )
+                                    ->pluck('name', 'sku_id')
                             )
+                            ->allowHtml()
                             ->visible(fn (Get $get) => $get('status') == OrderStatus::Partial_Delivered->value)
                             ->live()
                             ->required(),
