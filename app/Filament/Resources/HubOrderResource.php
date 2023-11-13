@@ -190,7 +190,7 @@ class HubOrderResource extends Resource
                             ->label('Return order items')
                             ->multiple()
                             ->options(
-                                fn (Order $record) => $record->loadMissing('items')
+                                fn (Order $record) => $record->loadMissing(['items', 'items.sku'])
                                     ->items
                                     ->filter(fn ($item) => $item->status == OrderItemStatus::DeliveredToHub)
                                     ->map(
@@ -205,7 +205,7 @@ class HubOrderResource extends Resource
                                             ];
                                         }
                                     )
-                                    ->pluck('name', 'sku_id')
+                                    ->pluck('name', 'id')
                             )
                             ->allowHtml()
                             ->visible(fn (Get $get) => $get('status') == OrderStatus::Partial_Delivered->value)
