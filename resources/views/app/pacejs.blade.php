@@ -22,4 +22,8 @@
         width: 100%;
         height: 3px
     }
+
+    nav span.truncate {
+        overflow: visible !important;
+    }
 </style>
