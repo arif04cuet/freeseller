@@ -21,7 +21,7 @@ class ManageFundWithdrawRequests extends ManageRecords
                 ->createAnother(false)
                 ->modalSubmitAction(
                     function (StaticAction $action) {
-                        $minimumBalance = config('freeseller.minimum_acount_balance') ?: 1000;
+                        $minimumBalance = self::getResource()::minimumBalance();
                         $maxWithdrawAmount = (int) (auth()->user()->balanceFloat - $minimumBalance);
                         return $maxWithdrawAmount > 0 ? $action : false;
                     }

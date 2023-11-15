@@ -13,7 +13,7 @@ class DailyProfit extends BaseWidget
 {
     protected static ?int $sort = 10;
     protected int | string | array $columnSpan = 2;
-
+    protected static ?string $heading = 'Profit Earned';
     public static function canView(): bool
     {
         /** @var App\Models\User $user */

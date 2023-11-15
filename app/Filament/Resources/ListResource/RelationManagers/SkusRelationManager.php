@@ -4,7 +4,11 @@ namespace App\Filament\Resources\ListResource\RelationManagers;
 
 use App\Jobs\AddWaterMarkToMedia;
 use App\Jobs\ZipAndSendToReseller;
+use App\Models\AttributeValue;
+use App\Models\Business;
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\User;
 use Arr;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -110,7 +114,85 @@ class SkusRelationManager extends RelationManager
                 //Tables\Columns\TextColumn::make('category.name'),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('business')
+                    ->label('Business')
+                    ->searchable()
+                    ->preload()
+                    ->options(Business::query()->wholesaler()->pluck('name', 'id'))
+                    ->query(
+                        function (Builder $query, array $data): Builder {
+                            return $query->when(
+                                $data['value'],
+                                fn ($q) => $q->whereHas(
+                                    'product',
+                                    fn ($q) => $q->whereHas(
+                                        'owner',
+                                        fn ($q) => $q->whereHas(
+                                            'business',
+                                            fn ($q) => $q->whereIn('id', [$data['value']])
+                                        )
+                                    )
+                                )
+                            );
+                        }
+                    ),
+
+                Tables\Filters\SelectFilter::make('category')
+                    ->searchable()
+                    ->preload()
+                    ->options(Category::query()->pluck('name', 'id'))
+                    ->query(
+                        function (Builder $query, array $data): Builder {
+                            return $query->when(
+                                $data['value'],
+                                fn ($q) => $q->whereHas(
+                                    'product',
+                                    fn ($q) => $q->where('category_id', $data['value'])
+                                )
+                            );
+                        }
+                    ),
+
+                Tables\Filters\SelectFilter::make('color')
+                    ->searchable()
+                    ->options(AttributeValue::whereHas('attribute', function ($query) {
+                        return $query->whereName('Color');
+                    })->pluck('label', 'id'))
+                    ->query(function (Builder $query, array $data) {
+                        $query->when($data['value'], function ($q) use ($data) {
+                            return $q->whereHas('attributeValues', function ($q) use ($data) {
+                                return $q->where('attribute_value_id', $data['value']);
+                            });
+                        });
+                    }),
+
+                Tables\Filters\Filter::make('price')
+                    ->form([
+                        Forms\Components\Grid::make('price_range')
+                            ->columns([
+                                'default' => 2,
+                                'md' => 2
+                            ])
+                            ->schema([
+
+                                Forms\Components\TextInput::make('from')->label('Price From')->numeric()
+                                    ->columns(1),
+                                Forms\Components\TextInput::make('to')->numeric()
+                                    ->columns(1),
+                            ]),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        logger($data);
+                        return $query
+                            ->when(
+                                $data['from'],
+                                fn (Builder $query, $from): Builder => $query->whereHas('product', fn ($q) => $q->where('price', '>=', $data['from'])),
+                            )
+                            ->when(
+                                $data['to'],
+                                fn (Builder $query, $to): Builder => $query->whereHas('product', fn ($q) => $q->where('price', '<=', $data['to'])),
+                            );
+                    }),
             ])
             ->headerActions([
                 Tables\Actions\AttachAction::make(),

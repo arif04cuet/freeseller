@@ -3,7 +3,9 @@
 namespace App\Filament\Resources\OrderResource\Pages;
 
 use App\Enum\OrderStatus;
+use App\Enum\SystemRole;
 use App\Filament\Resources\OrderResource;
+use App\Services\OrderService;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
@@ -28,91 +30,6 @@ class ListOrders extends ListRecords
     public function getTabs(): array
     {
 
-        return [
-
-            'All' => ListRecords\Tab::make()
-                ->badge(static::getResource()::getEloquentQuery()->count())
-                ->query(fn ($query) => $query),
-
-            OrderStatus::WaitingForWholesalerApproval->name => ListRecords\Tab::make()
-                ->badge(
-                    static::getResource()::getEloquentQuery()->whereIn('status', [
-                        OrderStatus::WaitingForWholesalerApproval->value,
-                        OrderStatus::Processing->value,
-                    ])->count()
-                )
-                ->query(
-                    fn ($query) => $query
-                        ->with('items')
-                        ->mine()
-                        ->whereIn('status', [
-                            OrderStatus::WaitingForWholesalerApproval->value,
-                            OrderStatus::Processing->value,
-                        ])
-                        ->latest()
-                ),
-            OrderStatus::WaitingForHubCollection->name => ListRecords\Tab::make()
-                ->badge(
-                    static::getResource()::getEloquentQuery()->where('status', OrderStatus::WaitingForHubCollection->value)->count()
-                )
-                ->query(
-                    fn ($query) => $query
-                        ->with('items')
-                        ->mine()
-                        ->where('status', OrderStatus::WaitingForHubCollection->value)
-                        ->latest()
-                ),
-            OrderStatus::HandOveredToCourier->name => ListRecords\Tab::make()
-                ->badge(
-                    static::getResource()::getEloquentQuery()
-                        ->where('status', OrderStatus::HandOveredToCourier->value)->count()
-                )
-                ->query(
-                    fn ($query) => $query
-                        ->with('items')
-                        ->mine()
-                        ->where('status', OrderStatus::HandOveredToCourier->value)
-                        ->latest()
-
-                ),
-
-            OrderStatus::Cancelled->name => ListRecords\Tab::make()
-                ->badge(
-                    static::getResource()::getEloquentQuery()
-                        ->where('status', OrderStatus::Cancelled->value)->count()
-                )
-                ->query(
-                    fn ($query) => $query
-                        ->with('items')
-                        ->mine()
-                        ->where('status', OrderStatus::Cancelled->value)
-                        ->latest()
-                ),
-            OrderStatus::Partial_Delivered->name => ListRecords\Tab::make()
-                ->badge(
-                    static::getResource()::getEloquentQuery()
-                        ->where('status', OrderStatus::Partial_Delivered->value)->count()
-                )
-                ->query(
-                    fn ($query) => $query
-                        ->with('items')
-                        ->mine()
-                        ->where('status', OrderStatus::Partial_Delivered->value)
-                        ->latest()
-                ),
-            OrderStatus::Delivered->name => ListRecords\Tab::make()
-                ->badge(
-                    static::getResource()::getEloquentQuery()->where('status', OrderStatus::Delivered->value)->count()
-                )
-                ->query(
-                    fn ($query) => $query
-                        ->with('items')
-                        ->mine()
-                        ->where('status', OrderStatus::Delivered->value)
-                        ->latest()
-                ),
-
-
-        ];
+        return OrderService::resource(static::$resource)->tabs(SystemRole::Reseller);
     }
 }
