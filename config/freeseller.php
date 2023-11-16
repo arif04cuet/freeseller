@@ -15,5 +15,5 @@ return [
     'platform_bkash' => '01717348147',
     'low_stock_threshold' => 5,
     'default_courier' => Courier::SteadFast->value,
-    'add_parcel_manually' => 1,
+    'add_parcel_manually' => 0,
 ];
