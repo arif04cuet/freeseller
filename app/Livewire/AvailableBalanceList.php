@@ -41,8 +41,8 @@ class AvailableBalanceList extends Component implements HasForms, HasTable
                         DB::raw("CONCAT('BDT ',round(sum(amount/100),2)) as amount"),
                         DB::raw("
                                 CASE
-                                    WHEN meta->>'$.order' THEN CONCAT('order','#',meta->>'$.order')
-                                    WHEN meta->>'$.order' is null THEN CONCAT('fund','#',id)
+                                    WHEN JSON_VALUE(meta,'$.order') THEN CONCAT('order','#',JSON_VALUE(meta,'$.order'))
+                                    WHEN JSON_VALUE(meta,'$.order') is null THEN CONCAT('fund','#',id)
                                 END as item_type
                             ")
                     )
