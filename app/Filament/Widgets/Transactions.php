@@ -16,7 +16,7 @@ class Transactions extends BaseWidget
 {
     use CanPoll;
 
-    protected static ?int $sort = 8;
+    protected static ?int $sort = 11;
     protected int | string | array $columnSpan = 2;
 
     public Order $order;
@@ -29,6 +29,7 @@ class Transactions extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->defaultGroup(
                 Tables\Grouping\Group::make('order_no')
                     ->collapsible(),

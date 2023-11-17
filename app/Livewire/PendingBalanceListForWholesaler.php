@@ -35,11 +35,12 @@ class PendingBalanceListForWholesaler extends Component implements HasForms, Has
                     ->whereHas('order', function ($query) {
                         return $query->pending();
                     })
+                    ->latest()
                     ->whereBelongsTo($user, 'wholesaler')
                     ->groupBy('order_id')
 
             )
-            ->paginated(false)
+            //->paginated(false)
             ->columns([
                 Tables\Columns\TextColumn::make('order.id')
                     ->weight(50)

@@ -23,6 +23,7 @@ class NewProducts extends BaseWidget
         $date = Carbon::today()->subDays(7);
 
         return $table
+            ->deferLoading()
             ->defaultPaginationPageOption(5)
             ->query(
                 Sku::query()

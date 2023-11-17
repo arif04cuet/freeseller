@@ -15,6 +15,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
 
@@ -48,6 +49,14 @@ class CreateOrder extends CreateRecord
                 }
             )
             ->action(fn () => $this->create())
+            ->before(function () {
+
+                // 10 seceond wait time for a order of same reseller
+                $lock = Cache::lock(auth()->user()->id . ':order:create', 10);
+                if (!$lock->get()) {
+                    return redirect()->route('filament.app.resources.orders.index');
+                }
+            })
             ->keyBindings(['mod+s']);
     }
 
@@ -132,7 +141,7 @@ class CreateOrder extends CreateRecord
 
             $totalPaypable = Order::totalPayable($items);
             $totalSalable = Order::totalSubtotals($items);
-            $courier_charge = Order::courierCharge($items);
+            $courier_charge = Order::courierCharge($items, $data['customer_id']);
             $profit = (int) $data['cod'] - $totalPaypable;
 
             $orderData = [

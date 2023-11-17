@@ -31,10 +31,11 @@ class PendingBalanceListForReseller extends Component implements HasForms, HasTa
                         DB::raw('profit AS amount')
                     ])
                     ->pending()
+                    ->latest()
                     ->whereBelongsTo($user, 'reseller')
                 //->whereColumn('cod', '>', 'total_payable')
             )
-            ->paginated(false)
+            //->paginated(false)
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->weight(50)

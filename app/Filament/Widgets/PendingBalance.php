@@ -43,7 +43,7 @@ class PendingBalance extends Widget implements HasForms, HasActions
             ->modalContent(view('transaction.pending-balance'))
             ->modalSubmitAction(false)
             ->modalCancelAction(false)
-            ->action(fn () => $this->post->delete());
+            ->action(fn () => dd('ok'));
     }
 
     protected function getViewData(): array

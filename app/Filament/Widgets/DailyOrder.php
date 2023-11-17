@@ -13,26 +13,26 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Query\Builder;
 
+use function Filament\Support\format_number;
+
 class DailyOrder extends BaseWidget
 {
-    protected static ?int $sort = 11;
+    protected static ?int $sort = 8;
     protected int | string | array $columnSpan = 2;
+    protected static ?string $heading = 'Daily Orders';
 
-    public static function canView(): bool
-    {
-        return true;
-        // /** @var App\Models\User $user */
-        // $user = auth()->user();
-        // return  $user->isSuperAdmin() || $user->isHubManager();
-    }
 
     public function table(Table $table): Table
     {
         $platformFree = config('freeseller.platform_fee');
         $courierCharge = config('freeseller.delivery_charge');
-        $packagingFree = config('freeseller.delivery_charge');
+        $packagingFree = config('freeseller.packaging_fee');
+
+        $incomeFromCourier = 10; // we get 120 taka from reseller and we give 110 taka to steadfast. so tentative 10 taka income here.
+        $othersPlatformIncome = $packagingFree + $incomeFromCourier;
 
         return $table
+            ->deferLoading()
             ->defaultGroup(
                 Tables\Grouping\Group::make('created_at')
                     ->label('')
@@ -54,11 +54,13 @@ class DailyOrder extends BaseWidget
                             'orders.*',
                             DB::raw("
                                 CASE
-                                    WHEN (status != 'cacelled' and profit > 1) THEN (round((((total_payable + profit - ({$courierCharge} + {$packagingFree}))/100)* {$platformFree}),2)+20)
-                                    WHEN (status != 'cacelled' and profit < 1) THEN (round((((total_payable-{$courierCharge})/100)* {$platformFree}),2)+20)
+                                    WHEN (status != 'cacelled' and profit > 1) THEN (round((((total_payable + profit - (courier_charge + {$packagingFree}))/100)* {$platformFree}),2)+{$othersPlatformIncome})
+                                    WHEN (status != 'cacelled' and profit < 1) THEN (round((((total_payable- (courier_charge + {$packagingFree}))/100)* {$platformFree}),2)+{$othersPlatformIncome})
+                                    WHEN (status = 'cacelled' and delivered_at is not null) THEN $othersPlatformIncome
                                     ELSE 0
                                 END as platform_profit
                             "),
+                            DB::raw("CASE WHEN (status = 'cacelled' and delivered_at is null) THEN 0 ELSE profit END as reseller_profit")
                         ]
                     )
                     ->withSum([
@@ -69,14 +71,14 @@ class DailyOrder extends BaseWidget
                             );
                         },
                     ], 'quantity')
-                    // ->addSelect([
-                    //     'wholesaler_total' => OrderItem::query()
-                    //         ->whereColumn('order_id', 'orders.id')
-                    //         ->whereBelongsTo(auth()->user(), 'wholesaler')
-                    //         ->selectRaw('sum(CASE WHEN status in ("returned","cancelled") THEN 0 ELSE (wholesaler_price * quantity) END) as total'),
+                    ->addSelect([
+                        'wholesaler_total' => OrderItem::query()
+                            ->whereColumn('order_id', 'orders.id')
+                            ->whereBelongsTo(auth()->user(), 'wholesaler')
+                            ->selectRaw('sum(CASE WHEN status in ("returned","cancelled") THEN 0 ELSE (wholesaler_price * quantity) END) as total'),
 
 
-                    // ])
+                    ])
                     ->latest()
             )
             ->columns([
@@ -87,9 +89,6 @@ class DailyOrder extends BaseWidget
                     ->label('id')
                     ->summarize(Count::make()->label('Orders')),
 
-                Tables\Columns\TextColumn::make('status')
-                    ->badge(),
-
                 Tables\Columns\TextColumn::make('items_sum_quantity')
                     ->label('Products')
                     ->summarize(
@@ -99,11 +98,20 @@ class DailyOrder extends BaseWidget
 
                 Tables\Columns\TextColumn::make('cod')
                     ->label('Cod')
-                    ->visible(fn () => auth()->user()->isReseller() || auth()->user()->isSuperAdmin())
+                    ->visible(fn () => !auth()->user()->isWholesaler())
                     ->summarize(
                         Sum::make()
                             ->label('Cod')
                     ),
+
+                Tables\Columns\TextColumn::make('reseller_profit')
+                    ->label('Profit')
+                    ->visible(fn () => auth()->user()->isReseller())
+                    ->summarize(
+                        Sum::make()
+                            ->label('Profit')
+                    ),
+
                 Tables\Columns\TextColumn::make('platform_profit')
                     ->label('P. Profit')
                     ->visible(fn () => auth()->user()->isSuperAdmin())
@@ -111,13 +119,17 @@ class DailyOrder extends BaseWidget
                         Sum::make()
                             ->label('P.Profit')
                     ),
-                // Tables\Columns\TextColumn::make('wholesaler_total')
-                //     ->label('Amount')
-                //     ->visible(fn () => auth()->user()->isWholesaler())
-                //     ->summarize(
-                //         Sum::make()
-                //             ->label('Amount')
-                //     ),
+                Tables\Columns\TextColumn::make('wholesaler_total')
+                    ->label('Amount')
+                    ->formatStateUsing(fn ($state) => (int)$state)
+                    ->visible(fn () => auth()->user()->isWholesaler())
+                    ->summarize(
+                        Sum::make()
+                            ->label('Amount')
+                    ),
+
+                Tables\Columns\TextColumn::make('status')
+                    ->badge(),
 
             ]);
     }

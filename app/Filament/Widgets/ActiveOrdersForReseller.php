@@ -24,6 +24,7 @@ class ActiveOrdersForReseller extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->query(
                 Order::query()
                     ->whereBelongsTo(auth()->user(), 'reseller')

@@ -246,10 +246,22 @@ class Order extends Model
         return (int) (self::totalWholesaleAmount($items) + self::courierCharge($items) + self::packgingCost());
     }
 
-    public static function courierCharge(Collection|array $items): int
+    public static function isSameCity($customer_id): bool
+    {
+        $customer = Customer::find($customer_id);
+
+        // for Tangail
+        return $customer->district_id == 52 ? true : false;
+    }
+    public static function courierCharge(Collection|array $items, $customer_id = null): int
     {
 
         $delivery_charge = (int) config('freeseller.delivery_charge');
+
+        if (!is_null($customer_id) && self::isSameCity($customer_id))
+            $delivery_charge = (int) config('freeseller.delivery_charge_same_city');
+
+
         $per_saree_weight = (int) config('freeseller.per_saree_weight');
 
         if (is_array($items)) {

@@ -1,0 +1,1 @@
+@livewire('available-balance-list')
