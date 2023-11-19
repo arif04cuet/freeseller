@@ -80,6 +80,7 @@ class FundWithdrawRequestResource extends Resource
                 Tables\Columns\TextColumn::make('id')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('user.business.name'),
+                Tables\Columns\TextColumn::make('user.name')->label('Owner'),
                 Tables\Columns\TextColumn::make('amount')
                     ->label('Requested Amount'),
                 Tables\Columns\TextColumn::make('paymentChannel.type')
