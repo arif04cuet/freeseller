@@ -96,7 +96,8 @@ class FundWithdrawRequestResource extends Resource
                         Tables\Actions\Action::make('View Image')
                             ->action(function (Model $record): void {
                             })
-                            ->modalActions([])
+                            ->modalSubmitAction(false)
+                            ->modalCancelAction(false)
                             ->modalContent(
                                 fn (Model $record) => view('products.single-image', [
                                     'url' => $record->getMedia('fund_approved')->first()->getUrl(),

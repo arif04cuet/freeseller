@@ -208,6 +208,14 @@ class HubOrderResource extends Resource
                     })
             ])
             ->actions([
+                Tables\Actions\Action::make('show_customer')
+                    ->label('View Customer')
+                    ->iconButton()
+                    ->icon('heroicon-o-user')
+                    ->modalSubmitAction(false)
+                    ->modalCancelAction(false)
+                    ->modalHeading(fn (Model $record) => $record->customer->name)
+                    ->modalContent(fn (Model $record) => view('order.customer', ['order' => $record])),
 
                 Tables\Actions\Action::make('mark_as_delivered')
                     ->label('Mark as Delivered?')

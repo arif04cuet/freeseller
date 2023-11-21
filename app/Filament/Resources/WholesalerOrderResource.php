@@ -67,7 +67,7 @@ class WholesalerOrderResource extends Resource
                 Tables\Columns\TextColumn::make('id')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->since(),
+                    ->date(),
                 Tables\Columns\TextColumn::make('totalAmountForWholesaler')
                     ->label('Total amount'),
                 Tables\Columns\TextColumn::make('total_items')

@@ -673,6 +673,15 @@ class OrderResource extends Resource
                         ->openUrlInNewTab(),
                     Tables\Actions\EditAction::make()
                         ->visible(fn (?Model $record) => $record?->status?->value == OrderStatus::WaitingForWholesalerApproval->value),
+
+                    Tables\Actions\Action::make('show_customer')
+                        ->label('Customer')
+                        ->color('success')
+                        ->icon('heroicon-o-user')
+                        ->modalSubmitAction(false)
+                        ->modalCancelAction(false)
+                        ->modalHeading(fn (Model $record) => $record->customer->name)
+                        ->modalContent(fn (Model $record) => view('order.customer', ['order' => $record])),
                 ])
             ])
             ->bulkActions([]);
