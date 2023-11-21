@@ -116,6 +116,19 @@ class HubOrderResource extends Resource
                     ->sum('items', 'quantity'),
 
 
+                Tables\Columns\TextColumn::make('returned')
+                    ->getStateUsing(
+                        fn (Model $record) => $record
+                            ->returnedItems()
+                            ->filter(fn ($item) => $item->is_returned_to_wholesaler)
+                            ->count() ? 'Returned' : ''
+                    )
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Returned' => 'success',
+                        default => ''
+                    }),
+
                 Tables\Columns\TextColumn::make('status')
                     ->sortable()
                     ->badge(),
