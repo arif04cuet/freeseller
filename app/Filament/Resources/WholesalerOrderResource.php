@@ -78,11 +78,11 @@ class WholesalerOrderResource extends Resource
                     ->getStateUsing(
                         fn (Model $record) => $record->getItemsByWholesaler(auth()->user(), OrderItemStatus::Returned->value)
                             ->filter(fn ($item) => $item->is_returned_to_wholesaler)
-                            ->count() ? 'Returned' : ''
+                            ->count() ? 'Received' : ''
                     )
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'Returned' => 'success',
+                        'Received' => 'success',
                         default => ''
                     }),
 
