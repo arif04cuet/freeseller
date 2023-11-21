@@ -1,7 +1,7 @@
 @php
     use Filament\Support\Enums\Alignment;
     use Filament\Support\Enums\VerticalAlignment;
-    
+
     $color = $getColor() ?? 'gray';
     $isInline = $isInline();
 @endphp
@@ -78,6 +78,6 @@
             @endif
         </div>
 
-        {{-- <x-filament-notifications::close-button /> --}}
+        <x-filament-notifications::read-button />
     </div>
 </x-filament-notifications::notification>
