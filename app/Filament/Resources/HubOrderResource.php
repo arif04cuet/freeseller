@@ -114,13 +114,34 @@ class HubOrderResource extends Resource
                 Tables\Columns\TextColumn::make('items_sum_quantity')
                     ->label('Total Items')
                     ->sum('items', 'quantity'),
+
+
                 Tables\Columns\TextColumn::make('status')
                     ->sortable()
                     ->badge(),
+                Tables\Columns\TextColumn::make('delivered_note')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('cancelled_note')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Tables\Filters\Filter::make('split_orders')
+                    ->label('Split Orders')
+                    ->query(
+                        function (Builder $query, array $data) {
+                            return $query->when(
+                                $data['isActive'],
+                                function ($q) {
+                                    return $q->whereHas('items', function ($q) {
+                                        return $q->select('order_id')
+                                            ->groupBy('order_id')
+                                            ->havingRaw('COUNT(DISTINCT wholesaler_id) > 1');
+                                    });
+                                }
+                            );
+                        }
+                    ),
+
                 Tables\Filters\Filter::make('no_cn')
                     ->label('No CN')
                     ->query(
@@ -231,24 +252,14 @@ class HubOrderResource extends Resource
 
                                         if (($get('status') == OrderStatus::Partial_Delivered->value)) {
 
-                                            // $returnSum = $record->items()
-                                            //     ->whereIn('sku_id', $get('return_skus'))
-                                            //     ->get()
-                                            //     ->sum('reseller_price');
-
-                                            // $amount = $record->cod - $returnSum;
-
-                                            // $msg = 'Value should be within ' . $record->courier_charge . ' to ' . $amount;
-
-                                            // if ($amount == $record->courier_charge)
-                                            //     $msg = 'Value should be ' . $amount;
-
                                             if (($value < 1) || ($value > $record->cod))
                                                 $fail($msg);
                                         }
                                     };
                                 },
                             ]),
+                        Forms\Components\Textarea::make('delivered_note')
+                            ->label('Comments')
                     ])
                     ->color('success')
                     ->iconButton()
@@ -264,6 +275,8 @@ class HubOrderResource extends Resource
 
                                     $order->update([
                                         'status' => OrderStatus::from($data['status'])->value,
+                                        'delivered_by' => auth()->user()->id,
+                                        'delivered_note' => $data['delivered_note'],
                                         'collected_cod' => isset($data['collected_cod']) ? $data['collected_cod'] : 0,
                                     ]);
 

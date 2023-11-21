@@ -31,25 +31,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/mail', function () {
 
-
-    $request = new GetAccessTokenRequest();
-    $response = $request->send();
-    //$errors = $response->ok() ? $response->json() : $response->json('message');
-    //return $response->json();
-
-    $expireIn = $response->json('expires_in');
-    $refreshToken = $response->json('refresh_token');
-
-    cache([
-        'pathao_access_token' => $response->json('access_token'),
-    ], $expireIn);
-
-
-    cache([
-        'pathao_refresh_token' => $refreshToken,
-    ]);
-
-    return 'ok';
+    $splitOrders = Order::whereHas('items', function ($q) {
+        return $q->select('order_id')
+            ->groupBy('order_id')
+            ->havingRaw('COUNT(DISTINCT wholesaler_id) > 1');
+    })
+        ->get();
+    dd($splitOrders->pluck('id')->toArray());
 });
 
 Route::post('/push', function () {

@@ -1,4 +1,7 @@
 @extends('layout.print')
+@php
+    $totalCod = 0;
+@endphp
 @section('content')
     <div>
 
@@ -42,6 +45,7 @@
                             @foreach ($orders as $order)
                                 @php
                                     $reseller = $order->reseller;
+                                    $totalCod += $order->cod;
                                 @endphp
                                 <tr class="border-b border-slate-200">
                                     <td class="py-2 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
@@ -71,7 +75,8 @@
                         <tfoot>
                             <tr>
                                 <th scope="row" colspan="4" class="text-left pt-2 text-sm font-bold">
-                                    Total Parcel : {{ $orders->count() }}
+                                    Total Parcel : {{ $orders->count() }} <br />
+                                    Total COD : {{ $totalCod }} <br />
                                 </th>
 
                             </tr>

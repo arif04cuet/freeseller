@@ -73,24 +73,27 @@ final class OrderService
                 ),
 
             OrderStatus::Cancelled->name => ListRecords\Tab::make()
-                ->label('Return')
                 ->badge(
                     self::$resource::getEloquentQuery()
-                        ->whereIn('status', [
-                            OrderStatus::Cancelled->value,
-                            OrderStatus::Partial_Delivered->value,
-                        ])
-                        ->whereDoesntHave('items', fn ($q) => $q->where('status', OrderItemStatus::Cancelled->value))
+                        ->where('status', OrderStatus::Cancelled->value)
+                        ->whereNotNull('delivered_at')
                         ->count()
                 )
                 ->query(
-                    fn ($query) => $query->whereIn('status', [
-                        OrderStatus::Cancelled->value,
-                        OrderStatus::Partial_Delivered->value,
-                    ])
-                        ->whereDoesntHave('items', fn ($q) => $q->where('status', OrderItemStatus::Cancelled->value))
+                    fn ($query) => $query
+                        ->where('status', OrderStatus::Cancelled->value)
+                        ->whereNotNull('delivered_at')
                 ),
-
+            OrderStatus::Partial_Delivered->name => ListRecords\Tab::make()
+                ->badge(
+                    self::$resource::getEloquentQuery()
+                        ->where('status', OrderStatus::Partial_Delivered->value)
+                        ->count()
+                )
+                ->query(
+                    fn ($query) => $query
+                        ->where('status', OrderStatus::Partial_Delivered->value)
+                ),
             OrderStatus::Delivered->name => ListRecords\Tab::make()
                 ->badge(
                     self::$resource::getEloquentQuery()

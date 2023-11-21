@@ -141,13 +141,11 @@ class OrderItemsView extends Component implements HasForms, HasTable
                             function (Collection $records): array {
 
                                 $otp = random_int(100000, 999999);
-                                logger($otp);
                                 $item = $records->first();
 
                                 Notification::make()
                                     ->success()
                                     ->title('OTP sent to wholesaler')
-                                    ->persistent()
                                     ->send();
 
                                 User::sendMessage(

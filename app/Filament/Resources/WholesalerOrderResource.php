@@ -42,7 +42,7 @@ class WholesalerOrderResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['reseller'])
+            ->with(['reseller', 'items'])
             ->mine()
             ->latest();
     }
@@ -73,6 +73,19 @@ class WholesalerOrderResource extends Resource
                 Tables\Columns\TextColumn::make('total_items')
                     ->label('Total Products')
                     ->getStateUsing(fn (Model $record) => $record->getItemsByWholesaler(auth()->user())->sum('quantity')),
+
+                Tables\Columns\TextColumn::make('returned')
+                    ->getStateUsing(
+                        fn (Model $record) => $record->getItemsByWholesaler(auth()->user(), OrderItemStatus::Returned->value)
+                            ->filter(fn ($item) => $item->is_returned_to_wholesaler)
+                            ->count() ? 'Returned' : ''
+                    )
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Returned' => 'success',
+                        default => ''
+                    }),
+
                 Tables\Columns\TextColumn::make('status')
                     ->badge(),
             ])
