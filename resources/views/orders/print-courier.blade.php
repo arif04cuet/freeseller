@@ -1,6 +1,7 @@
 @extends('layout.print')
 @php
     $totalCod = 0;
+    $totalItems = 0;
 @endphp
 @section('content')
     <div>
@@ -46,6 +47,7 @@
                                 @php
                                     $reseller = $order->reseller;
                                     $totalCod += $order->cod;
+                                    $totalItems += $order->items->sum('quantity');
                                 @endphp
                                 <tr class="border-b border-slate-200">
                                     <td class="py-2 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
@@ -76,6 +78,7 @@
                             <tr>
                                 <th scope="row" colspan="4" class="text-left pt-2 text-sm font-bold">
                                     Total Parcel : {{ $orders->count() }} <br />
+                                    Total Items : {{ $totalItems }} <br />
                                     Total COD : {{ $totalCod }} <br />
                                 </th>
 
