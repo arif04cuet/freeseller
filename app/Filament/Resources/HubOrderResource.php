@@ -233,6 +233,7 @@ class HubOrderResource extends Resource
 
 
                         Forms\Components\Repeater::make('return')
+                            ->required()
                             ->visible(fn (Get $get) => $get('status') == OrderStatus::Partial_Delivered->value)
                             ->schema([
                                 Forms\Components\Grid::make()
