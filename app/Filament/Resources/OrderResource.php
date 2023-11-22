@@ -155,7 +155,7 @@ class OrderResource extends Resource
                                         ->map(fn ($sku) => [
                                             'id' => $sku->id,
                                             'name' => '<div class="flex gap-2">
-                                                <img src="' . $sku->getMedia('*')->first()->getUrl('thumb') . '"/>
+                                                <img src="' . $sku->getMedia('*')->first()?->getUrl('thumb') . '"/>
                                                 <span>' . $sku->name . '</span>
                                             </div>'
                                         ])
