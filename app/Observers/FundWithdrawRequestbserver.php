@@ -24,7 +24,7 @@ class FundWithdrawRequestbserver
      */
     public function updated(FundWithdrawRequest $fundWithdrawRequest): void
     {
-        logger('updated');
+        //logger('updated');
         //release lock amount
         if ($fundWithdrawRequest->isApproved() && $fundWithdrawRequest->lockAmount()->exists()) {
 

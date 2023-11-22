@@ -12,17 +12,7 @@ class OrderItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'order_id',
-        'product_id',
-        'sku_id',
-        'quantity',
-        'wholesaler_price',
-        'wholesaler_id',
-        'reseller_price',
-        'total_amount',
-        'status',
-    ];
+    protected $guarded = ['id'];
 
     protected $casts = [
         'status' => OrderItemStatus::class,
@@ -30,6 +20,7 @@ class OrderItem extends Model
         'reseller_price' => 'int',
         'total_amount' => 'int',
         'quantity' => 'int',
+        'return_qnt' => 'int',
         'is_returned_to_wholesaler' => 'boolean'
     ];
 

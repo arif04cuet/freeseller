@@ -57,7 +57,7 @@ class PaymentChannel extends Model
             ->pluck('label', 'id')
             ->toArray();
 
-        logger($list);
+        //logger($list);
 
         return $list;
     }

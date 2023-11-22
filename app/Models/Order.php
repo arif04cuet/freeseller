@@ -180,8 +180,15 @@ class Order extends Model
 
         $items = $this->returnedItems();
 
-        $wholesalerPrice = $items->sum('wholesaler_price');
-        $resellerPrice = $items->sum('reseller_price');
+
+        $wholesalerPrice = $items->map(
+            fn ($item) => ['wholesalerPrice' => $item->wholesaler_price * $item->return_qnt]
+        )->sum('wholesalerPrice');
+
+        $resellerPrice = $items->map(
+            fn ($item) => ['resellerPrice' => $item->reseller_price * $item->return_qnt]
+        )->sum('resellerPrice');
+
 
         $totalPayable = $order->total_payable - $wholesalerPrice;
         $totalSaleable = $order->total_saleable - $resellerPrice;
@@ -237,13 +244,13 @@ class Order extends Model
         };
     }
 
-    public static function totalPayable(Collection|array $items): int
+    public static function totalPayable(Collection|array $items, $customer_id = null): int
     {
         if (empty($items)) {
             return 0;
         }
 
-        return (int) (self::totalWholesaleAmount($items) + self::courierCharge($items) + self::packgingCost());
+        return (int) (self::totalWholesaleAmount($items) + self::courierCharge($items, $customer_id) + self::packgingCost());
     }
 
     public static function isSameCity($customer_id): bool

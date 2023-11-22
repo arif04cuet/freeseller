@@ -230,7 +230,7 @@ class OrderResource extends Resource
                             ->disabled()
                             ->helperText(function (Get $get, \Filament\Forms\Set $set, ?Model $record, $state) {
 
-                                $charge = Order::courierCharge($get('items'));
+                                $charge = Order::courierCharge($get('items'), $get('customer_id'));
 
                                 $set('courier_charge', $charge);
                                 $set('packaging_charge', Order::packgingCost());
@@ -246,7 +246,7 @@ class OrderResource extends Resource
                             ->disabled()
                             ->helperText(function (Get $get, \Filament\Forms\Set $set, ?Model $record, $state) {
 
-                                $total_payable = Order::totalPayable($get('items'));
+                                $total_payable = Order::totalPayable($get('items'), $get('customer_id'));
 
                                 $set('total_payable', $total_payable);
 
@@ -258,9 +258,8 @@ class OrderResource extends Resource
                             ->helperText(function (Get $get, \Filament\Forms\Set $set, ?Model $record, $state) {
 
                                 $subtotals = Order::totalSubtotals($get('items'));
-                                $totalWholesalerAmount = Order::totalWholesaleAmount($get('items'));
                                 $set('total_saleable', $subtotals);
-                                $payable = Order::totalPayable($get('items'));
+                                $payable = Order::totalPayable($get('items'), $get('customer_id'));
 
                                 //profit
                                 $cod = (int) $get('cod') ?? $subtotals;
@@ -287,6 +286,7 @@ class OrderResource extends Resource
                     ->hidden(),
                 Forms\Components\Select::make('customer_id')
                     ->label('Customer')
+                    ->live()
                     ->required()
                     ->searchable()
                     ->searchPrompt('Search by Mobile')
@@ -485,7 +485,7 @@ class OrderResource extends Resource
 
                         $state = (int) $state;
                         $subtotals = Order::totalSubtotals($get('items'));
-                        $courierCharge = Order::courierCharge($get('items'));
+                        $courierCharge = Order::courierCharge($get('items'), $get('customer_id'));
                         $cod = $subtotals + $courierCharge;
 
                         if ($get('cod_update') == 1) {
@@ -495,7 +495,7 @@ class OrderResource extends Resource
                         $lockAmount = (int) auth()->user()->lockAmount->sum('amount');
                         $balance = auth()->user()->balanceFloat - $lockAmount;
 
-                        $amount = ($balance + $state) - Order::totalPayable($get('items'));
+                        $amount = ($balance + $state) - Order::totalPayable($get('items'), $get('customer_id'));
 
                         if ($get('cod_update') != 1) {
 

@@ -182,7 +182,7 @@ class SkusRelationManager extends RelationManager
                             ]),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
-                        logger($data);
+                        //logger($data);
                         return $query
                             ->when(
                                 $data['from'],

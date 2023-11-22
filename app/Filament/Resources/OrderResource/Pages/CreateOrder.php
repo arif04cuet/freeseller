@@ -139,9 +139,10 @@ class CreateOrder extends CreateRecord
                     }
                 )->toArray();
 
-            $totalPaypable = Order::totalPayable($items);
+            $customerId = $data['customer_id'];
+            $totalPaypable = Order::totalPayable($items, $customerId);
             $totalSalable = Order::totalSubtotals($items);
-            $courier_charge = Order::courierCharge($items, $data['customer_id']);
+            $courier_charge = Order::courierCharge($items, $customerId);
             $profit = (int) $data['cod'] - $totalPaypable;
 
             $orderData = [

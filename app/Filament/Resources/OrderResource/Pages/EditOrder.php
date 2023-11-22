@@ -60,15 +60,16 @@ class EditOrder extends EditRecord
                     }
                 )->toArray();
 
-            $totalPaypable = Order::totalPayable($items);
+            $customerId = $data['customer_id'];
+            $totalPaypable = Order::totalPayable($items, $customerId);
             $totalSalable = Order::totalSubtotals($items);
-            $courier_charge = Order::courierCharge($items, $data['customer_id']);
+            $courier_charge = Order::courierCharge($items, $customerId);
             $profit = (int) $data['cod'] - $totalPaypable;
 
             $orderData = [
                 'courier_charge' => $courier_charge,
                 'packaging_charge' => Order::packgingCost(),
-                'total_payable' => Order::totalPayable($items),
+                'total_payable' => $totalPaypable,
                 'total_saleable' => $totalSalable,
                 'profit' => $profit,
                 ...collect($data)->except([

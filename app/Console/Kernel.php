@@ -14,6 +14,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        $schedule->command('cache:clear')->daily();
+
         $schedule->command('queue:work --stop-when-empty')
             ->everyMinute()
             ->withoutOverlapping();
@@ -22,7 +24,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:delete-image-zip')->daily();
 
         $schedule->job(new LowStockNotification)->daily();
-        $schedule->job(new SavePathaoToken)->daily();
+        //$schedule->job(new SavePathaoToken)->daily();
     }
 
     /**

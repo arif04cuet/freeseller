@@ -173,7 +173,7 @@ class HubOrderResource extends Resource
                     ->query(
                         function (Builder $query, array $data): Builder {
                             $businessId = $data['value'];
-                            logger($businessId);
+                            //logger($businessId);
                             return $query
                                 ->when($businessId, function ($q) use ($businessId) {
                                     return $q->whereHas('items', function ($q) use ($businessId) {
@@ -220,7 +220,7 @@ class HubOrderResource extends Resource
                 Tables\Actions\Action::make('mark_as_delivered')
                     ->label('Mark as Delivered?')
                     ->icon('heroicon-o-check')
-                    ->modalHeading('Add Delivery Status')
+                    ->modalHeading(fn (Model $record) => 'Add Delivery Status for Order# ' . $record->id)
                     ->form([
                         Forms\Components\Select::make('status')
                             ->options(OrderStatus::delivery_statuses())
@@ -230,31 +230,78 @@ class HubOrderResource extends Resource
                         Forms\Components\Placeholder::make('cod')
                             ->label('Reseller COD (taka)')
                             ->content(fn (Order $record) => $record->cod),
-                        Forms\Components\Select::make('return_skus')
-                            ->label('Return order items')
-                            ->multiple()
-                            ->options(
-                                fn (Order $record) => $record->loadMissing(['items', 'items.sku'])
-                                    ->items
-                                    ->filter(fn ($item) => $item->status == OrderItemStatus::DeliveredToHub)
-                                    ->map(
-                                        function ($item) {
-                                            $sku = $item->sku;
-                                            return [
-                                                'id' => $sku->id,
-                                                'name' => '<div class="flex gap-2">
-                                            <img src="' . $sku->getMedia('*')->first()->getUrl('thumb') . '"/>
-                                            <span>' . $sku->name . '</span>
-                                        </div>'
-                                            ];
-                                        }
-                                    )
-                                    ->pluck('name', 'id')
-                            )
-                            ->allowHtml()
+
+
+                        Forms\Components\Repeater::make('return')
                             ->visible(fn (Get $get) => $get('status') == OrderStatus::Partial_Delivered->value)
-                            ->live()
-                            ->required(),
+                            ->schema([
+                                Forms\Components\Grid::make()
+                                    ->columns(3)
+                                    ->schema([
+                                        Forms\Components\Select::make('sku')
+                                            ->label('Select item')
+                                            ->options(
+                                                function (Order $record, Get $get, $state) {
+
+                                                    $skus = collect($get('../../return'))
+                                                        ->pluck('sku')
+                                                        ->filter()
+                                                        ->toArray();
+
+                                                    return  $record->loadMissing(['items', 'items.sku'])
+                                                        ->items
+                                                        //->filter(fn ($item) => $state ? true : !in_array($item->sku_id, $skus))
+                                                        ->filter(fn ($item) => $item->status == OrderItemStatus::DeliveredToHub)
+                                                        ->map(
+                                                            function ($item) {
+                                                                $sku = $item->sku;
+                                                                return [
+                                                                    'id' => $sku->id,
+                                                                    'name' => '<div class="flex gap-2">
+                                                    <img src="' . $sku->getMedia('*')->first()->getUrl('thumb') . '"/>
+                                                    <span>' . $sku->name . '</span>
+                                                </div>'
+                                                                ];
+                                                            }
+                                                        )
+                                                        ->pluck('name', 'id');
+                                                }
+                                            )
+                                            ->disableOptionWhen(
+                                                fn (string $value, Get $get): bool => in_array(
+                                                    $value,
+                                                    collect($get('../../return'))
+                                                        ->pluck('sku')
+                                                        ->filter()
+                                                        ->toArray()
+                                                )
+                                            )
+                                            ->allowHtml()
+                                            ->live()
+                                            ->required(),
+                                        Forms\Components\Placeholder::make('order_qnt')
+                                            ->visible(fn (Get $get) => filled($get('sku')))
+                                            ->content(
+                                                fn (Model $record, Get $get) => $record->items()
+                                                    ->where('sku_id', $get('sku'))
+                                                    ->first()
+                                                    ->quantity
+                                            ),
+                                        Forms\Components\TextInput::make('return_qtn')
+                                            ->visible(fn (Get $get) => filled($get('sku')))
+                                            ->default(1)
+                                            ->maxValue(
+                                                fn (Model $record, Get $get) => $record->items()
+                                                    ->where('sku_id', $get('sku'))
+                                                    ->first()
+                                                    ->quantity
+                                            )
+                                            ->minValue(1)
+                                            ->required()
+                                    ])
+                            ]),
+
+
                         Forms\Components\TextInput::make('collected_cod')
                             ->numeric()
                             ->visible(fn (Get $get) => $get('status') != OrderStatus::Cancelled->value)
@@ -310,17 +357,21 @@ class HubOrderResource extends Resource
                                         OrderDelivered::dispatch($order);
                                     } else if ($order->status == OrderStatus::Partial_Delivered) {
 
+                                        $returnSkus = collect($data['return'])->pluck('return_qtn', 'sku');
+
                                         $returnItems = $order->items()
-                                            ->whereIn('sku_id', $data['return_skus']);
+                                            ->whereIn('sku_id', $returnSkus->keys()->toArray());
 
 
-                                        $returnItems->update([
-                                            'status' => OrderItemStatus::Returned->value
-                                        ]);
+                                        //marked order items returned
+                                        $returnItems->each(fn ($item) => $item->update([
+                                            'status' => OrderItemStatus::Returned->value,
+                                            'return_qnt' => $returnSkus->toArray()[$item->sku_id]
+                                        ]));
 
                                         //update others items as delivered
                                         $order->items()
-                                            ->whereNotIn('sku_id', $data['return_skus'])
+                                            ->whereNotIn('sku_id', $returnSkus->keys()->toArray())
                                             ->update([
                                                 'status' => OrderItemStatus::Delivered->value
                                             ]);
@@ -329,10 +380,11 @@ class HubOrderResource extends Resource
 
 
                                         $items->each(
-                                            function ($item)  use ($order) {
+                                            function ($item)  use ($order, $returnSkus) {
 
+                                                $return_qnt = $returnSkus->toArray()[$item->sku_id];
                                                 //stock update
-                                                $item->sku->increment('quantity', $item->quantity);
+                                                $item->sku->increment('quantity', $return_qnt);
 
                                                 //send notification to wholesaler
                                                 User::sendMessage(
@@ -347,13 +399,16 @@ class HubOrderResource extends Resource
                                         OrderPartialDelivered::dispatch($order);
                                     } else if ($order->status == OrderStatus::Cancelled) {
 
-                                        //marked order items cancelled
-                                        $order->items()->update([
-                                            'status' => OrderItemStatus::Returned->value
-                                        ]);
+                                        //marked order items returned
+                                        $order->items->each(fn ($item) => $item->update([
+                                            'status' => OrderItemStatus::Returned->value,
+                                            'return_qnt' => $item->quantity
+                                        ]));
 
                                         //update stock
-                                        $order->items->each(fn ($item) => $item->sku->increment('quantity', $item->quantity));
+                                        $order->items->each(
+                                            fn ($item) => $item->loadMissing('sku')->sku->increment('quantity', $item->quantity)
+                                        );
 
                                         $order->refresh();
 

@@ -12,7 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 
-class DisburseOrderAmount implements ShouldQueue
+class DisburseOrderAmount
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 

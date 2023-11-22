@@ -11,7 +11,7 @@ class DecrementItemStockQuantity
 {
     public function handle(OrderItemApproved $event): void
     {
-        $item = $event->item;
+        $item = $event->item->loadMissing('sku');
         $item->sku->decrement('quantity', $item->quantity);
     }
 }
