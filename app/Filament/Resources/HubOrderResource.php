@@ -95,7 +95,7 @@ class HubOrderResource extends Resource
                     })
                     ->label('CN'),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->since(),
+                    ->date(),
                 Tables\Columns\TextColumn::make('reseller')
                     ->getStateUsing(fn (Model $record) => $record
                         ->reseller
