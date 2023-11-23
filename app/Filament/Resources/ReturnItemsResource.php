@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enum\OrderItemStatus;
+use App\Enum\SystemRole;
 use App\Filament\Resources\ReturnItemsResource\Pages;
 use App\Filament\Resources\ReturnItemsResource\RelationManagers;
 use App\Models\Business;
@@ -30,6 +31,15 @@ class ReturnItemsResource extends Resource
     protected static ?string $navigationGroup = 'Hub';
     protected static ?string $modelLabel = 'Return Items';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()->hasAnyRole([
+            SystemRole::HubManager->value,
+            SystemRole::HubMember->value,
+            'super_admin',
+        ]);
+    }
 
     public static function getNavigationBadge(): ?string
     {
@@ -72,6 +82,7 @@ class ReturnItemsResource extends Resource
                 Tables\Filters\SelectFilter::make('business_id')
                     ->label('Business')
                     ->preload()
+                    ->searchable()
                     ->options(Business::query()->wholesaler()->pluck('name', 'id'))
                     ->query(
                         function (Builder $query, array $data): Builder {
@@ -94,7 +105,7 @@ class ReturnItemsResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\BulkAction::make('send_otp')
-                        //->visible(fn () => auth()->user()->isHubManager())
+                        ->visible(fn () => auth()->user()->isHubManager())
                         ->icon('heroicon-o-envelope')
                         ->deselectRecordsAfterCompletion()
                         ->modalHeading('OTP has been sent to wholesaler.')
