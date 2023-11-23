@@ -315,7 +315,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
 
     public function isHubManager()
     {
-        return $this->hasRole(SystemRole::HubManager->value);
+        return $this->hasRole(SystemRole::HubManager->value) || $this->isHubMember();
     }
 
     public function isHubMember()

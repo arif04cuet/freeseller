@@ -133,16 +133,12 @@ class OrderItemsView extends Component implements HasForms, HasTable
                         ->icon('heroicon-o-envelope')
                         ->deselectRecordsAfterCompletion()
                         ->modalHeading('OTP has been sent to wholesaler.')
-                        // ->fillForm(fn (Post $record): array => [
-                        //     'title' => $record->title,
-                        //     'content' => $record->content,
-                        // ])
                         ->fillForm(
                             function (Collection $records): array {
 
                                 $otp = random_int(100000, 999999);
                                 $item = $records->first();
-
+                                logger($otp);
                                 Notification::make()
                                     ->success()
                                     ->title('OTP sent to wholesaler')
@@ -182,7 +178,6 @@ class OrderItemsView extends Component implements HasForms, HasTable
                                     Notification::make()
                                         ->danger()
                                         ->title('OTP mismatched!')
-                                        ->persistent()
                                         ->send();
 
                                     $action->halt();
@@ -198,7 +193,6 @@ class OrderItemsView extends Component implements HasForms, HasTable
                                 Notification::make()
                                     ->success()
                                     ->title('Success!')
-                                    ->persistent()
                                     ->send();
                             }
                         )

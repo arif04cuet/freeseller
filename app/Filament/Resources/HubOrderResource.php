@@ -241,17 +241,20 @@ class HubOrderResource extends Resource
                                     ->schema([
                                         Forms\Components\Select::make('sku')
                                             ->label('Select item')
+                                            ->getOptionLabelUsing(
+                                                function ($value): ?string {
+                                                    $sku = Sku::find($value);
+                                                    return  '<div class="flex gap-2">
+                                            <img src="' . $sku->getMedia('*')->first()->getUrl('thumb') . '"/>
+                                            <span>' . $sku->name . '</span>
+                                        </div>';
+                                                }
+                                            )
                                             ->options(
                                                 function (Order $record, Get $get, $state) {
 
-                                                    $skus = collect($get('../../return'))
-                                                        ->pluck('sku')
-                                                        ->filter()
-                                                        ->toArray();
-
                                                     return  $record->loadMissing(['items', 'items.sku'])
                                                         ->items
-                                                        //->filter(fn ($item) => $state ? true : !in_array($item->sku_id, $skus))
                                                         ->filter(fn ($item) => $item->status == OrderItemStatus::DeliveredToHub)
                                                         ->map(
                                                             function ($item) {
@@ -268,16 +271,18 @@ class HubOrderResource extends Resource
                                                         ->pluck('name', 'id');
                                                 }
                                             )
-                                            ->disableOptionWhen(
-                                                fn (string $value, Get $get): bool => in_array(
-                                                    $value,
-                                                    collect($get('../../return'))
-                                                        ->pluck('sku')
-                                                        ->filter()
-                                                        ->toArray()
-                                                )
-                                            )
+                                            // ->disableOptionWhen(
+                                            //     fn (string $value, Get $get): bool => filled($get('../../return')) && in_array(
+                                            //         $value,
+                                            //         collect($get('../../return'))
+                                            //             ->pluck('sku')
+                                            //             ->filter()
+                                            //             ->toArray()
+                                            //     )
+                                            // )
+                                            ->preload()
                                             ->allowHtml()
+                                            ->searchable()
                                             ->live()
                                             ->required(),
                                         Forms\Components\Placeholder::make('order_qnt')
