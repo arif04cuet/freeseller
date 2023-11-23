@@ -95,7 +95,9 @@ class HubOrderResource extends Resource
                     })
                     ->label('CN'),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->date(),
+                    ->formatStateUsing(
+                        fn ($state) => $state->since() . '<br/>' . $state->format('d-m-Y')
+                    )->html(),
                 Tables\Columns\TextColumn::make('reseller')
                     ->getStateUsing(fn (Model $record) => $record
                         ->reseller

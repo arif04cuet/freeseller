@@ -46,6 +46,7 @@ class ReturnItemsResource extends Resource
             ->with([
                 'order',
                 'wholesaler',
+                'wholesaler.business',
                 'sku'
             ])->latest();
     }
@@ -57,12 +58,14 @@ class ReturnItemsResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('order.id')
                     ->searchable(),
-                Tables\Columns\ImageColumn::make('sku')
+                Tables\Columns\TextColumn::make('sku')
                     ->label('Image')
-                    ->defaultImageUrl(fn (Model $record) => $record->sku->getMedia("*")->first()?->getUrl('thumb')),
+                    ->html()
+                    ->getStateUsing(fn (Model $record) => '<img src="' . $record->sku->getMedia('*')->first()?->getUrl('thumb') . '"/>'),
                 Tables\Columns\TextColumn::make('sku.name'),
                 Tables\Columns\TextColumn::make('quantity'),
                 Tables\Columns\TextColumn::make('return_qnt'),
+                Tables\Columns\TextColumn::make('wholesaler.business.name'),
 
             ])
             ->filters([
