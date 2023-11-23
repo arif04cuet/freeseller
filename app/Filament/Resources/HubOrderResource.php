@@ -289,6 +289,7 @@ class HubOrderResource extends Resource
                                                     ->quantity
                                             ),
                                         Forms\Components\TextInput::make('return_qtn')
+                                            ->numeric()
                                             ->visible(fn (Get $get) => filled($get('sku')))
                                             ->default(1)
                                             ->maxValue(
