@@ -16,7 +16,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('cache:clear')->daily();
 
-        $schedule->command('queue:work --stop-when-empty')
+        $schedule->command('queue:work --tries=3 --stop-when-empty')
             ->everyMinute()
             ->withoutOverlapping();
 
