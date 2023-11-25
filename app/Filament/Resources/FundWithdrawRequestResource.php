@@ -24,6 +24,16 @@ class FundWithdrawRequestResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getEloquentQuery()
+            ->when(
+                auth()->user()->isSuperAdmin(),
+                fn ($q) => $q->where('status', WalletRechargeRequestStatus::Pending->value)
+            )
+            ->count();
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
