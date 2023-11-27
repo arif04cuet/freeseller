@@ -170,7 +170,7 @@ class Order extends Model
 
         return match ($this->courier) {
             Courier::Pathao => 'https://merchant.pathao.com/tracking?consignment_id=' . $this->consignment_id . '&phone=' . $this->customer->mobile,
-            Courier::SteadFast => 'https://steadfastcourier.com/t/' . $this->tracking_code,
+            Courier::SteadFast => 'https://steadfast.com.bd/t/' . $this->tracking_code,
             default => ''
         };
     }
