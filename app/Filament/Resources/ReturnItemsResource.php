@@ -66,13 +66,20 @@ class ReturnItemsResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('order.id')
+
+                Tables\Columns\TextColumn::make('id')
+                    ->label(fn () => request()->get('activeTab') == 'Returned to Wholesaler' ? 'Received At' : 'Arrived at')
+                    ->getStateUsing(
+                        fn (Model $record) => !$record->is_returned_to_wholesaler ?
+                            $record->order->delivered_at->since() : $record->return_received_at
+                    ),
+                Tables\Columns\TextColumn::make('order_id')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('sku')
                     ->label('Image')
                     ->html()
                     ->getStateUsing(fn (Model $record) => '<img src="' . $record->sku->getMedia('*')->first()?->getUrl('thumb') . '"/>'),
-                Tables\Columns\TextColumn::make('sku.name'),
+                Tables\Columns\TextColumn::make('sku.name')->searchable(),
                 Tables\Columns\TextColumn::make('quantity'),
                 Tables\Columns\TextColumn::make('return_qnt'),
                 Tables\Columns\TextColumn::make('wholesaler.business.name'),
@@ -112,9 +119,12 @@ class ReturnItemsResource extends Resource
                         ->fillForm(
                             function (Collection $records): array {
 
+                                $parcels = $records->pluck('order_id')->unique();
+                                $return_qnt = $records->sum('return_qnt');
+
                                 $otp = random_int(100000, 999999);
                                 $item = $records->first();
-                                logger($otp);
+                                //logger($otp);
                                 Notification::make()
                                     ->success()
                                     ->title('OTP sent to wholesaler')
@@ -122,8 +132,8 @@ class ReturnItemsResource extends Resource
 
                                 User::sendMessage(
                                     users: $item->wholesaler,
-                                    title: 'OTP to collect return product for order=' . $item->order->id,
-                                    body: 'OTP : ' . $otp,
+                                    title: 'Product return OTP = ' . $otp,
+                                    body: 'Total Products= ' . $return_qnt . ' and Total Orders = ' . $parcels->count() . ' (' . $parcels->implode(',') . ')',
                                     actions: [
                                         Action::make('read')
                                             ->button()
@@ -163,7 +173,8 @@ class ReturnItemsResource extends Resource
                                 OrderItem::query()
                                     ->whereIn('id', $records->pluck('id')->toArray())
                                     ->update([
-                                        'is_returned_to_wholesaler' => true
+                                        'is_returned_to_wholesaler' => true,
+                                        'return_received_at' => now()
                                     ]);
 
                                 Notification::make()

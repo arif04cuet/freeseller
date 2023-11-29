@@ -21,7 +21,9 @@ class OrderItem extends Model
         'total_amount' => 'int',
         'quantity' => 'int',
         'return_qnt' => 'int',
-        'is_returned_to_wholesaler' => 'boolean'
+        'is_returned_to_wholesaler' => 'boolean',
+        'return_arrived_at' => 'datetime',
+        'return_received_at' => 'datetime'
     ];
 
     //relations

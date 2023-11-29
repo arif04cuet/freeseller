@@ -210,357 +210,359 @@ class HubOrderResource extends Resource
                     })
             ])
             ->actions([
-                Tables\Actions\Action::make('show_customer')
-                    ->label('View Customer')
-                    ->iconButton()
-                    ->icon('heroicon-o-user')
-                    ->modalSubmitAction(false)
-                    ->modalCancelAction(false)
-                    ->modalHeading(fn (Model $record) => $record->customer->name)
-                    ->modalContent(fn (Model $record) => view('order.customer', ['order' => $record])),
 
-                Tables\Actions\Action::make('mark_as_delivered')
-                    ->label('Mark as Delivered?')
-                    ->icon('heroicon-o-check')
-                    ->modalHeading(fn (Model $record) => 'Add Delivery Status for Order# ' . $record->id)
-                    ->form([
-                        Forms\Components\Select::make('status')
-                            ->options(OrderStatus::delivery_statuses())
-                            ->default(OrderStatus::Delivered->value)
-                            ->live()
-                            ->required(),
-                        Forms\Components\Placeholder::make('cod')
-                            ->label('Reseller COD (taka)')
-                            ->content(fn (Order $record) => $record->cod),
+                Tables\Actions\ActionGroup::make([
+
+                    Tables\Actions\Action::make('items')
+                        ->label('Products')
+                        ->color('primary')
+                        ->icon('heroicon-o-bars-4')
+                        ->action(function (Order $record, array $data, array $arguments) {
+                            DB::transaction(function () use ($record, $data) {
+                                //add collector
+                                $record->addCollector(auth()->user()->id);
+                                $record->refresh();
+
+                                $collection = $record->collections
+                                    ->filter(fn ($item) => $item->wholesaler_id == $data['wholesaler'])
+                                    ->first();
+                                $record->deliverToCollector($collection);
+
+                                //print label
+                                if (isset($data['print'])) {
+                                    return redirect(route('order.print.label', ['order' => $record]));
+                                }
+                            });
+                        })
+                        ->modalActions(
+                            fn (Tables\Actions\Action $action, Order $record): array => match ($record->status) {
+                                OrderStatus::WaitingForHubCollection => [
+                                    $action->makeExtraModalAction('collect', arguments: ['collect' => true])
+                                        ->color('primary'),
+                                ],
+                                default => []
+                            }
+                        )
+                        ->modalSubmitAction(null)
+
+                        ->form([
+
+                            Forms\Components\Select::make('wholesaler')
+                                ->label('Select Business')
+                                ->live()
+                                ->afterStateHydrated(
+                                    function (Order $record, \Filament\Forms\Set $set) {
+                                        $wholesalers = $record->wholesalers(OrderItemStatus::Approved)
+                                            ->pluck('id');
+                                        if ($wholesalers->count() == 1) {
+                                            $set('wholesaler', $wholesalers->first());
+                                        }
+                                    }
+                                )
+                                ->visible(fn (\Filament\Forms\Get $get, Order $record) => $record->status == OrderStatus::WaitingForHubCollection)
+                                ->required(fn (\Filament\Forms\Get $get) => !$get('all'))
+                                ->options(
+                                    fn (Order $record) => $record->loadMissing('items.wholesaler')
+                                        ->items
+                                        ->filter(fn ($item) => $item->status == OrderItemStatus::Approved)
+                                        ->map(fn ($item) => [
+                                            'name' => $item->wholesaler->business->name,
+                                            'id' => $item->wholesaler->id,
+                                        ])
+                                        ->pluck('name', 'id')
+
+                                ),
+                            // Forms\Components\Checkbox::make('print')
+                            //     ->label('Print Level')
+                            //     ->visible(
+                            //         fn (Order $record) => ($record->wholesalers(OrderItemStatus::Approved)->count() == 1) && ($record->status == OrderStatus::WaitingForHubCollection)
+                            //     )
+                            //     ->default(1),
+                        ])
+                        ->modalHeading(fn (Model $record) => 'Products list for order # ' . $record->id)
+                        ->modalContent(fn (Model $record, Tables\Actions\Action $action) => view('orders.items-status', [
+                            'items' => $record->loadMissing('items.wholesaler')->items
+                        ])),
+
+                    Tables\Actions\Action::make('mark_as_delivered')
+                        ->label('Mark as Delivered?')
+                        ->icon('heroicon-o-check')
+                        ->modalHeading(fn (Model $record) => 'Add Delivery Status for Order# ' . $record->id)
+                        ->form([
+                            Forms\Components\Select::make('status')
+                                ->options(OrderStatus::delivery_statuses())
+                                ->default(OrderStatus::Delivered->value)
+                                ->live()
+                                ->required(),
+                            Forms\Components\Placeholder::make('cod')
+                                ->label('Reseller COD (taka)')
+                                ->content(fn (Order $record) => $record->cod),
 
 
-                        Forms\Components\Repeater::make('return')
-                            ->required()
-                            ->visible(fn (Get $get) => $get('status') == OrderStatus::Partial_Delivered->value)
-                            ->schema([
-                                Forms\Components\Grid::make()
-                                    ->columns(3)
-                                    ->schema([
-                                        Forms\Components\Select::make('sku')
-                                            ->label('Select item')
-                                            ->getOptionLabelUsing(
-                                                function ($value): ?string {
-                                                    $sku = Sku::find($value);
-                                                    return  '<div class="flex gap-2">
+                            Forms\Components\Repeater::make('return')
+                                ->required()
+                                ->visible(fn (Get $get) => $get('status') == OrderStatus::Partial_Delivered->value)
+                                ->schema([
+                                    Forms\Components\Grid::make()
+                                        ->columns(3)
+                                        ->schema([
+                                            Forms\Components\Select::make('sku')
+                                                ->label('Select item')
+                                                ->getOptionLabelUsing(
+                                                    function ($value): ?string {
+                                                        $sku = Sku::find($value);
+                                                        return  '<div class="flex gap-2">
                                             <img src="' . $sku->getMedia('*')->first()->getUrl('thumb') . '"/>
                                             <span>' . $sku->name . '</span>
                                         </div>';
-                                                }
-                                            )
-                                            ->options(
-                                                function (Order $record, Get $get, $state) {
+                                                    }
+                                                )
+                                                ->options(
+                                                    function (Order $record, Get $get, $state) {
 
-                                                    return  $record->loadMissing(['items', 'items.sku'])
-                                                        ->items
-                                                        ->filter(fn ($item) => $item->status == OrderItemStatus::DeliveredToHub)
-                                                        ->map(
-                                                            function ($item) {
-                                                                $sku = $item->sku;
-                                                                return [
-                                                                    'id' => $sku->id,
-                                                                    'name' => '<div class="flex gap-2">
+                                                        return  $record->loadMissing(['items', 'items.sku'])
+                                                            ->items
+                                                            ->filter(fn ($item) => $item->status == OrderItemStatus::DeliveredToHub)
+                                                            ->map(
+                                                                function ($item) {
+                                                                    $sku = $item->sku;
+                                                                    return [
+                                                                        'id' => $sku->id,
+                                                                        'name' => '<div class="flex gap-2">
                                                     <img src="' . $sku->getMedia('*')->first()->getUrl('thumb') . '"/>
                                                     <span>' . $sku->name . '</span>
                                                 </div>'
-                                                                ];
-                                                            }
-                                                        )
-                                                        ->pluck('name', 'id');
-                                                }
-                                            )
-                                            // ->disableOptionWhen(
-                                            //     fn (string $value, Get $get): bool => filled($get('../../return')) && in_array(
-                                            //         $value,
-                                            //         collect($get('../../return'))
-                                            //             ->pluck('sku')
-                                            //             ->filter()
-                                            //             ->toArray()
-                                            //     )
-                                            // )
-                                            ->preload()
-                                            ->allowHtml()
-                                            ->searchable()
-                                            ->live()
-                                            ->required(),
-                                        Forms\Components\Placeholder::make('order_qnt')
-                                            ->visible(fn (Get $get) => filled($get('sku')))
-                                            ->content(
-                                                fn (Model $record, Get $get) => $record->items()
-                                                    ->where('sku_id', $get('sku'))
-                                                    ->first()
-                                                    ->quantity
-                                            ),
-                                        Forms\Components\TextInput::make('return_qtn')
-                                            ->numeric()
-                                            ->visible(fn (Get $get) => filled($get('sku')))
-                                            ->default(1)
-                                            ->maxValue(
-                                                fn (Model $record, Get $get) => $record->items()
-                                                    ->where('sku_id', $get('sku'))
-                                                    ->first()
-                                                    ->quantity
-                                            )
-                                            ->minValue(1)
-                                            ->required()
-                                    ])
-                            ]),
+                                                                    ];
+                                                                }
+                                                            )
+                                                            ->pluck('name', 'id');
+                                                    }
+                                                )
+                                                // ->disableOptionWhen(
+                                                //     fn (string $value, Get $get): bool => filled($get('../../return')) && in_array(
+                                                //         $value,
+                                                //         collect($get('../../return'))
+                                                //             ->pluck('sku')
+                                                //             ->filter()
+                                                //             ->toArray()
+                                                //     )
+                                                // )
+                                                ->preload()
+                                                ->allowHtml()
+                                                ->searchable()
+                                                ->live()
+                                                ->required(),
+                                            Forms\Components\Placeholder::make('order_qnt')
+                                                ->visible(fn (Get $get) => filled($get('sku')))
+                                                ->content(
+                                                    fn (Model $record, Get $get) => $record->items()
+                                                        ->where('sku_id', $get('sku'))
+                                                        ->first()
+                                                        ->quantity
+                                                ),
+                                            Forms\Components\TextInput::make('return_qtn')
+                                                ->numeric()
+                                                ->visible(fn (Get $get) => filled($get('sku')))
+                                                ->default(1)
+                                                ->maxValue(
+                                                    fn (Model $record, Get $get) => $record->items()
+                                                        ->where('sku_id', $get('sku'))
+                                                        ->first()
+                                                        ->quantity
+                                                )
+                                                ->minValue(1)
+                                                ->required()
+                                        ])
+                                ]),
 
 
-                        Forms\Components\TextInput::make('collected_cod')
-                            ->numeric()
-                            ->visible(fn (Get $get) => $get('status') != OrderStatus::Cancelled->value)
-                            ->maxValue(fn (Get $get, Order $record) => $record->cod)
-                            ->required(fn (Get $get) => $get('status') != OrderStatus::Cancelled->value)
-                            ->rules([
-                                function (Order $record, Get $get) {
-                                    return function (string $attribute, $value, Closure $fail) use ($get, $record) {
+                            Forms\Components\TextInput::make('collected_cod')
+                                ->numeric()
+                                ->visible(fn (Get $get) => $get('status') != OrderStatus::Cancelled->value)
+                                ->maxValue(fn (Get $get, Order $record) => $record->cod)
+                                ->required(fn (Get $get) => $get('status') != OrderStatus::Cancelled->value)
+                                ->rules([
+                                    function (Order $record, Get $get) {
+                                        return function (string $attribute, $value, Closure $fail) use ($get, $record) {
 
-                                        $halfOfCod = ($record->cod) / 2;
-                                        $msg = 'The COD is not correct';
+                                            $halfOfCod = ($record->cod) / 2;
+                                            $msg = 'The COD is not correct';
 
-                                        if (($get('status') == OrderStatus::Delivered->value) && ($value < $halfOfCod)) {
-                                            $fail($msg);
-                                        }
-
-                                        if (($get('status') == OrderStatus::Partial_Delivered->value)) {
-
-                                            if (($value < 1) || ($value > $record->cod))
+                                            if (($get('status') == OrderStatus::Delivered->value) && ($value < $halfOfCod)) {
                                                 $fail($msg);
-                                        }
-                                    };
-                                },
-                            ]),
-                        Forms\Components\Textarea::make('delivered_note')
-                            ->label('Comments')
-                    ])
-                    ->color('success')
-                    ->iconButton()
-                    ->visible(fn (Order $record) => $record->tracking_code && $record->status == OrderStatus::HandOveredToCourier)
-                    ->action(
-                        function (Order $record, array $data) {
+                                            }
 
-                            try {
+                                            if (($get('status') == OrderStatus::Partial_Delivered->value)) {
 
-                                DB::transaction(function () use ($record, $data) {
+                                                if (($value < 1) || ($value > $record->cod))
+                                                    $fail($msg);
+                                            }
+                                        };
+                                    },
+                                ]),
+                            Forms\Components\Textarea::make('delivered_note')
+                                ->label('Comments')
+                        ])
+                        ->color('success')
+                        ->visible(fn (Order $record) => $record->tracking_code && $record->status == OrderStatus::HandOveredToCourier)
+                        ->action(
+                            function (Order $record, array $data) {
 
-                                    $order = $record;
+                                try {
 
-                                    $order->update([
-                                        'status' => OrderStatus::from($data['status'])->value,
-                                        'delivered_by' => auth()->user()->id,
-                                        'delivered_note' => $data['delivered_note'],
-                                        'collected_cod' => isset($data['collected_cod']) ? $data['collected_cod'] : 0,
-                                    ]);
+                                    DB::transaction(function () use ($record, $data) {
 
+                                        $order = $record;
 
-                                    if ($order->status == OrderStatus::Delivered) {
-                                        $order->items()->update([
-                                            'status' => OrderItemStatus::Delivered->value
+                                        $order->update([
+                                            'status' => OrderStatus::from($data['status'])->value,
+                                            'delivered_by' => auth()->user()->id,
+                                            'delivered_note' => $data['delivered_note'],
+                                            'collected_cod' => isset($data['collected_cod']) ? $data['collected_cod'] : 0,
                                         ]);
-                                        $order->refresh();
-                                        OrderDelivered::dispatch($order);
-                                    } else if ($order->status == OrderStatus::Partial_Delivered) {
-
-                                        $returnSkus = collect($data['return'])->pluck('return_qtn', 'sku');
-
-                                        $returnItems = $order->items()
-                                            ->whereIn('sku_id', $returnSkus->keys()->toArray());
 
 
-                                        //marked order items returned
-                                        $returnItems->each(fn ($item) => $item->update([
-                                            'status' => OrderItemStatus::Returned->value,
-                                            'return_qnt' => $returnSkus->toArray()[$item->sku_id]
-                                        ]));
-
-                                        //update others items as delivered
-                                        $order->items()
-                                            ->whereNotIn('sku_id', $returnSkus->keys()->toArray())
-                                            ->update([
+                                        if ($order->status == OrderStatus::Delivered) {
+                                            $order->items()->update([
                                                 'status' => OrderItemStatus::Delivered->value
                                             ]);
+                                            $order->refresh();
+                                            OrderDelivered::dispatch($order);
+                                        } else if ($order->status == OrderStatus::Partial_Delivered) {
 
-                                        $items = $returnItems->get();
+                                            $returnSkus = collect($data['return'])->pluck('return_qtn', 'sku');
 
-
-                                        $items->each(
-                                            function ($item)  use ($order, $returnSkus) {
-
-                                                $return_qnt = $returnSkus->toArray()[$item->sku_id];
-                                                //stock update
-                                                $item->sku->increment('quantity', $return_qnt);
-
-                                                //send notification to wholesaler
-                                                User::sendMessage(
-                                                    users: $item->wholesaler,
-                                                    title: $item->returnedMessage(),
-                                                    url: route('filament.app.resources.wholesaler.orders.index', ['tableSearch' => $order->id])
-                                                );
-                                            }
-                                        );
-
-                                        $order->refresh();
-                                        OrderPartialDelivered::dispatch($order);
-                                    } else if ($order->status == OrderStatus::Cancelled) {
-
-                                        //marked order items returned
-                                        $order->items->each(fn ($item) => $item->update([
-                                            'status' => OrderItemStatus::Returned->value,
-                                            'return_qnt' => $item->quantity
-                                        ]));
-
-                                        //update stock
-                                        $order->items->each(
-                                            fn ($item) => $item->loadMissing('sku')->sku->increment('quantity', $item->quantity)
-                                        );
-
-                                        $order->refresh();
-
-                                        OrderCancelled::dispatch($order);
-                                    }
+                                            $returnItems = $order->items()
+                                                ->whereIn('sku_id', $returnSkus->keys()->toArray());
 
 
+                                            //marked order items returned
+                                            $returnItems->each(fn ($item) => $item->update([
+                                                'status' => OrderItemStatus::Returned->value,
+                                                'return_qnt' => $returnSkus->toArray()[$item->sku_id]
+                                            ]));
+
+                                            //update others items as delivered
+                                            $order->items()
+                                                ->whereNotIn('sku_id', $returnSkus->keys()->toArray())
+                                                ->update([
+                                                    'status' => OrderItemStatus::Delivered->value
+                                                ]);
+
+                                            $items = $returnItems->get();
+
+
+                                            $items->each(
+                                                function ($item)  use ($order, $returnSkus) {
+
+                                                    $return_qnt = $returnSkus->toArray()[$item->sku_id];
+                                                    //stock update
+                                                    $item->sku->increment('quantity', $return_qnt);
+
+                                                    //send notification to wholesaler
+                                                    User::sendMessage(
+                                                        users: $item->wholesaler,
+                                                        title: $item->returnedMessage(),
+                                                        url: route('filament.app.resources.wholesaler.orders.index', ['tableSearch' => $order->id])
+                                                    );
+                                                }
+                                            );
+
+                                            $order->refresh();
+                                            OrderPartialDelivered::dispatch($order);
+                                        } else if ($order->status == OrderStatus::Cancelled) {
+
+                                            //marked order items returned
+                                            $order->items->each(fn ($item) => $item->update([
+                                                'status' => OrderItemStatus::Returned->value,
+                                                'return_qnt' => $item->quantity
+                                            ]));
+
+                                            //update stock
+                                            $order->items->each(
+                                                fn ($item) => $item->loadMissing('sku')->sku->increment('quantity', $item->quantity)
+                                            );
+
+                                            $order->refresh();
+
+                                            OrderCancelled::dispatch($order);
+                                        }
+
+
+                                        Notification::make()
+                                            ->title('Order delivery status added successfully')
+                                            ->success()
+                                            ->send();
+                                    });
+                                } catch (\Throwable $th) {
+                                    logger($th);
                                     Notification::make()
-                                        ->title('Order delivery status added successfully')
-                                        ->success()
+                                        ->title('Something went wrong')
+                                        ->danger()
                                         ->send();
-                                });
-                            } catch (\Throwable $th) {
-                                logger($th);
-                                Notification::make()
-                                    ->title('Something went wrong')
-                                    ->danger()
-                                    ->send();
-                            }
-                        }
-                    ),
-
-                Tables\Actions\Action::make('track')
-                    ->label('Track Order')
-                    ->url(fn (Order $record) => $record->tracking_url)
-                    ->visible(fn (Order $record) => $record->tracking_code)
-                    ->openUrlInNewTab(),
-                Tables\Actions\Action::make('send_to_courier')
-                    ->label('Send to courier')
-                    ->icon('heroicon-o-arrow-up-circle')
-                    ->iconButton()
-                    ->requiresConfirmation()
-                    ->visible(fn (Order $record) => !$record->consignment_id && ($record->status == OrderStatus::ProcessingForHandOverToCourier))
-                    ->action(fn (Order $record) => $record->addToCourier($record)),
-                Tables\Actions\Action::make('print_address')
-                    ->icon('heroicon-o-printer')
-                    ->iconButton()
-                    ->url(fn (Order $record): string => route('order.print.label', $record))
-                    ->openUrlInNewTab()
-                    ->visible(fn (Model $record) => $record->status == OrderStatus::HandOveredToCourier),
-                Tables\Actions\Action::make('items')
-                    ->label('Products')
-                    ->icon('heroicon-o-bars-4')
-                    ->iconButton()
-                    ->action(function (Order $record, array $data, array $arguments) {
-                        DB::transaction(function () use ($record, $data) {
-                            //add collector
-                            $record->addCollector(auth()->user()->id);
-                            $record->refresh();
-
-                            $collection = $record->collections
-                                ->filter(fn ($item) => $item->wholesaler_id == $data['wholesaler'])
-                                ->first();
-                            $record->deliverToCollector($collection);
-
-                            //print label
-                            if (isset($data['print'])) {
-                                return redirect(route('order.print.label', ['order' => $record]));
-                            }
-                        });
-                    })
-                    ->modalActions(
-                        fn (Tables\Actions\Action $action, Order $record): array => match ($record->status) {
-                            OrderStatus::WaitingForHubCollection => [
-                                $action->makeExtraModalAction('collect', arguments: ['collect' => true])
-                                    ->color('primary'),
-                            ],
-                            default => []
-                        }
-                    )
-                    ->modalSubmitAction(null)
-
-                    ->form([
-
-                        Forms\Components\Select::make('wholesaler')
-                            ->label('Select Business')
-                            ->live()
-                            ->afterStateHydrated(
-                                function (Order $record, \Filament\Forms\Set $set) {
-                                    $wholesalers = $record->wholesalers(OrderItemStatus::Approved)
-                                        ->pluck('id');
-                                    if ($wholesalers->count() == 1) {
-                                        $set('wholesaler', $wholesalers->first());
-                                    }
                                 }
-                            )
-                            ->visible(fn (\Filament\Forms\Get $get, Order $record) => $record->status == OrderStatus::WaitingForHubCollection)
-                            ->required(fn (\Filament\Forms\Get $get) => !$get('all'))
-                            ->options(
-                                fn (Order $record) => $record->loadMissing('items.wholesaler')
-                                    ->items
-                                    ->filter(fn ($item) => $item->status == OrderItemStatus::Approved)
-                                    ->map(fn ($item) => [
-                                        'name' => $item->wholesaler->business->name,
-                                        'id' => $item->wholesaler->id,
-                                    ])
-                                    ->pluck('name', 'id')
+                            }
+                        ),
+                    Tables\Actions\Action::make('show_customer')
+                        ->label('View Customer')
+                        ->icon('heroicon-o-user')
+                        ->modalSubmitAction(false)
+                        ->modalCancelAction(false)
+                        ->modalHeading(fn (Model $record) => $record->customer->name)
+                        ->modalContent(fn (Model $record) => view('order.customer', ['order' => $record])),
 
-                            ),
-                        // Forms\Components\Checkbox::make('print')
-                        //     ->label('Print Level')
-                        //     ->visible(
-                        //         fn (Order $record) => ($record->wholesalers(OrderItemStatus::Approved)->count() == 1) && ($record->status == OrderStatus::WaitingForHubCollection)
-                        //     )
-                        //     ->default(1),
-                    ])
-                    ->modalHeading(fn (Model $record) => 'Products list for order # ' . $record->id)
-                    ->modalContent(fn (Model $record, Tables\Actions\Action $action) => view('orders.items-status', [
-                        'items' => $record->loadMissing('items.wholesaler')->items
-                    ])),
+                    Tables\Actions\Action::make('track')
+                        ->label('Track Order')
+                        ->icon('heroicon-o-eye')
+                        ->url(fn (Order $record) => $record->tracking_url)
+                        ->visible(fn (Order $record) => $record->tracking_code)
+                        ->openUrlInNewTab(),
+                    Tables\Actions\Action::make('send_to_courier')
+                        ->label('Send to courier')
+                        ->icon('heroicon-o-arrow-up-circle')
+                        ->requiresConfirmation()
+                        ->visible(fn (Order $record) => !$record->consignment_id && ($record->status == OrderStatus::ProcessingForHandOverToCourier))
+                        ->action(fn (Order $record) => $record->addToCourier($record)),
+                    Tables\Actions\Action::make('print_address')
+                        ->icon('heroicon-o-printer')
+                        ->label('Print Label')
+                        ->url(fn (Order $record): string => route('order.print.label', $record))
+                        ->openUrlInNewTab()
+                        ->visible(fn (Model $record) => $record->status == OrderStatus::HandOveredToCourier),
 
-                Tables\Actions\Action::make('collector')
-                    ->icon('heroicon-o-user')
-                    ->iconButton()
-                    ->label('Assign Collector')
-                    ->visible(
-                        fn (Model $record) => 0 & $record->wholesalers()->count() > 1 &&
-                            ($record->status == OrderStatus::WaitingForHubCollection) &&
-                            auth()->user()->isHubManager()
-                    )
-                    ->action(
-                        fn (Order $record, array $data) => $data['self'] ?
-                            $record->addCollector(auth()->user()->id) : $record->addCollector($data['collector_id'])
-                    )
-                    ->modalHeading(fn (Model $record) => 'Assign Collector to Order no ' . $record->id)
-                    ->form([
-                        Forms\Components\Checkbox::make('self')
-                            ->label('Assign Myself')
-                            ->reactive(),
-                        Forms\Components\Select::make('collector_id')
-                            ->label('Select Collector')
-                            ->visible(fn (\Filament\Forms\Get $get) => !$get('self'))
-                            ->required(fn (\Filament\Forms\Get $get) => !$get('self'))
-                            ->options(
-                                fn () => User::query()
-                                    ->whereRelation('address', 'address_id', auth()->user()->address->address_id)
-                                    ->role(SystemRole::HubMember->value)
-                                    ->pluck('name', 'id')
 
-                            ),
-                    ]),
+                    Tables\Actions\Action::make('collector')
+                        ->icon('heroicon-o-user')
+                        ->label('Assign Collector')
+                        ->visible(
+                            fn (Model $record) => 0 & $record->wholesalers()->count() > 1 &&
+                                ($record->status == OrderStatus::WaitingForHubCollection) &&
+                                auth()->user()->isHubManager()
+                        )
+                        ->action(
+                            fn (Order $record, array $data) => $data['self'] ?
+                                $record->addCollector(auth()->user()->id) : $record->addCollector($data['collector_id'])
+                        )
+                        ->modalHeading(fn (Model $record) => 'Assign Collector to Order no ' . $record->id)
+                        ->form([
+                            Forms\Components\Checkbox::make('self')
+                                ->label('Assign Myself')
+                                ->reactive(),
+                            Forms\Components\Select::make('collector_id')
+                                ->label('Select Collector')
+                                ->visible(fn (\Filament\Forms\Get $get) => !$get('self'))
+                                ->required(fn (\Filament\Forms\Get $get) => !$get('self'))
+                                ->options(
+                                    fn () => User::query()
+                                        ->whereRelation('address', 'address_id', auth()->user()->address->address_id)
+                                        ->role(SystemRole::HubMember->value)
+                                        ->pluck('name', 'id')
 
-            ])
+                                ),
+                        ]),
+
+                ])
+            ], position: Tables\Enums\ActionsPosition::BeforeColumns)
             ->checkIfRecordIsSelectableUsing(
                 function (Model $record): bool {
 
