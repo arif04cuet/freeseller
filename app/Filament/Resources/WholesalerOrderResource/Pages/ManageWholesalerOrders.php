@@ -9,6 +9,8 @@ use App\Services\OrderService;
 use Filament\Pages\Actions;
 use Filament\Resources\Pages\ManageRecords;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\Pagination\Paginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class ManageWholesalerOrders extends ManageRecords
 {
@@ -24,5 +26,10 @@ class ManageWholesalerOrders extends ManageRecords
     public function getTabs(): array
     {
         return OrderService::resource(static::$resource)::tabs(SystemRole::Wholesaler);
+    }
+
+    protected function paginateTableQuery(Builder $query): Paginator
+    {
+        return $query->simplePaginate(($this->getTableRecordsPerPage() === 'all') ? $query->count() : $this->getTableRecordsPerPage());
     }
 }

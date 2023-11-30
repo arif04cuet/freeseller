@@ -81,6 +81,12 @@ class WholesalerOrderResource extends Resource
                             ->count() ? 'Received' : ''
                     )
                     ->badge()
+                    ->visible(
+                        fn ($livewire) => in_array($livewire->activeTab, [
+                            OrderStatus::Cancelled->name,
+                            OrderStatus::Partial_Delivered->name,
+                        ])
+                    )
                     ->color(fn (string $state): string => match ($state) {
                         'Received' => 'success',
                         default => ''
@@ -93,88 +99,95 @@ class WholesalerOrderResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\Action::make('track')
-                    ->label('Track Order')
-                    ->url(fn (Order $record) => $record->tracking_url)
-                    ->visible(fn (Order $record) => $record->tracking_code)
-                    ->openUrlInNewTab(),
 
-                Tables\Actions\Action::make('items')
-                    ->label('Products')
-                    ->icon('heroicon-o-bars-4')
-                    ->iconButton()
-                    ->action(
-                        function (Tables\Actions\Action $action, $data, Order $record) {
+                Tables\Actions\ActionGroup::make([
 
-                            if (isset($data['collector_code'])) {
+                    Tables\Actions\Action::make('items')
+                        ->label('Products')
+                        ->icon('heroicon-o-bars-4')
+                        ->color('success')
+                        ->action(
+                            function (Tables\Actions\Action $action, $data, Order $record) {
 
-                                $collection = $record->collections->filter(fn ($item) => $item->wholesaler_id == auth()->user()->id)->first();
+                                if (isset($data['collector_code'])) {
 
-                                if (!$collection || ($collection->collector_code != $data['collector_code'])) {
+                                    $collection = $record->collections->filter(fn ($item) => $item->wholesaler_id == auth()->user()->id)->first();
 
-                                    Notification::make()
-                                        ->title('Code mismatch')
-                                        ->danger()
-                                        ->send();
+                                    if (!$collection || ($collection->collector_code != $data['collector_code'])) {
 
-                                    $action->halt();
+                                        Notification::make()
+                                            ->title('Code mismatch')
+                                            ->danger()
+                                            ->send();
+
+                                        $action->halt();
+                                    }
+
+                                    $record->deliverToCollector($collection);
+                                } else {
+                                    $record->getItemsByWholesaler(auth()->user())->each->markAsApproved();
                                 }
-
-                                $record->deliverToCollector($collection);
-                            } else {
-                                $record->getItemsByWholesaler(auth()->user())->each->markAsApproved();
                             }
-                        }
-                    )
-                    ->modalSubmitAction(
-                        function (StaticAction $action, Order $record) {
+                        )
+                        ->modalSubmitAction(
+                            function (StaticAction $action, Order $record) {
 
-                            $wholesalerPendingItems = $record
-                                ->getItemsByWholesaler(auth()->user(), OrderItemStatus::WaitingForWholesalerApproval->value)
-                                ->count();
-                            return $wholesalerPendingItems && ($record->status != OrderStatus::Cancelled) ? $action->label('Approve All') : false;
-                        }
-                    )
-                    ->modalCancelAction(false)
-                    ->extraModalFooterActions([
-                        Tables\Actions\Action::make('cancel')
-                            ->label('Reject')
-                            ->visible(fn (Model $record) => $record?->status == OrderStatus::WaitingForWholesalerApproval)
-                            ->requiresConfirmation()
-                            ->color('danger')
-                            ->form([
-                                forms\Components\Textarea::make('cancel_note')
-                                    ->required()
-                            ])
-                            ->cancelParentActions()
-                            ->action(
-                                function (Model $record, array $data, $action) {
+                                $wholesalerPendingItems = $record
+                                    ->getItemsByWholesaler(auth()->user(), OrderItemStatus::WaitingForWholesalerApproval->value)
+                                    ->count();
+                                return $wholesalerPendingItems && ($record->status != OrderStatus::Cancelled) ? $action->label('Approve All') : false;
+                            }
+                        )
+                        ->modalCancelAction(false)
+                        ->extraModalFooterActions([
+                            Tables\Actions\Action::make('cancel')
+                                ->label('Reject')
+                                ->visible(fn (Model $record) => $record?->status == OrderStatus::WaitingForWholesalerApproval)
+                                ->requiresConfirmation()
+                                ->color('danger')
+                                ->form([
+                                    forms\Components\Textarea::make('cancel_note')
+                                        ->required()
+                                ])
+                                ->cancelParentActions()
+                                ->action(
+                                    function (Model $record, array $data, $action) {
 
-                                    $wholesaler = auth()->user();
+                                        $wholesaler = auth()->user();
 
-                                    $record->update([
-                                        'status' => OrderStatus::Cancelled->value,
-                                        'cancelled_note' => $data['cancel_note'],
-                                        'cancelled_by' => $wholesaler->id
-                                    ]);
-                                    $record->items()
-                                        ->where('wholesaler_id', $wholesaler->id)
-                                        ->update([
-                                            'status' => OrderItemStatus::Cancelled->value
+                                        $record->update([
+                                            'status' => OrderStatus::Cancelled->value,
+                                            'cancelled_note' => $data['cancel_note'],
+                                            'cancelled_by' => $wholesaler->id
                                         ]);
+                                        $record->items()
+                                            ->where('wholesaler_id', $wholesaler->id)
+                                            ->update([
+                                                'status' => OrderItemStatus::Cancelled->value
+                                            ]);
 
-                                    Notification::make()
-                                        ->title('Order cancelled successfully')
-                                        ->send();
-                                }
-                            ),
+                                        Notification::make()
+                                            ->title('Order cancelled successfully')
+                                            ->send();
+                                    }
+                                ),
 
-                    ])
-                    ->modalHeading(fn (Model $record) => 'Products list for order # ' . $record->id)
-                    ->modalContent(fn (Model $record) => view('orders.items-status', [
-                        'items' => $record->loadMissing('items.wholesaler')->getItemsByWholesaler(auth()->user()),
-                    ])),
+                        ])
+                        ->modalHeading(fn (Model $record) => 'Products list for order # ' . $record->id)
+                        ->modalContent(fn (Model $record) => view('orders.items-status', [
+                            'items' => $record->loadMissing('items.wholesaler')->getItemsByWholesaler(auth()->user()),
+                        ])),
 
+                    Tables\Actions\Action::make('track')
+                        ->icon('heroicon-o-eye')
+                        ->label('Track Order')
+                        ->url(fn (Order $record) => $record->tracking_url)
+                        ->visible(fn (Order $record) => $record->tracking_code)
+                        ->openUrlInNewTab(),
+
+
+
+                ])
             ])
             ->bulkActions([
                 //Tables\Actions\DeleteBulkAction::make(),
