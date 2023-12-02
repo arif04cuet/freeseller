@@ -75,12 +75,26 @@ class FundWithdrawRequest extends Model implements HasMedia
             $floatFn = fn ($number) => number_format($number, 2, '.', '');
 
             $amount = $floatFn($this->amount);
+            $fee = $floatFn($this->fund_transfer_fee);
 
             // deduct from user wallet.
-            $user->forceTransferFloat($platform, $amount, ['description' => 'Fund withdrawn amount transfered to platform account']);
+            $user->forceTransferFloat($platform, $amount, [
+                'description' => 'Fund withdrawn amount transfered to platform account',
+                'fund_withdrawal' => $this->id
+            ]);
 
+            // deduct fee from user wallet.
+            if ($fee > 0) {
+                $user->forceTransferFloat($platform, $fee, [
+                    'description' => 'Fund withdrawn Fee transfered to platform account',
+                    'fund_withdrawal_fee' => $this->id
+                ]);
+            }
             // deduct from platform account.
-            $platform->withdrawFloat($amount, ['description' => 'Fund transfered to user (' . $user->name . ') bank acount']);
+            $platform->withdrawFloat($amount, [
+                'description' => 'Fund transfered to user (' . $user->name . ') bank acount',
+                'fund_withdrawal' => $this->id
+            ]);
 
             //send notification
 

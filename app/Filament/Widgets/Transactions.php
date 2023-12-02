@@ -23,7 +23,7 @@ class Transactions extends BaseWidget
 
     public static function canView(): bool
     {
-        return !auth()->user()->isHubManager();
+        return auth()->user()->isSuperAdmin() || auth()->user()->isHubManager();
     }
 
     public function table(Table $table): Table

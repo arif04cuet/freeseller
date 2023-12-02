@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Filament\Widgets;
+
+use App\Models\Order;
+use Bavix\Wallet\Models\Transaction;
+use Filament\Forms;
+use Filament\Tables;
+use Filament\Tables\Columns\Summarizers\Sum;
+use Filament\Tables\Table;
+use Filament\Widgets\Concerns\CanPoll;
+use Filament\Widgets\TableWidget as BaseWidget;
+use Illuminate\Database\Eloquent\Builder;
+
+class DeliveryLog extends BaseWidget
+{
+    use CanPoll;
+
+    protected static ?int $sort = 11;
+    protected int | string | array $columnSpan = 2;
+
+
+    public static function canView(): bool
+    {
+        return auth()->user()->isSuperAdmin() || auth()->user()->isHubManager();
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->deferLoading()
+            ->query(
+                Order::query()
+                    ->with('deliveredBy')
+                    ->select([
+                        'id',
+                        'cod',
+                        'collected_cod',
+                        'delivered_at',
+                        'status',
+                        'delivered_by'
+                    ])
+                    ->whereNotNull('delivered_at')
+                    ->latest()
+            )
+            ->columns([
+                Tables\Columns\TextColumn::make('deliveredBy.name'),
+                Tables\Columns\TextColumn::make('id')
+                    ->searchable()
+                    ->label('Order#'),
+                Tables\Columns\TextColumn::make('cod'),
+                Tables\Columns\TextColumn::make('collected_cod')->label('C.Cod'),
+                Tables\Columns\TextColumn::make('status')->badge(),
+                Tables\Columns\TextColumn::make('delivered_at'),
+
+            ]);
+    }
+}

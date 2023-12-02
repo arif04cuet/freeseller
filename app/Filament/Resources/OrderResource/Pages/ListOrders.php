@@ -8,6 +8,8 @@ use App\Filament\Resources\OrderResource;
 use App\Services\OrderService;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\Paginator;
 
 class ListOrders extends ListRecords
 {
@@ -25,6 +27,11 @@ class ListOrders extends ListRecords
         return [
             OrderResource\Widgets\OrderInstruction::class,
         ];
+    }
+
+    protected function paginateTableQuery(Builder $query): Paginator
+    {
+        return $query->simplePaginate(($this->getTableRecordsPerPage() === 'all') ? $query->count() : $this->getTableRecordsPerPage());
     }
 
     public function getTabs(): array

@@ -112,7 +112,7 @@ class OrderItemsView extends Component implements HasForms, HasTable
 
                             return '<a href="tel:' . $wholesaler->mobile . '">' .
                                 $wholesaler->business->name . '<br/>' .
-                                $wholesaler->name .
+                                $wholesaler->id_number .
                                 '</a>';
                         }
                     )

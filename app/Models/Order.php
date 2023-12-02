@@ -109,6 +109,11 @@ class Order extends Model
         return $this->belongsTo(User::class, 'reseller_id');
     }
 
+    public function deliveredBy(): ?BelongsTo
+    {
+        return $this->belongsTo(User::class, 'delivered_by');
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);

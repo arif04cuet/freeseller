@@ -9,7 +9,8 @@ use App\Filament\Resources\HubOrderResource;
 use App\Models\Order;
 use App\Services\OrderService;
 use Filament\Resources\Pages\ManageRecords;
-
+use Illuminate\Contracts\Pagination\Paginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class ManageHubOrders extends ManageRecords
 {
@@ -33,5 +34,10 @@ class ManageHubOrders extends ManageRecords
     public function getTabs(): array
     {
         return OrderService::resource(static::$resource)::tabs(SystemRole::HubManager);
+    }
+
+    protected function paginateTableQuery(Builder $query): Paginator
+    {
+        return $query->simplePaginate(($this->getTableRecordsPerPage() === 'all') ? $query->count() : $this->getTableRecordsPerPage());
     }
 }

@@ -16,6 +16,7 @@ class DailyProfit extends BaseWidget
     protected static ?string $heading = 'Profit Earned';
     public static function canView(): bool
     {
+        return false;
         /** @var App\Models\User $user */
         $user = auth()->user();
         return  $user->isReseller();

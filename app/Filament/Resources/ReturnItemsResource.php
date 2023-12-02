@@ -12,6 +12,7 @@ use App\Models\ReturnItems;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -142,11 +143,16 @@ class ReturnItemsResource extends Resource
                                 );
 
                                 return [
-                                    'sent_otp' => $otp
+                                    'sent_otp' => $otp,
+                                    'orders' => $parcels->count(),
+                                    'items' => $return_qnt
                                 ];
                             }
                         )
                         ->form([
+                            Forms\Components\Placeholder::make('orders')
+                                ->hiddenLabel()
+                                ->content(fn (Get $get, $state) => 'Total Products= ' . $get('items') . ' and Total Orders = ' . $get('orders')),
                             Forms\Components\TextInput::make('entered_otp')
                                 ->label('Enter OTP to verify')
                                 ->required()

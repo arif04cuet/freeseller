@@ -2,12 +2,15 @@
 
 namespace App\Filament\Resources;
 
+use App\Enum\OrderItemStatus;
 use App\Filament\Resources\SkusResource\Pages;
 use App\Filament\Resources\SkusResource\RelationManagers;
+use App\Models\OrderItem;
 use App\Models\Sku;
 use App\Tables\Columns\QuantityUpdate;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
@@ -83,10 +86,31 @@ class SkusResource extends Resource
                         ->label('Price')
                         ->formatStateUsing(fn (Model $record, $state) => view('products.sku.price', ['product' => $record->product]))
                         ->html(),
-                    Tables\Columns\TextColumn::make('quantity')
-                        ->formatStateUsing(fn ($state) => '<b>' . $state . '</b>' . ' pieces available')
+                    Tables\Columns\TextColumn::make('id')
+                        ->formatStateUsing(fn (Model $record) => '<b>' . $record->quantity . '</b>' . ' pieces available')
                         ->html(),
-                    QuantityUpdate::make('update_quantity')
+                    //QuantityUpdate::make('update_quantity')
+                    Tables\Columns\TextInputColumn::make('quantity')
+                        ->type('number')
+                        ->rules(['required', 'numeric', 'min:0'])
+                        ->updateStateUsing(function (Model $record, $state) {
+                            $pendingOrderQnt = OrderItem::query()
+                                ->where('status', OrderItemStatus::WaitingForWholesalerApproval->value)
+                                ->sum('quantity');
+
+                            if ($state < $pendingOrderQnt) {
+                                Notification::make()
+                                    ->title('You have pending order qnt=' . $pendingOrderQnt)
+                                    ->danger()
+                                    ->send();
+                            } else {
+                                $record->update(['quantity' => $state]);
+                                Notification::make()
+                                    ->title('Quantity Updated')
+                                    ->success()
+                                    ->send();
+                            }
+                        })
                 ])->from('md'),
 
             ])

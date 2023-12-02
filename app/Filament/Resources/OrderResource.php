@@ -603,6 +603,10 @@ class OrderResource extends Resource
                 //     ->wrap(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge(),
+                Tables\Columns\TextColumn::make('delivered_note')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('cancelled_note')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
             ])
 
@@ -659,6 +663,8 @@ class OrderResource extends Resource
                         ),
 
                     Tables\Actions\Action::make('transactions')
+                        ->color('success')
+                        ->icon('heroicon-o-currency-dollar')
                         ->modalCancelAction(false)
                         ->modalSubmitAction(false)
                         ->visible(fn (Order $record) => $record->delivered_at)
@@ -667,6 +673,8 @@ class OrderResource extends Resource
                             'order' => $record,
                         ])),
                     Tables\Actions\Action::make('track')
+                        ->icon('heroicon-o-eye')
+                        ->color('primary')
                         ->label('Track Order')
                         ->url(fn (Order $record) => $record->tracking_url)
                         ->visible(fn (Order $record) => $record->tracking_code)

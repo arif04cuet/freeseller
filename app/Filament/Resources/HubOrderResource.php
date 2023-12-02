@@ -126,6 +126,12 @@ class HubOrderResource extends Resource
                             ->count() ? 'Returned' : ''
                     )
                     ->badge()
+                    ->visible(
+                        fn ($livewire) => in_array($livewire->activeTab, [
+                            OrderStatus::Cancelled->name,
+                            OrderStatus::Partial_Delivered->name,
+                        ])
+                    )
                     ->color(fn (string $state): string => match ($state) {
                         'Returned' => 'success',
                         default => ''
@@ -385,7 +391,8 @@ class HubOrderResource extends Resource
                                     function (Order $record, Get $get) {
                                         return function (string $attribute, $value, Closure $fail) use ($get, $record) {
 
-                                            $halfOfCod = ($record->cod) / 2;
+                                            $halfOfCod = auth()->user()->isSuperAdmin() ? 0 : ($record->cod) / 2;
+
                                             $msg = 'The COD is not correct';
 
                                             if (($get('status') == OrderStatus::Delivered->value) && ($value < $halfOfCod)) {

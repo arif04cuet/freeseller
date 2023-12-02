@@ -80,6 +80,22 @@ class FundWithdrawRequestResource extends Resource
                     )
                     ->required(),
 
+                Forms\Components\Select::make('fund_transfer_fee')
+                    ->label('Transfer Mode')
+                    ->default(1)
+                    ->live()
+                    ->dehydrateStateUsing(
+                        fn ($state) => $state == 1 ? config('freeseller.fund_transfer_fee') : 0
+                    )
+                    ->required()
+                    ->options(
+                        fn () => [
+                            1 => 'Same Day ( Charge ' . config('freeseller.fund_transfer_fee') . ' Tk )',
+                            2 => 'Next Day ( Charge 0 Tk )',
+                        ]
+                    )
+
+
             ]);
     }
 
@@ -92,7 +108,9 @@ class FundWithdrawRequestResource extends Resource
                 Tables\Columns\TextColumn::make('user.business.name'),
                 Tables\Columns\TextColumn::make('user.name')->label('Owner'),
                 Tables\Columns\TextColumn::make('amount')
-                    ->label('Requested Amount'),
+                    ->label('Amount'),
+                Tables\Columns\TextColumn::make('fund_transfer_fee')
+                    ->label('Fee'),
                 Tables\Columns\TextColumn::make('paymentChannel.type')
                     ->label('Channel'),
                 Tables\Columns\TextColumn::make('status')
@@ -158,7 +176,7 @@ class FundWithdrawRequestResource extends Resource
                     ->fillForm(fn (Model $record): array => [
                         'amount' => $record->amount,
                         'lockAmount' => $record->lockAmount->amount,
-                        'active_balance' => $record->user->active_balance
+                        'active_balance' => (int) $record->user->active_balance
                     ])
                     ->form([
                         Forms\Components\Grid::make()
@@ -171,15 +189,18 @@ class FundWithdrawRequestResource extends Resource
                                     ->label('Lock Amount'),
                                 Forms\Components\TextInput::make('active_balance')
                             ]),
-                        Forms\Components\ViewField::make('payment_channel')
-                            ->columnSpanFull()
-                            ->view('fund.view-payment-channel'),
 
-                        SpatieMediaLibraryFileUpload::make('image')
-                            ->required()
-                            ->label('Tnx Receipt')
-                            ->image()
-                            ->collection('fund_approved'),
+                        Forms\Components\Grid::make()
+                            ->schema([
+                                Forms\Components\ViewField::make('payment_channel')
+                                    ->view('fund.view-payment-channel'),
+
+                                SpatieMediaLibraryFileUpload::make('image')
+                                    ->required()
+                                    ->label('Tnx Receipt')
+                                    ->image()
+                                    ->collection('fund_approved')
+                            ]),
 
                         Forms\Components\TextInput::make('transfer_amount')
                             ->required()
@@ -188,9 +209,6 @@ class FundWithdrawRequestResource extends Resource
                                 return [$record->amount];
                             })
                             ->label('Transfer Amount'),
-
-
-
 
 
                     ])
