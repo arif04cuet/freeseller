@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Order;
+use App\Models\User;
 use Bavix\Wallet\Models\Transaction;
 use Filament\Forms;
 use Filament\Tables;
@@ -44,15 +45,20 @@ class DeliveryLog extends BaseWidget
                     ->latest()
             )
             ->columns([
-                Tables\Columns\TextColumn::make('deliveredBy.name'),
+                Tables\Columns\TextColumn::make('deliveredBy.name')
+                    ->label('Added By'),
                 Tables\Columns\TextColumn::make('id')
                     ->searchable()
                     ->label('Order#'),
                 Tables\Columns\TextColumn::make('cod'),
                 Tables\Columns\TextColumn::make('collected_cod')->label('C.Cod'),
                 Tables\Columns\TextColumn::make('status')->badge(),
-                Tables\Columns\TextColumn::make('delivered_at'),
+                Tables\Columns\TextColumn::make('delivered_at')->sortable(),
 
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('delivered_by')
+                    ->options(User::query()->hubUsers()->pluck('name', 'id'))
             ]);
     }
 }
