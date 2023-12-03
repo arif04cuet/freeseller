@@ -29,6 +29,7 @@ class AddParcelToSteadFastFake
             'consignment_id' => uniqid('fake-'),
             'tracking_code' => uniqid('fake-'),
             'status' => OrderStatus::HandOveredToCourier->value,
+            'sent_to_courier_at' => now()
         ]);
 
         Notification::make()

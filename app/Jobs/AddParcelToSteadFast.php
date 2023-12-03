@@ -45,6 +45,7 @@ class AddParcelToSteadFast
                 'consignment_id' => $consignment['consignment_id'],
                 'tracking_code' => $consignment['tracking_code'],
                 'status' => OrderStatus::HandOveredToCourier->value,
+                'sent_to_courier_at' => now()
             ]);
 
             Notification::make()

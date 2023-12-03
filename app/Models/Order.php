@@ -33,6 +33,7 @@ class Order extends Model
         'collected_at' => 'datetime',
         'delivered_at' => 'datetime',
         'delivery_action_at' => 'datetime',
+        'sent_to_courier_at' => 'datetime',
         'total_payable' => 'int',
         'total_saleable' => 'int',
         'profit' => 'int',

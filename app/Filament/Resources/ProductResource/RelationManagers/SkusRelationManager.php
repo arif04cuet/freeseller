@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources\ProductResource\RelationManagers;
 
+use App\Enum\OrderItemStatus;
 use App\Enum\SystemRole;
 use App\Models\AttributeValue;
+use App\Models\OrderItem;
 use App\Models\ResellerList;
 use App\Models\Sku;
 use Filament\Forms;
@@ -135,6 +137,20 @@ class SkusRelationManager extends RelationManager
                     })->using(function (Tables\Actions\EditAction $action, Model $record, array $data): Model {
 
                         $dataForSku = collect($data)->only('quantity', 'price')->toArray();
+
+                        $pendingOrderQnt = OrderItem::query()
+                            ->where('status', OrderItemStatus::WaitingForWholesalerApproval->value)
+                            ->where('sku_id', $record->id)
+                            ->sum('quantity');
+
+                        if ($dataForSku['quantity'] < $pendingOrderQnt) {
+                            Notification::make()
+                                ->title('You have pending order qnt=' . $pendingOrderQnt)
+                                ->danger()
+                                ->send();
+                            $action->halt();
+                        }
+
                         $record->update($dataForSku);
 
                         return $record;

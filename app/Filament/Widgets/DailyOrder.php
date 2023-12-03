@@ -23,8 +23,9 @@ class DailyOrder extends BaseWidget
 
     public static function canView(): bool
     {
-        return  !auth()->user()->isReseller();
+        return auth()->user()->isSuperAdmin() || auth()->user()->isHubManager();
     }
+
 
 
     public function table(Table $table): Table

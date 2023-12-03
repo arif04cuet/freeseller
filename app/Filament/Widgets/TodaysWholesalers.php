@@ -41,7 +41,7 @@ class TodaysWholesalers extends BaseWidget
                     ->with('wholesaler.business')
                     ->select([
                         'wholesaler_id',
-                        DB::raw("count(order_id) as order_count"),
+                        DB::raw("count(DISTINCT(order_id)) as order_count"),
                         DB::raw("sum(quantity) as item_count")
                     ])
                     ->whereDate('created_at', Carbon::today())

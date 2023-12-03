@@ -19,7 +19,7 @@ class ActiveWholesalerOrders extends BaseWidget
     protected static ?int $sort = 7;
     protected int | string | array $columnSpan = 2;
 
-    protected static ?string $heading = 'Active Orders';
+    protected static ?string $heading = 'Waiting for Approval';
 
     public static function canView(): bool
     {
@@ -43,11 +43,7 @@ class ActiveWholesalerOrders extends BaseWidget
                         OrderItemStatus::Returned->value
                     ]);
             })
-            ->whereNotIn('status', [
-                OrderStatus::Delivered->value,
-                OrderStatus::Partial_Delivered->value,
-                OrderStatus::Cancelled->value,
-            ])
+            ->where('status', OrderStatus::WaitingForWholesalerApproval->value)
             ->withSum([
                 'items' => function (Builder $q) {
                     return $q->whereBelongsTo(auth()->user(), 'wholesaler');

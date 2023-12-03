@@ -23,7 +23,8 @@ class OrderItem extends Model
         'return_qnt' => 'int',
         'is_returned_to_wholesaler' => 'boolean',
         'return_arrived_at' => 'datetime',
-        'return_received_at' => 'datetime'
+        'return_received_at' => 'datetime',
+        'approved_at' => 'datetime'
     ];
 
     //relations
@@ -67,7 +68,10 @@ class OrderItem extends Model
     public function markAsApproved(): void
     {
         if ($this->status == OrderItemStatus::WaitingForWholesalerApproval) {
-            $this->forceFill(['status' => OrderItemStatus::Approved->value])->save();
+            $this->forceFill([
+                'status' => OrderItemStatus::Approved->value,
+                'approved_at' => now(),
+            ])->save();
             OrderItemApproved::dispatch($this);
         }
     }

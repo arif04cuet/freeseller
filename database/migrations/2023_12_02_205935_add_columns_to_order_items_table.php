@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('order_items', function (Blueprint $table) {
-            $table->string('return_arrived_at')->nullable();
-            $table->string('return_received_at')->nullable();
+            $table->timestamp('return_arrived_at')->nullable()->change();
+            $table->timestamp('return_received_at')->nullable()->change();
         });
     }
 
@@ -23,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('order_items', function (Blueprint $table) {
-            $table->dropColumn(['return_arrived_at', 'return_received_at'])->nullable();
+            //
         });
     }
 };

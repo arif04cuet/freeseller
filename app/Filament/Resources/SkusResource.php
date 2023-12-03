@@ -94,8 +94,10 @@ class SkusResource extends Resource
                         ->type('number')
                         ->rules(['required', 'numeric', 'min:0'])
                         ->updateStateUsing(function (Model $record, $state) {
+
                             $pendingOrderQnt = OrderItem::query()
                                 ->where('status', OrderItemStatus::WaitingForWholesalerApproval->value)
+                                ->where('sku_id', $record->id)
                                 ->sum('quantity');
 
                             if ($state < $pendingOrderQnt) {
