@@ -48,8 +48,7 @@ class CreateOrder extends CreateRecord
                     return new HtmlString(view('order.overview', $data)->render());
                 }
             )
-            //->action(fn () => $this->create())
-            ->action(fn () => dd('ok'))
+            ->action(fn () => $this->create())
             ->before(function () {
 
                 // 10 seceond wait time for a order of same reseller
