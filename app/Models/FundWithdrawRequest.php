@@ -96,6 +96,12 @@ class FundWithdrawRequest extends Model implements HasMedia
                 'fund_withdrawal' => $this->id
             ]);
 
+            //release lock amount
+            if ($this->lockAmount()->exists()) {
+                $this->lockAmount()->delete();
+            }
+
+
             //send notification
 
             User::sendMessage(

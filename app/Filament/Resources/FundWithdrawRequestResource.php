@@ -13,6 +13,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -55,6 +56,9 @@ class FundWithdrawRequestResource extends Resource
                     ->options(PaymentChannel::array())
                     ->reactive()
                     ->dehydrated(false)
+                    ->afterStateHydrated(
+                        fn (?Model $record, $component) => $record && $component->state($record->paymentChannel->type->value)
+                    )
                     ->required(),
 
                 Forms\Components\Select::make('payment_channel_id')
@@ -87,6 +91,9 @@ class FundWithdrawRequestResource extends Resource
                     ->dehydrateStateUsing(
                         fn ($state) => $state == 1 ? config('freeseller.fund_transfer_fee') : 0
                     )
+                    ->afterStateHydrated(
+                        fn (?Model $record, $component) => $record && $component->state(1)
+                    )
                     ->required()
                     ->options(
                         fn () => [
@@ -108,7 +115,12 @@ class FundWithdrawRequestResource extends Resource
                 Tables\Columns\TextColumn::make('user.business.name'),
                 Tables\Columns\TextColumn::make('user.name')->label('Owner'),
                 Tables\Columns\TextColumn::make('amount')
-                    ->label('Amount'),
+                    ->label('Amount')
+                    ->summarize(
+                        Sum::make()
+                            ->label('Total Withdrawn')
+                            ->query(fn ($query) => $query->where('status', WalletRechargeRequestStatus::Approved->value))
+                    ),
                 Tables\Columns\TextColumn::make('fund_transfer_fee')
                     ->label('Fee'),
                 Tables\Columns\TextColumn::make('paymentChannel.type')
@@ -139,7 +151,24 @@ class FundWithdrawRequestResource extends Resource
                     ->dateTime(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->options(WalletRechargeRequestStatus::class),
+                Tables\Filters\Filter::make('approved_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('from')->label('From'),
+                        Forms\Components\DatePicker::make('to'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('approved_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['to'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('approved_at', '<=', $date),
+                            );
+                    })
             ])
             ->actions([
                 Tables\Actions\EditAction::make()

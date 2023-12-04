@@ -13,10 +13,7 @@ class FundWithdrawRequestbserver
     {
 
         //lock the requested amount
-        $fundWithdrawRequest->lockAmount()->create([
-            'user_id' => $fundWithdrawRequest->user->id,
-            'amount' => $fundWithdrawRequest->amount,
-        ]);
+        $this->lockAmount($fundWithdrawRequest);
     }
 
     /**
@@ -24,11 +21,9 @@ class FundWithdrawRequestbserver
      */
     public function updated(FundWithdrawRequest $fundWithdrawRequest): void
     {
-        //logger('updated');
-        //release lock amount
-        if ($fundWithdrawRequest->isApproved() && $fundWithdrawRequest->lockAmount()->exists()) {
 
-            $fundWithdrawRequest->lockAmount()->delete();
+        if (!$fundWithdrawRequest->isApproved()) {
+            $this->lockAmount($fundWithdrawRequest);
         }
     }
 
@@ -54,5 +49,17 @@ class FundWithdrawRequestbserver
     public function forceDeleted(FundWithdrawRequest $fundWithdrawRequest): void
     {
         //
+    }
+
+    public function lockAmount(FundWithdrawRequest $fundWithdrawRequest): void
+    {
+        if ($fundWithdrawRequest->lockAmount()->exists()) {
+            $fundWithdrawRequest->lockAmount()->delete();
+        }
+
+        $fundWithdrawRequest->lockAmount()->create([
+            'user_id' => $fundWithdrawRequest->user->id,
+            'amount' => $fundWithdrawRequest->amount,
+        ]);
     }
 }
