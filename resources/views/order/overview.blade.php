@@ -46,3 +46,10 @@
 
     </tfoot>
 </table>
+
+<div wire:loading class="mt-2">
+    <div class="flex">
+        <div class="mr-4">Working Wait...</div>
+        <x-filament::loading-indicator class="h-5 w-5" />
+    </div>
+</div>

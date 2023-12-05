@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
 use Arr;
+use Filament\Actions\StaticAction;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -211,6 +212,9 @@ class SkusRelationManager extends RelationManager
                         ->icon('heroicon-o-plus')
                         ->color('success')
                         ->requiresConfirmation()
+                        ->modalSubmitAction(fn (StaticAction $action) => $action->extraAttributes([
+                            'wire:loading.remove' => 'wire:loading.remove'
+                        ]))
                         ->modalDescription(
                             function (Collection $records) {
                                 return new HtmlString('
@@ -219,9 +223,11 @@ class SkusRelationManager extends RelationManager
                                 <ol class="list-decimal mx-auto text-left">
                                 ' . $records->map(fn ($sku, $index) => '<li>' . $index + 1 . '. ' . $sku->name . '</li>')->implode('') . '
                                 </ol>
+                                <div wire:loading class="text-custom-600 mt-2">Working Wait ...</div>
                                 ');
                             }
                         )
+                        ->modalCancelAction(false)
                         ->modalSubmitActionLabel('Yes, Create')
                         ->action(
                             function (RelationManager $livewire, Collection $records, array $data) {

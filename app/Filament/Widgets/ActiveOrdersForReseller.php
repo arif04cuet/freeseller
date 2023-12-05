@@ -54,8 +54,15 @@ class ActiveOrdersForReseller extends BaseWidget
                                 'items' => $record->loadMissing('items.wholesaler')->items,
                             ])),
                     ),
+                Tables\Columns\TextColumn::make('customer.mobile')
+                    ->searchable()
+                    ->formatStateUsing(fn (Order $record, $state) => '<a href="tel:' . $state . '"><u>' . $record->customer->name . '<br/>' . $state . '</u></a>')
+                    ->html()
+                    ->label('Customer'),
                 Tables\Columns\TextColumn::make('status')
                     ->badge(),
+                Tables\Columns\TextColumn::make('cod')
+                    ->label('COD'),
                 Tables\Columns\TextColumn::make('consignment_id')
                     ->label('CN'),
                 Tables\Columns\TextColumn::make('tracking_code')
@@ -63,16 +70,15 @@ class ActiveOrdersForReseller extends BaseWidget
                     ->formatStateUsing(fn () => 'Track Order')
                     ->url(fn (Order $record) => $record->tracking_url)
                     ->openUrlInNewTab(),
-                Tables\Columns\TextColumn::make('items_sum_quantity')
-                    ->label('Products')
-                    ->sum('items', 'quantity'),
-                Tables\Columns\TextColumn::make('total_payable')
-                    ->label('Payable'),
-                Tables\Columns\TextColumn::make('total_saleable')
-                    ->label('Sallable'),
-                Tables\Columns\TextColumn::make('cod')
-                    ->label('COD'),
-                Tables\Columns\TextColumn::make('profit'),
+                // Tables\Columns\TextColumn::make('items_sum_quantity')
+                //     ->label('Products')
+                //     ->sum('items', 'quantity'),
+                // Tables\Columns\TextColumn::make('total_payable')
+                //     ->label('Payable'),
+                // Tables\Columns\TextColumn::make('total_saleable')
+                //     ->label('Sallable'),
+
+                //Tables\Columns\TextColumn::make('profit'),
             ]);
     }
 }

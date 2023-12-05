@@ -10,6 +10,7 @@ use App\Models\Address;
 use App\Models\Order;
 use App\Models\Sku;
 use Filament\Actions\Action;
+use Filament\Actions\StaticAction;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
@@ -32,6 +33,10 @@ class CreateOrder extends CreateRecord
             ->modalIconColor('success')
             ->visible(fn () => empty($this->form->getRawState()['error']))
             ->modalHeading('Order Summary')
+            ->modalCancelAction(false)
+            ->modalSubmitAction(fn (StaticAction $action) => $action->extraAttributes([
+                'wire:loading.remove' => 'wire:loading.remove'
+            ]))
             ->modalDescription(
                 function (Action $action) {
                     try {
