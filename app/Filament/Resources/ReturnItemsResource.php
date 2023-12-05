@@ -68,12 +68,17 @@ class ReturnItemsResource extends Resource
         return $table
             ->columns([
 
-                Tables\Columns\TextColumn::make('id')
-                    ->label(fn () => request()->get('activeTab') == 'Returned to Wholesaler' ? 'Received At' : 'Arrived at')
-                    ->getStateUsing(
-                        fn (Model $record) => !$record->is_returned_to_wholesaler ?
-                            $record->order->delivered_at->since() : $record->return_received_at
-                    ),
+                Tables\Columns\TextColumn::make('order.delivered_at')
+                    ->label('Arrived at Hub')
+                    ->visible(
+                        fn ($livewire) => $livewire->activeTab == 'Pending'
+                    )->since(),
+                Tables\Columns\TextColumn::make('return_received_at')
+                    ->label('Received At')
+                    ->visible(
+                        fn ($livewire) => $livewire->activeTab == 'Returned to Wholesaler'
+                    )->date(),
+
                 Tables\Columns\TextColumn::make('order_id')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('sku')

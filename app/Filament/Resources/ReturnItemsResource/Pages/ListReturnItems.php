@@ -3,12 +3,14 @@
 namespace App\Filament\Resources\ReturnItemsResource\Pages;
 
 use App\Filament\Resources\ReturnItemsResource;
+use App\Traits\UseSimplePagination;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 
 class ListReturnItems extends ListRecords
 {
+    use UseSimplePagination;
     protected static string $resource = ReturnItemsResource::class;
 
     protected function getHeaderActions(): array
