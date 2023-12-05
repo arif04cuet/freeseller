@@ -6,7 +6,7 @@ use App\Enum\WalletRechargeRequestStatus;
 use App\Filament\Resources\WalletRechargeRequestResource;
 use App\Filament\Resources\WalletRechargeRequestResource\Widgets\WhereToPayment;
 use App\Models\User;
-use Filament\Pages\Actions;
+use Filament\Actions;
 use Filament\Resources\Pages\ManageRecords;
 use Illuminate\Database\Eloquent\Model;
 

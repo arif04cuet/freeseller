@@ -70,14 +70,19 @@ class WalletRechargeRequest extends Model implements HasMedia
 
             $floatFn = fn ($number) => number_format($number, 2, '.', '');
 
-
             $amount = $floatFn($this->amount);
 
             // diposit to platform account
-            $platform->depositFloat($amount, ['description' => 'deposited by ' . $reseller->business->name]);
+            $platform->depositFloat($amount, [
+                'description' => 'Wallet recharged by ' . $reseller->business->name,
+                'wallet_recharge' => $this->id
+            ]);
 
             //transfer account to reseller
-            $platform->forceTransferFloat($reseller, $amount, ['description' => 'wallet recharged']);
+            $platform->forceTransferFloat($reseller, $amount, [
+                'description' => 'Wallet recharged',
+                'wallet_recharge' => $this->id
+            ]);
 
             //send notification
             $tnxId = $this->tnx_id;

@@ -48,7 +48,8 @@ class AvailableBalanceList extends Component implements HasForms, HasTable
                         DB::raw("
                                 CASE
                                     WHEN JSON_VALUE(meta,'$.order') THEN CONCAT('order','#',JSON_VALUE(meta,'$.order'))
-                                    WHEN JSON_VALUE(meta,'$.order') is null THEN CONCAT('fund','#',id)
+                                    WHEN JSON_VALUE(meta,'$.wallet_recharge') THEN CONCAT('recharge','#',JSON_VALUE(meta,'$.wallet_recharge'))
+                                    ELSE CONCAT('fund','#',id)
                                 END as item_type
                             ")
                     )

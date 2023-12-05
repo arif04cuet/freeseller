@@ -108,7 +108,7 @@ class WalletRechargeRequestResource extends Resource
                     ->visible(fn (Model $record) => ($record->status == WalletRechargeRequestStatus::Pending) && auth()->user()->isSuperAdmin())
                     ->requiresConfirmation()
                     ->action(
-                        function (Model $record) {
+                        function (WalletRechargeRequest $record) {
                             $record->markAsApproved();
                             User::sendMessage(
                                 users: $record->user,
