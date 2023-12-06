@@ -37,14 +37,18 @@ use Illuminate\Support\Facades\Notification as FacadesNotification;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use NotificationChannels\WebPush\HasPushSubscriptions;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, HasAvatar, FilamentUser
+class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, HasAvatar, FilamentUser, HasMedia
 {
     use HasApiTokens, HasFactory, Notifiable;
     use HasPushSubscriptions;
     use HasRoles;
     use HasWalletFloat;
+    use InteractsWithMedia;
 
     /**
      * The attributes that are mass assignable.
@@ -215,6 +219,13 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
 
     //functions
 
+    public function registerMediaConversions(Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(100)
+            ->height(100);
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         return true;
@@ -222,6 +233,9 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
 
     public function getFilamentAvatarUrl(): ?string
     {
+        if (!$this->isReseller() || !$this->isWholesaler())
+            return $this->getMedia('avatar')->first()?->getUrl('thumb');
+
         return '/storage/' . $this->business?->logo;
     }
 

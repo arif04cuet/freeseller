@@ -37,6 +37,15 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 class EditProfile extends AuthEditProfile
 {
 
+    public function backAction(): Action
+    {
+        return Action::make('back')
+            ->label('Back to Dashboard')
+            ->url(filament()->getUrl())
+            ->color('gray');
+    }
+
+
     /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
@@ -66,6 +75,11 @@ class EditProfile extends AuthEditProfile
     {
 
         $record->update($data);
+
+        if (!$record->isReseller() || !$record->isWholesaler())
+            return $record;
+
+        //for reseller and wholesaler
         $record = $record->fresh();
         $record->business()->update($data['business']);
 
@@ -97,7 +111,14 @@ class EditProfile extends AuthEditProfile
                     ->unique(table: config('filament-breezy.user_model'), ignoreRecord: true)
                     ->required(),
 
+                SpatieMediaLibraryFileUpload::make('avatar')
+                    ->label('Photo')
+                    ->avatar()
+                    ->visible(fn () => !(auth()->user()->isReseller() || auth()->user()->isWholesaler()))
+                    ->collection('avatar'),
+
                 Forms\Components\Fieldset::make('Business Information')
+                    ->visible(fn () => auth()->user()->isReseller() || auth()->user()->isWholesaler())
                     ->schema([
 
                         Forms\Components\Select::make('business.type')
