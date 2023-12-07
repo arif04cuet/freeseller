@@ -98,7 +98,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
     public function activeBalance(): Attribute
     {
         return Attribute::make(
-            get: fn ($value): float => (float) ($this->balanceFloat - $this->lockAmount->sum('amount'))
+            get: fn ($value): float => round(($this->balanceFloat - $this->lockAmount->sum('amount')), 2)
         );
     }
 
