@@ -24,6 +24,8 @@ use Filament\Forms\Form;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 
+use function Filament\Support\format_money;
+
 class OrderItemsView extends Component implements HasForms, HasTable
 {
     use InteractsWithForms;
@@ -77,13 +79,17 @@ class OrderItemsView extends Component implements HasForms, HasTable
                                 ]
                             )),
                     ),
-                Tables\Columns\TextColumn::make('sku.price')
-                    ->label('Price (Taka)'),
+                Tables\Columns\TextColumn::make('wholesaler_price')
+                    ->label('Unit Price'),
                 Tables\Columns\TextColumn::make('quantity')
+                    ->label('Qnt.')
                     ->formatStateUsing(
                         fn (Model $record, $state) => auth()->user()->isWholesaler() ?
                             $state . ' (' . $record->sku->quantity . ')' : $state
                     ),
+                Tables\Columns\TextColumn::make('total')
+                    ->getStateUsing(fn (Model $record) => $record->wholesaler_price * $record->quantity),
+
                 Tables\Columns\TextColumn::make('status')
                     ->wrap()
                     ->html()

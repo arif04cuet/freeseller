@@ -24,6 +24,7 @@ class PendingBalance extends Widget implements HasForms, HasActions
     use InteractsWithActions;
     use InteractsWithForms;
 
+
     protected static string $view = 'filament.widgets.pending-balance';
     protected int | string | array $columnSpan = [
         'default' => 2,
@@ -31,7 +32,10 @@ class PendingBalance extends Widget implements HasForms, HasActions
     ];
     protected static ?int $sort = 5;
 
-
+    protected function getPollingInterval(): ?string
+    {
+        return null;
+    }
 
     public function listAction(): Action
     {

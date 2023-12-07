@@ -23,6 +23,8 @@ class LockAmount extends Widget implements HasForms, HasActions
     use InteractsWithForms;
     use CanPoll;
 
+
+
     protected static ?int $sort = 6;
     protected int | string | array $columnSpan = [
         'default' => 2,
@@ -31,6 +33,10 @@ class LockAmount extends Widget implements HasForms, HasActions
 
     protected static string $view = 'filament.widgets.lock-amount';
 
+    protected function getPollingInterval(): ?string
+    {
+        return null;
+    }
 
     protected function getColumns(): int
     {

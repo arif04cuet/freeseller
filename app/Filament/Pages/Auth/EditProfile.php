@@ -7,6 +7,7 @@ use App\Enum\BusinessType;
 use App\Models\Address;
 use App\Models\Business;
 use App\Models\User;
+use App\Rules\MatchOldPassword;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -101,6 +102,12 @@ class EditProfile extends AuthEditProfile
                     ->required()
                     ->email()
                     ->unique(table: config('filament-breezy.user_model'), ignoreRecord: true),
+                Forms\Components\TextInput::make('current_password')
+                    ->password()
+                    ->label('Current Password')
+                    ->required()
+                    ->dehydrated(false)
+                    ->rules([new MatchOldPassword]),
                 $this->getPasswordFormComponent(),
                 $this->getPasswordConfirmationFormComponent(),
                 Forms\Components\TextInput::make('mobile')

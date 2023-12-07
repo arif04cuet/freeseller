@@ -19,7 +19,7 @@ use Illuminate\Support\HtmlString;
 
 class CurrentBalance extends BaseWidget implements HasForms, HasActions
 {
-
+    protected static ?string $pollingInterval = null;
     use InteractsWithActions;
     use InteractsWithForms;
 
