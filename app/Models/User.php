@@ -233,7 +233,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
 
     public function getFilamentAvatarUrl(): ?string
     {
-        if (!$this->isReseller() || !$this->isWholesaler())
+        if (!($this->isReseller() || $this->isWholesaler()))
             return $this->getMedia('avatar')->first()?->getUrl('thumb');
 
         return '/storage/' . $this->business?->logo;

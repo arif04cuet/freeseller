@@ -7,6 +7,7 @@ use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
 use App\Filament\Resources\WholesalerOrderResource\Pages;
 use App\Models\Order;
+use App\Models\User;
 use Filament\Actions\StaticAction;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -30,6 +31,11 @@ class WholesalerOrderResource extends Resource
     protected static ?string $slug = 'wholesaler/orders';
 
     protected static ?string $modelLabel = 'Wholesale Orders';
+
+    public static function canViewAny(): bool
+    {
+        return static::can('viewAny') && auth()->user()->isWholesaler();
+    }
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -94,6 +100,13 @@ class WholesalerOrderResource extends Resource
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge(),
+                Tables\Columns\TextColumn::make('cancelled_note')
+                    ->wrap()
+                    ->color('danger')
+                    ->visible(
+                        fn ($livewire) => $livewire->activeTab == 'Trashed'
+
+                    ),
             ])
             ->filters([
                 //
@@ -165,6 +178,20 @@ class WholesalerOrderResource extends Resource
                                             ->update([
                                                 'status' => OrderItemStatus::Cancelled->value
                                             ]);
+
+                                        //send notification to reseller
+                                        User::sendMessage(
+                                            users: $record->reseller,
+                                            title: 'Wholesaler cancelled the order#' . $record->id,
+                                            body: $data['cancel_note'],
+                                            url: route(
+                                                'filament.app.resources.orders.index',
+                                                [
+                                                    'activeTab' => 'Trashed',
+                                                    'tableSearch' => $record->id
+                                                ]
+                                            )
+                                        );
 
                                         Notification::make()
                                             ->title('Order cancelled successfully')

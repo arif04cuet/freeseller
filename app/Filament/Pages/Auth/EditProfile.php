@@ -76,7 +76,7 @@ class EditProfile extends AuthEditProfile
 
         $record->update($data);
 
-        if (!$record->isReseller() || !$record->isWholesaler())
+        if (!($record->isReseller() || $record->isWholesaler()))
             return $record;
 
         //for reseller and wholesaler

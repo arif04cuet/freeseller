@@ -606,7 +606,12 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('delivered_note')
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('cancelled_note')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->wrap()
+                    ->color('danger')
+                    ->visible(
+                        fn ($livewire) => $livewire->activeTab == 'Trashed'
+
+                    ),
 
             ])
 

@@ -142,8 +142,17 @@ class HubOrderResource extends Resource
                     ->badge(),
                 Tables\Columns\TextColumn::make('delivered_note')
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('cancelled_note')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->wrap()
+                    ->color('danger')
+                    ->visible(
+                        fn ($livewire) => in_array($livewire->activeTab, [
+                            OrderStatus::Cancelled->name,
+                            'Trashed'
+                        ])
+
+                    ),
             ])
             ->filters([
                 Tables\Filters\Filter::make('split_orders')
