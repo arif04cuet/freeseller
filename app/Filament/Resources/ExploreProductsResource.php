@@ -8,6 +8,7 @@ use App\Filament\Resources\ProductResource\RelationManagers\SkusRelationManager;
 use App\Models\AttributeValue;
 use App\Models\Product;
 use App\Models\ResellerList;
+use App\Models\Sku;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -32,7 +33,23 @@ class ExploreProductsResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->latest();
+        return parent::getEloquentQuery()
+            ->select([
+                'id',
+                'name',
+                'price',
+                'category_id',
+                'product_type_id',
+                'owner_id'
+            ])
+            ->with([
+                'category' => fn ($q) => $q->select('id', 'name'),
+                'productType' => fn ($q) => $q->select('id', 'name'),
+                'media',
+                'skus',
+                'owner'
+            ])
+            ->latest();
     }
     public static function form(Form $form): Form
     {
@@ -85,12 +102,18 @@ class ExploreProductsResource extends Resource
                     ->searchable(),
                 \App\Tables\Columns\ProductPrice::make('price'),
 
-                Tables\Columns\TagsColumn::make('quantity')
+                Tables\Columns\TextColumn::make('quantity')
+                    ->badge()
                     ->label('Color wise quantity')
                     ->getStateUsing(
-                        fn (Model $record) => $record->getQuantities()
-                            ->map(fn ($item) => $item['color'] . ' = ' . $item['quantity'])
-                            ->toArray()
+                        function (Model $record) {
+                            return $record->skus->map(
+                                function ($sku) {
+                                    $color = array_slice(explode('-', $sku->name), -2, 2);
+                                    return $color[0] . '-' . $color[1] . '-' . $sku->quantity;
+                                }
+                            )->toArray();
+                        }
                     ),
                 Tables\Columns\TextColumn::make('skus_sum_quantity')
                     ->label('Total')
@@ -104,12 +127,12 @@ class ExploreProductsResource extends Resource
                     ->label('Business')
                     ->multiple()
                     ->preload()
-                    ->relationship('owner', 'name', fn (Builder $query) => $query->wholesalers())
+                    ->relationship('owner', 'name', fn (Builder $query) => $query->with(['business', 'roles'])->wholesalers())
                     ->getOptionLabelFromRecordUsing(
                         function (Model $record) {
-                            $record->loadMissing('business');
                             return  $record->business->name . '(' . $record->id_number . ')';
                         }
+
                     )->indicateUsing(function (array $data): ?string {
 
                         if (empty($data['values'])) {
@@ -168,40 +191,7 @@ class ExploreProductsResource extends Resource
                             );
                     }),
             ])
-            ->actions([
-                // Tables\Actions\Action::make('gallery')
-                //     ->modalActions(fn (Model $record) => [])
-                //     ->action(fn (Model $record) => dd($record->getAllImages()->toArray()))
-                //     ->modalHeading(fn (Model $record) => 'All images of product - ' . $record->name)
-                //     ->modalContent(fn (Model $record) => view('products.gallery', [
-                //         'medias' => $record->getAllImages()
-                //     ]))
 
-            ])
-            ->bulkActions([
-
-                // Tables\Actions\BulkAction::make('add_to_lilst')
-                //     ->visible(auth()->user()->hasRole(SystemRole::Reseller->value))
-                //     ->label('Add to List')
-                //     ->icon('heroicon-o-plus')
-                //     ->successNotificationTitle('Products added to specified list')
-                //     ->action(function (Tables\Actions\BulkAction $action, Collection $records, array $data): void {
-
-                //         ResellerList::find($data['list'])
-                //             ->products()
-                //             ->syncWithoutDetaching($records->pluck('id')->toArray());
-
-                //         $action->success();
-                //     })
-                //     ->deselectRecordsAfterCompletion()
-                //     ->form([
-                //         Forms\Components\Select::make('list')
-                //             ->label('List')
-                //             ->options(auth()->user()->lists->pluck('name', 'id'))
-                //             ->required(),
-                //     ]),
-
-            ])
             ->emptyStateActions([]);
     }
 

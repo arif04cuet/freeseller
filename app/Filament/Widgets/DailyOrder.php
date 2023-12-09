@@ -19,17 +19,49 @@ class DailyOrder extends BaseWidget
 {
     protected static ?int $sort = 8;
     protected int | string | array $columnSpan = 2;
-    protected static ?string $heading = 'Daily Orders';
+    //protected static ?string $heading = 'Daily Orders';
+
+    public bool $dataLoaded = false;
 
     public static function canView(): bool
     {
         return auth()->user()->isSuperAdmin() || auth()->user()->isHubManager();
     }
 
-
-
     public function table(Table $table): Table
     {
+        return $table
+            ->deferLoading()
+            ->query(
+                Order::query()
+                    ->select([
+                        DB::raw('Max(id) as id'),
+                        DB::raw('DATE(created_at) as created_at'),
+                        DB::raw('count(id) as order_count'),
+                        DB::raw("
+                            CASE
+                                WHEN (status != 'cacelled' and collected_cod is null) THEN SUM(cod)
+                                WHEN (status != 'cacelled' and collected_cod is not null) THEN SUM(collected_cod)
+                                ELSE 0
+                            END as cod
+                    ")
+                    ])
+                    ->groupBy(DB::raw("DATE(created_at)"))
+                    ->latest()
+            )
+            ->columns([
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Date')
+                    ->date(),
+                Tables\Columns\TextColumn::make('order_count')
+                    ->label('Orders'),
+                Tables\Columns\TextColumn::make('cod'),
+            ]);
+    }
+
+    public function table_old(Table $table): Table
+    {
+
         $platformFree = config('freeseller.platform_fee');
         $courierCharge = config('freeseller.delivery_charge');
         $packagingFree = config('freeseller.packaging_fee');
@@ -39,22 +71,8 @@ class DailyOrder extends BaseWidget
 
         return $table
             ->deferLoading()
-            ->defaultGroup(
-                Tables\Grouping\Group::make('created_at')
-                    ->label('')
-                    ->date()
-                    ->collapsible()
-            )
             ->query(
                 Order::query()
-                    ->when(auth()->user()->isWholesaler(), function ($q) {
-                        return $q->whereHas('items', function ($q) {
-                            return $q->whereBelongsTo(auth()->user(), 'wholesaler');
-                        });
-                    })
-                    ->when(auth()->user()->isReseller(), function ($q) {
-                        return $q->whereBelongsTo(auth()->user(), 'reseller');
-                    })
                     ->select(
                         [
                             'orders.*',

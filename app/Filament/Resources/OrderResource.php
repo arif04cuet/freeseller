@@ -87,7 +87,7 @@ class OrderResource extends Resource
                     ->schema([
 
                         Forms\Components\Select::make('list')
-                            ->options(auth()->user()->lists->pluck('name', 'id'))
+                            ->options(ResellerList::query()->whereBelongsTo(auth()->user())->pluck('name', 'id'))
                             ->required()
                             ->live(),
 
@@ -127,15 +127,15 @@ class OrderResource extends Resource
                                 'md' => 2
                             ])
                             ->searchable()
-                            ->getSearchResultsUsing(
-                                fn (string $search) => Sku::query()
-                                    ->where('id', $search)
-                                    ->where('quantity', '>', 0)
-                                    ->pluck('name', 'id')
-                            )
+                            // ->getSearchResultsUsing(
+                            //     fn (string $search) => Sku::query()
+                            //         ->where('id', $search)
+                            //         ->where('quantity', '>', 0)
+                            //         ->pluck('name', 'id')
+                            // )
                             ->getOptionLabelUsing(
                                 function ($value): ?string {
-                                    $sku = Sku::find($value);
+                                    $sku = Sku::with('media')->find($value);
                                     return  '<div class="flex gap-2">
                             <img src="' . $sku->getMedia('*')->first()->getUrl('thumb') . '"/>
                             <span>' . $sku->name . '</span>
@@ -149,7 +149,7 @@ class OrderResource extends Resource
                                         ->filter()
                                         ->toArray();
 
-                                    $skus = ResellerList::find($get('../../list'))
+                                    $skus = ResellerList::with('skus.media')->find($get('../../list'))
                                         ->skus
                                         ->filter(fn ($sku) => $sku->quantity && !in_array($sku->id, $items))
                                         ->map(fn ($sku) => [
@@ -166,25 +166,13 @@ class OrderResource extends Resource
                             )
                             ->preload()
                             ->allowHtml(),
-                        //->getOptionLabelUsing(fn ($value): ?string => '<span class="text-blue-500">Tailwind</span>'),
-                        // Forms\Components\Placeholder::make('image')
-                        //     ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
-                        //     ->visibleFrom('md')
-                        //     ->content(
-                        //         function (Get $get) {
-                        //             $media = Sku::find($get('sku'))->getMedia('sharees')->first();
 
-                        //             return $media ?
-                        //                 (new HtmlString('<img src="' . $media->getUrl('thumb') . '" / >')) :
-                        //                 '';
-                        //         }
-                        //     ),
 
                         Forms\Components\TextInput::make('quantity')
                             ->reactive()
                             ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
-                            ->helperText(fn (\Filament\Forms\Get $get) => 'Available quantity is ' . Sku::find($get('sku'))->quantity)
-                            ->maxValue(fn (\Filament\Forms\Get $get) => Sku::find($get('sku'))->quantity)
+                            ->helperText(fn (\Filament\Forms\Get $get) => 'Available quantity is ' . Sku::select('quantity')->find($get('sku'))->quantity)
+                            ->maxValue(fn (\Filament\Forms\Get $get) => Sku::select('quantity')->find($get('sku'))->quantity)
                             ->required()
                             ->afterStateUpdated(function (Get $get, \Filament\Forms\Set $set, ?string $state) {
 

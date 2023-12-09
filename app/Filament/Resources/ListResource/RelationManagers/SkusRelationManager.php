@@ -53,7 +53,15 @@ class SkusRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with('product.category'))
+            ->modifyQueryUsing(
+                fn (Builder $query) => $query
+                    ->with([
+                        'product' => fn ($q) => $q->select('id', 'price', 'category_id'),
+                        'product.category' => fn ($q) => $q->select('id', 'name'),
+                        'media'
+                    ])
+                    ->select(['skus.id', 'sku_id', 'name', 'product_id', 'quantity'])
+            )
             ->columns([
                 Tables\Columns\TextColumn::make('sku_id'),
                 SpatieMediaLibraryImageColumn::make('image')

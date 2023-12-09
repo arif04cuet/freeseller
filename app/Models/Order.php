@@ -326,7 +326,7 @@ class Order extends Model
         $amount = $items
             ->filter(fn ($item) => !empty($item['sku']) && !empty($item['quantity']))
             ->map(function ($item) {
-                $sku = Sku::find($item['sku']);
+                $sku = Sku::with(['product.productType'])->find($item['sku']);
 
                 return [
                     'price' => $sku->price * $item['quantity'],

@@ -32,7 +32,9 @@ class ListResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereBelongsTo(auth()->user());
+        return parent::getEloquentQuery()
+            ->whereBelongsTo(auth()->user())
+            ->withCount(['skus']);
     }
 
     public static function form(Form $form): Form
@@ -64,7 +66,7 @@ class ListResource extends Resource
             ])
             ->actions([])
             ->checkIfRecordIsSelectableUsing(
-                fn (Model $record): bool => !$record->skus()->exists(),
+                fn (Model $record): bool => !$record->skus_count,
             )
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

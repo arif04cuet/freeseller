@@ -49,6 +49,10 @@ class CollectedParcelListByDate extends Component implements HasForms, HasTable
                             ->whereColumn('order_id', 'orders.id')
                             ->whereBelongsTo(auth()->user(), 'wholesaler')
                             ->selectRaw('sum(wholesaler_price * quantity) as total')
+                            ->whereIn('status', [
+                                OrderItemStatus::DeliveredToHub->value,
+                                OrderItemStatus::Delivered->value,
+                            ])
                     ])
                     ->whereHas('collections', function ($q) use ($collectedAt) {
                         return $q->whereBelongsTo(auth()->user(), 'wholesaler')
@@ -74,6 +78,7 @@ class CollectedParcelListByDate extends Component implements HasForms, HasTable
                     ->label('Products'),
 
                 Tables\Columns\TextColumn::make('total')
+                    ->summarize(Sum::make())
                     ->label('Amount')
             ]);
     }
