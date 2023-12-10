@@ -34,14 +34,6 @@ class ExploreProductsResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->select([
-                'id',
-                'name',
-                'price',
-                'category_id',
-                'product_type_id',
-                'owner_id'
-            ])
             ->with([
                 'category' => fn ($q) => $q->select('id', 'name'),
                 'productType' => fn ($q) => $q->select('id', 'name'),
