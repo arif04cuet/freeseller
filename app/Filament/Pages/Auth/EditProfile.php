@@ -145,6 +145,7 @@ class EditProfile extends AuthEditProfile
                             ->image()
                             ->imageEditor()
                             ->directory('logo')
+                            ->maxSize(50)
                             ->imageEditorAspectRatios([
                                 null,
                                 '16:9',
