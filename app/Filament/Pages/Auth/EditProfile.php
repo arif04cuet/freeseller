@@ -102,12 +102,12 @@ class EditProfile extends AuthEditProfile
                     ->required()
                     ->email()
                     ->unique(table: config('filament-breezy.user_model'), ignoreRecord: true),
-                Forms\Components\TextInput::make('current_password')
-                    ->password()
-                    ->label('Current Password')
-                    ->required()
-                    ->dehydrated(false)
-                    ->rules([new MatchOldPassword]),
+                // Forms\Components\TextInput::make('current_password')
+                //     ->password()
+                //     ->label('Current Password')
+                //     ->required()
+                //     ->dehydrated(false)
+                //     ->rules([new MatchOldPassword]),
                 $this->getPasswordFormComponent(),
                 $this->getPasswordConfirmationFormComponent(),
                 Forms\Components\TextInput::make('mobile')
