@@ -183,7 +183,7 @@ class OrderResource extends Resource
 
                         Forms\Components\TextInput::make('reseller_price')
                             ->label('Sell Price')
-                            ->live(debounce: 1000)
+                            ->live(onBlur: true)
                             ->visible(fn (\Filament\Forms\Get $get) => $get('sku'))
                             ->helperText(fn (\Filament\Forms\Get $get) => 'Wholesaler Price is ' . (int) Sku::find($get('sku'))->price)
                             ->minValue(fn (\Filament\Forms\Get $get) => Sku::find($get('sku'))->price)

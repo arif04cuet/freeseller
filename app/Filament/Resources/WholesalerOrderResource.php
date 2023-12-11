@@ -48,7 +48,7 @@ class WholesalerOrderResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['reseller', 'items'])
+            ->with(['reseller', 'items', 'customer'])
             ->mine()
             ->latest();
     }

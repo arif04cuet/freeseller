@@ -79,6 +79,16 @@ class Product extends Model implements HasMedia
     }
 
     //helpers
+
+    public function colorQuantity(): array
+    {
+        return $this->skus->map(
+            function ($sku) {
+                $color = array_slice(explode('-', $sku->name), -2, 2);
+                return $color[0] . '-' . $color[1] . '-' . $sku->quantity;
+            }
+        )->toArray();
+    }
     public function getOfferPrice()
     {
         $price = null;

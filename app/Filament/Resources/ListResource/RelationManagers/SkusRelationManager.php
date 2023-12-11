@@ -66,6 +66,7 @@ class SkusRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('sku_id'),
                 SpatieMediaLibraryImageColumn::make('image')
                     ->collection('sharees')
+                    ->extraImgAttributes(['loading' => 'lazy'])
                     ->action(
                         Tables\Actions\Action::make('View Image')
                             ->action(function (Model $record): void {

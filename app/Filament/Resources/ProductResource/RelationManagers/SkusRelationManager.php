@@ -102,7 +102,7 @@ class SkusRelationManager extends RelationManager
                             collect($data)->except(static::getSkuFields())
                                 ->each(function ($value, $attribute) use ($sku) {
                                     $attributeValue = AttributeValue::find($value);
-                                    $sku->attributeValues()->save($attributeValue);
+                                    $attributeValue && $sku->attributeValues()->save($attributeValue);
                                 });
 
                             DB::commit();

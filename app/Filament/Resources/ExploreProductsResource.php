@@ -74,6 +74,7 @@ class ExploreProductsResource extends Resource
         return $table
             ->columns([
                 SpatieMediaLibraryImageColumn::make('image')
+                    ->extraImgAttributes(['loading' => 'lazy'])
                     ->collection('sharees')
                     ->action(
                         Tables\Actions\Action::make('View Image')
@@ -96,17 +97,9 @@ class ExploreProductsResource extends Resource
 
                 Tables\Columns\TextColumn::make('quantity')
                     ->badge()
+                    ->wrap()
                     ->label('Color wise quantity')
-                    ->getStateUsing(
-                        function (Model $record) {
-                            return $record->skus->map(
-                                function ($sku) {
-                                    $color = array_slice(explode('-', $sku->name), -2, 2);
-                                    return $color[0] . '-' . $color[1] . '-' . $sku->quantity;
-                                }
-                            )->toArray();
-                        }
-                    ),
+                    ->getStateUsing(fn (Model $record) => $record->colorQuantity()),
                 Tables\Columns\TextColumn::make('skus_sum_quantity')
                     ->label('Total')
                     ->sum('skus', 'quantity'),

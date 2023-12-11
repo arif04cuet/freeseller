@@ -42,7 +42,16 @@ class ProductResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->mine()->latest();
+        return parent::getEloquentQuery()
+            ->with([
+                'category' => fn ($q) => $q->select('id', 'name'),
+                'productType' => fn ($q) => $q->select('id', 'name'),
+                'media',
+                'skus',
+                'owner'
+            ])
+            ->mine()
+            ->latest();
     }
 
     public static function getNavigationBadge(): ?string
@@ -148,13 +157,10 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 \App\Tables\Columns\ProductPrice::make('price'),
-                Tables\Columns\TagsColumn::make('quantity')
+                Tables\Columns\TextColumn::make('quantity')
+                    ->badge()
                     ->label('Color wise quantity')
-                    ->getStateUsing(
-                        fn (Model $record) => $record->getQuantities()
-                            ->map(fn ($item) => $item['color'] . ' = ' . $item['quantity'])
-                            ->toArray()
-                    ),
+                    ->getStateUsing(fn (Model $record) => $record->colorQuantity()),
                 Tables\Columns\TextColumn::make('skus_sum_quantity')
                     ->label('Total Stock')
                     ->sum('skus', 'quantity'),
