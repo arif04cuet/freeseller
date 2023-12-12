@@ -56,7 +56,7 @@ class SkusRelationManager extends RelationManager
             ->modifyQueryUsing(
                 fn (Builder $query) => $query
                     ->with([
-                        'product' => fn ($q) => $q->select('id', 'price', 'category_id'),
+                        'product',
                         'product.category' => fn ($q) => $q->select('id', 'name'),
                         'media'
                     ])
@@ -92,6 +92,7 @@ class SkusRelationManager extends RelationManager
                     <div><del>' . ($record->product->getOfferPrice() ? $record->product->getAttributes()['price'] : '') . '</del></div>
                 </div>
                 ')->html(),
+
                 Tables\Columns\TextColumn::make('quantity'),
                 Tables\Columns\TextColumn::make('product.category.name'),
 
