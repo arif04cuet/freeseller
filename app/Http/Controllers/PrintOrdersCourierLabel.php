@@ -19,6 +19,7 @@ class PrintOrdersCourierLabel extends Controller
             'reseller',
             'reseller.business',
             'customer',
+            'items'
         ])
             ->whereIn('id', $orderIds)
             ->orderBy('id', 'asc')

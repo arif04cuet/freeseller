@@ -82,6 +82,7 @@ class FundWithdrawRequestResource extends Resource
                     ->maxValue(
                         fn () => (int) (auth()->user()->active_balance - $minimumBalance)
                     )
+                    ->minValue(100)
                     ->required(),
 
                 Forms\Components\Select::make('fund_transfer_fee')
@@ -112,7 +113,8 @@ class FundWithdrawRequestResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('user.business.name'),
+                Tables\Columns\TextColumn::make('user.business.name')
+                    ->formatStateUsing(fn (Model $record) => $record->user->business->name . '- ' . $record->user->id_number),
                 Tables\Columns\TextColumn::make('user.name')->label('Owner'),
                 Tables\Columns\TextColumn::make('amount')
                     ->label('Amount')
@@ -130,21 +132,10 @@ class FundWithdrawRequestResource extends Resource
                         'warning' => WalletRechargeRequestStatus::Pending->value,
                         'success' => WalletRechargeRequestStatus::Approved->value,
                     ]),
-                SpatieMediaLibraryImageColumn::make('image')
-                    ->label('Transfer recept')
-                    ->action(
-                        Tables\Actions\Action::make('View Image')
-                            ->action(function (Model $record): void {
-                            })
-                            ->modalSubmitAction(false)
-                            ->modalCancelAction(false)
-                            ->modalContent(
-                                fn (Model $record) => view('products.single-image', [
-                                    'url' => $record->getMedia('fund_approved')->first()->getUrl(),
-                                ])
-                            ),
-                    )
-                    ->collection('fund_approved'),
+                // SpatieMediaLibraryImageColumn::make('image')
+                //     ->label('Transfer recept')
+                //     ->action()
+                //     ->collection('fund_approved'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime(),
                 Tables\Columns\TextColumn::make('approved_at')
@@ -171,77 +162,92 @@ class FundWithdrawRequestResource extends Resource
                     })
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->visible(
-                        fn (Model $record) => $record->status == WalletRechargeRequestStatus::Pending &&
-                            $record->user->is(auth()->user())
-                    ),
-                Tables\Actions\DeleteAction::make()
-                    ->visible(
-                        fn (Model $record) => $record->status == WalletRechargeRequestStatus::Pending &&
-                            $record->user->is(auth()->user())
-                    )
-                    ->using(function (Tables\Actions\DeleteAction $action, Model $record): void {
-                        $result = $record->delete();
-
-                        if (!$result) {
-                            $action->failure();
-
-                            return;
-                        }
-
-                        $record->lockAmount()->exists() && $record->lockAmount()->delete();
-
-                        $action->success();
-                    }),
-
-                Tables\Actions\Action::make('approved')
-                    ->label('Approve')
-                    ->color('success')
-                    ->icon('heroicon-o-check')
-                    ->iconButton()
-                    ->visible(fn (Model $record) => ($record->status == WalletRechargeRequestStatus::Pending) && auth()->user()->isSuperAdmin())
-                    //->requiresConfirmation()
-                    ->fillForm(fn (Model $record): array => [
-                        'amount' => $record->amount,
-                        'lockAmount' => $record->lockAmount->amount,
-                        'active_balance' => (int) $record->user->active_balance
-                    ])
-                    ->form([
-                        Forms\Components\Grid::make()
-                            ->columns(3)
-                            ->disabled()
-                            ->schema([
-                                Forms\Components\TextInput::make('amount')
-                                    ->label('Requested Amount'),
-                                Forms\Components\TextInput::make('lockAmount')
-                                    ->label('Lock Amount'),
-                                Forms\Components\TextInput::make('active_balance')
-                            ]),
-
-                        Forms\Components\Grid::make()
-                            ->schema([
-                                Forms\Components\ViewField::make('payment_channel')
-                                    ->view('fund.view-payment-channel'),
-
-                                SpatieMediaLibraryFileUpload::make('image')
-                                    ->required()
-                                    ->label('Tnx Receipt')
-                                    ->image()
-                                    ->collection('fund_approved')
-                            ]),
-
-                        Forms\Components\TextInput::make('transfer_amount')
-                            ->required()
-                            ->numeric()
-                            ->in(function (Model $record) {
-                                return [$record->amount];
-                            })
-                            ->label('Transfer Amount'),
+                Tables\Actions\ActionGroup::make([
 
 
-                    ])
-                    ->action(fn (Model $record) => $record->markAsApproved()),
+                    Tables\Actions\Action::make('View Receipt')
+                        ->icon('heroicon-o-eye')
+                        ->visible(fn (Model $record) => $record->status == WalletRechargeRequestStatus::Approved)
+                        ->action(function (Model $record): void {
+                        })
+                        ->modalSubmitAction(false)
+                        ->modalCancelAction(false)
+                        ->modalContent(
+                            fn (Model $record) => view('products.single-image', [
+                                'url' => $record->getMedia('fund_approved')->first()->getUrl(),
+                            ])
+                        ),
+                    Tables\Actions\EditAction::make()
+                        ->visible(
+                            fn (Model $record) => $record->status == WalletRechargeRequestStatus::Pending &&
+                                $record->user->is(auth()->user())
+                        ),
+                    Tables\Actions\DeleteAction::make()
+                        ->visible(
+                            fn (Model $record) => $record->status == WalletRechargeRequestStatus::Pending &&
+                                $record->user->is(auth()->user())
+                        )
+                        ->using(function (Tables\Actions\DeleteAction $action, Model $record): void {
+                            $result = $record->delete();
+
+                            if (!$result) {
+                                $action->failure();
+
+                                return;
+                            }
+
+                            $record->lockAmount()->exists() && $record->lockAmount()->delete();
+
+                            $action->success();
+                        }),
+
+                    Tables\Actions\Action::make('approved')
+                        ->label('Approve')
+                        ->color('success')
+                        ->icon('heroicon-o-check')
+                        ->visible(fn (Model $record) => ($record->status == WalletRechargeRequestStatus::Pending) && auth()->user()->isSuperAdmin())
+                        //->requiresConfirmation()
+                        ->fillForm(fn (Model $record): array => [
+                            'amount' => $record->amount,
+                            'lockAmount' => $record->lockAmount->amount,
+                            'active_balance' => (int) $record->user->active_balance
+                        ])
+                        ->form([
+                            Forms\Components\Grid::make()
+                                ->columns(3)
+                                ->disabled()
+                                ->schema([
+                                    Forms\Components\TextInput::make('amount')
+                                        ->label('Requested Amount'),
+                                    Forms\Components\TextInput::make('lockAmount')
+                                        ->label('Lock Amount'),
+                                    Forms\Components\TextInput::make('active_balance')
+                                ]),
+
+                            Forms\Components\Grid::make()
+                                ->schema([
+                                    Forms\Components\ViewField::make('payment_channel')
+                                        ->view('fund.view-payment-channel'),
+
+                                    SpatieMediaLibraryFileUpload::make('image')
+                                        ->required()
+                                        ->label('Tnx Receipt')
+                                        ->image()
+                                        ->collection('fund_approved')
+                                ]),
+
+                            Forms\Components\TextInput::make('transfer_amount')
+                                ->required()
+                                ->numeric()
+                                ->in(function (Model $record) {
+                                    return [$record->amount];
+                                })
+                                ->label('Transfer Amount'),
+
+
+                        ])
+                        ->action(fn (Model $record) => $record->markAsApproved()),
+                ])
             ])
             ->bulkActions([
                 //Tables\Actions\DeleteBulkAction::make(),

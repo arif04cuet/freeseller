@@ -24,6 +24,10 @@
                                     Order #
                                 </th>
                                 <th scope="col"
+                                    class="py-3.5 pl-4 pr-3 text-left text-sm font-normal text-slate-700 sm:pl-6 md:pl-0">
+                                    Items
+                                </th>
+                                <th scope="col"
                                     class=" py-3.5 px-3 text-center text-sm font-normal text-slate-700 sm:table-cell">
                                     CN #
                                 </th>
@@ -47,11 +51,15 @@
                                 @php
                                     $reseller = $order->reseller;
                                     $totalCod += $order->cod;
-                                    $totalItems += $order->items->sum('quantity');
+                                    $orderItems = $order->items->sum('quantity');
+                                    $totalItems += $orderItems;
                                 @endphp
                                 <tr class="border-b border-slate-200">
                                     <td class="py-2 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
                                         <div class="font-medium text-slate-700">{{ $order->id }}</div>
+                                    </td>
+                                    <td class="py-2 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
+                                        <div class="font-medium text-slate-700">{{ $orderItems }}</div>
                                     </td>
                                     <td class=" px-3 py-2 text-sm text-center text-slate-500 sm:table-cell">
                                         {{ $order->consignment_id }}
