@@ -22,7 +22,9 @@ use App\Listeners\SendNewOrderNotifications;
 use App\Listeners\SendNewSignupEmailNotificationToAdmins;
 use App\Listeners\SendOrderCancelledNotificationListener;
 use App\Models\FundWithdrawRequest;
+use App\Models\OrderItem;
 use App\Observers\FundWithdrawRequestbserver;
+use App\Observers\OrderItemObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -49,7 +51,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         OrderItemApproved::class => [
             ChangeOrderStatusWhenItemApproved::class,
-            DecrementItemStockQuantity::class
+            //DecrementItemStockQuantity::class
         ],
         Verified::class => [
             ActivateUser::class,
@@ -78,6 +80,7 @@ class EventServiceProvider extends ServiceProvider
     public function boot(): void
     {
         FundWithdrawRequest::observe(FundWithdrawRequestbserver::class);
+        OrderItem::observe(OrderItemObserver::class);
     }
 
     /**
