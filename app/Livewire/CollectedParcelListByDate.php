@@ -75,10 +75,11 @@ class CollectedParcelListByDate extends Component implements HasForms, HasTable
                     ->wrap()
                     ->badge(),
                 Tables\Columns\TextColumn::make('items_sum_quantity')
+                    ->summarize(Sum::make()->label('Total'))
                     ->label('Products'),
 
                 Tables\Columns\TextColumn::make('total')
-                    ->summarize(Sum::make())
+                    ->summarize(Sum::make()->label('Total'))
                     ->label('Amount')
             ]);
     }
