@@ -298,17 +298,20 @@ class OrderResource extends Resource
                             ->pluck('label', 'id')
                     )
                     ->createOptionAction(
-                        fn ($action, \Filament\Forms\Set $set) => $action->action(
-                            function ($data) use ($set) {
-                                $data['courier'] = config('freeseller.default_courier');
-                                $customer = Customer::updateOrCreate(
-                                    ['mobile' => $data['mobile']],
-                                    $data
-                                );
-                                $customer->resellers()->syncWithoutDetaching([auth()->user()->id]);
-                                $set('customer_id', $customer->id);
-                            }
-                        )
+                        fn ($action, \Filament\Forms\Set $set) =>
+                        $action
+                            ->closeModalByClickingAway(false)
+                            ->action(
+                                function ($data) use ($set) {
+                                    $data['courier'] = config('freeseller.default_courier');
+                                    $customer = Customer::updateOrCreate(
+                                        ['mobile' => $data['mobile']],
+                                        $data
+                                    );
+                                    $customer->resellers()->syncWithoutDetaching([auth()->user()->id]);
+                                    $set('customer_id', $customer->id);
+                                }
+                            )
                     )
                     ->createOptionForm([
                         Forms\Components\Grid::make('customer')

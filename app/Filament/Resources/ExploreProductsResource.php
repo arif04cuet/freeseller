@@ -164,15 +164,38 @@ class ExploreProductsResource extends Resource
                                 Forms\Components\TextInput::make('to')->numeric(),
                             ]),
                     ])
+                    ->indicateUsing(function (array $data): ?string {
+                        $from = $data['from'];
+                        $to = $data['to'];
+                        return $from || $to ?  'Price: ' . $from . '-' . $to : '';
+                    })
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
                             ->when(
                                 $data['from'],
-                                fn (Builder $query, $from): Builder => $query->where('price', '>=', $from),
+                                fn (Builder $query, $from): Builder => $query
+                                    ->where(function ($query) use ($from) {
+                                        $query->where(function ($query) use ($from) {
+                                            $query->whereNotNull('offer_price')
+                                                ->where('offer_price', '>=', $from);
+                                        })->orWhere(function ($query) use ($from) {
+                                            $query->whereNull('offer_price')
+                                                ->where('price', '>=', $from);
+                                        });
+                                    })
                             )
                             ->when(
                                 $data['to'],
-                                fn (Builder $query, $to): Builder => $query->where('price', '<=', $to),
+                                fn (Builder $query, $to): Builder => $query
+                                    ->where(function ($query) use ($to) {
+                                        $query->where(function ($query) use ($to) {
+                                            $query->whereNotNull('offer_price')
+                                                ->where('offer_price', '<=', $to);
+                                        })->orWhere(function ($query) use ($to) {
+                                            $query->whereNull('offer_price')
+                                                ->where('price', '<=', $to);
+                                        });
+                                    })
                             );
                     }),
             ])

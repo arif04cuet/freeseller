@@ -325,15 +325,17 @@ class SkusRelationManager extends RelationManager
                     ExportBulkAction::make()
                         ->label('Export Info')
                         ->exports([
-                            ExcelExport::make()->withColumns([
-                                Column::make('name'),
-                                Column::make('product.description')
-                                    ->formatStateUsing(fn ($state) => strip_tags($state)),
-                                Column::make('product.price'),
-                                Column::make('quantity'),
-                                Column::make('product.category.name'),
+                            ExcelExport::make()
+                                ->fromTable()
+                                ->withColumns([
+                                    Column::make('name'),
+                                    Column::make('product.description')
+                                        ->formatStateUsing(fn ($state) => strip_tags($state)),
+                                    Column::make('product.price'),
+                                    Column::make('quantity'),
+                                    Column::make('product.category.name'),
 
-                            ]),
+                                ]),
                         ]),
                 ]),
 
