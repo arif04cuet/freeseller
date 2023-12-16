@@ -24,8 +24,8 @@
             'border-b border-gray-200 dark:border-white/10' => $isPaginated,
         ])>
             @foreach ($notifications as $notification)
-                <div style="--c-50:var(--primary-50);" @class([
-                    'bg-primary-50' => $notification->unread(),
+                <div @style([
+                    '--c-50:var(--primary-50)' => $notification->unread(),
                 ])>
                     {{ $this->getNotification($notification)->inline() }}
                 </div>
