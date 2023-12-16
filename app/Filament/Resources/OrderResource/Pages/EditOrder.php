@@ -93,12 +93,14 @@ class EditOrder extends EditRecord
                     $dbItem = $record->items()->where('sku_id', $item['sku'])->first();
 
                     if ($dbItem) {
-                        $dbItem->update([
-                            'quantity' => $item['quantity'],
-                            'reseller_price' => $item['reseller_price'],
-                            'total_amount' => (int) $item['subtotal'],
-                            'status' => $item['status'] ?? OrderStatus::WaitingForWholesalerApproval->value,
-                        ]);
+                        if ($dbItem->status == OrderItemStatus::WaitingForWholesalerApproval) {
+                            $dbItem->update([
+                                'quantity' => $item['quantity'],
+                                'reseller_price' => $item['reseller_price'],
+                                'total_amount' => (int) $item['subtotal'],
+                                'status' => $item['status'] ?? OrderItemStatus::WaitingForWholesalerApproval->value,
+                            ]);
+                        }
                     } else {
 
                         $sku = Sku::with('product')->find($item['sku']);
