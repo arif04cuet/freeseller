@@ -618,6 +618,12 @@ class OrderResource extends Resource
                         Forms\Components\DatePicker::make('created_from'),
                         Forms\Components\DatePicker::make('created_until'),
                     ])
+                    ->indicateUsing(function (array $data): ?string {
+                        $from = $data['created_from'];
+                        $to = $data['created_until'];
+
+                        return $from || $to ? 'Date : ' . $from . ' - ' . $to : '';
+                    })
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
                             ->when(

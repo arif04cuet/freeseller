@@ -15,6 +15,7 @@ use Filament\Forms\Form;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Table;
@@ -39,6 +40,7 @@ class ExploreProductsResource extends Resource
                 'productType' => fn ($q) => $q->select('id', 'name'),
                 'media',
                 'skus',
+                'skus.media',
                 'owner'
             ])
             ->latest();
@@ -73,39 +75,80 @@ class ExploreProductsResource extends Resource
     {
         return $table
             ->columns([
-                SpatieMediaLibraryImageColumn::make('image')
-                    ->extraImgAttributes(['loading' => 'lazy'])
-                    ->collection('sharees')
-                    ->action(
-                        Tables\Actions\Action::make('View Image')
-                            ->action(function (Product $record): void {
-                            })
-                            ->modalSubmitAction(false)
-                            ->modalCancelAction(false)
-                            ->modalContent(fn (Model $record) => view(
-                                'products.gallery',
-                                [
-                                    'medias' => $record->getAllImages(),
-                                ]
-                            )),
-                    )
-                    ->conversion('thumb'),
 
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-                \App\Tables\Columns\ProductPrice::make('price'),
+                Tables\Columns\Layout\Stack::make([
+                    SpatieMediaLibraryImageColumn::make('image')
+                        ->extraImgAttributes(['loading' => 'lazy',])
+                        ->collection('sharees')
+                        ->alignCenter()
+                        ->width('100%')
+                        ->height('100%')
+                        ->action(
+                            Tables\Actions\Action::make('View Image')
+                                ->action(function (Product $record): void {
+                                })
+                                ->modalSubmitAction(false)
+                                ->modalCancelAction(false)
+                                ->modalContent(fn (Model $record) => view(
+                                    'products.gallery',
+                                    [
+                                        'medias' => $record->getAllImages(),
+                                    ]
+                                )),
+                        )
+                        ->conversion('thumb'),
+                    Tables\Columns\Layout\Stack::make([
 
+                        Tables\Columns\Layout\Grid::make([
+                            'default' => 3
+                        ])
+
+                            ->schema([
+                                Tables\Columns\TextColumn::make('name')
+                                    ->searchable()
+                                    ->columnSpan(2)
+                                    ->limit(30)
+                                    ->weight(FontWeight::Bold),
+                                Tables\Columns\TextColumn::make('skus_sum_quantity')
+                                    ->label('Total')
+                                    ->columnSpan(1)
+                                    ->sum('skus', 'quantity'),
+                                \App\Tables\Columns\ProductPrice::make('price')
+                                    ->columnSpan(1),
+                                Tables\Columns\TextColumn::make('category.name')
+                                    ->columnSpan(2),
+                            ]),
+
+
+
+
+
+                    ]),
+                ])->space(3),
                 Tables\Columns\TextColumn::make('quantity')
                     ->badge()
                     ->wrap()
                     ->label('Color wise quantity')
                     ->getStateUsing(fn (Model $record) => $record->colorQuantity()),
-                Tables\Columns\TextColumn::make('skus_sum_quantity')
-                    ->label('Total')
-                    ->sum('skus', 'quantity'),
-                Tables\Columns\TextColumn::make('productType.name'),
-                Tables\Columns\TextColumn::make('category.name'),
 
+                Tables\Columns\ImageColumn::make('skus')
+                    ->circular()
+                    ->getStateUsing(
+                        fn (Model $record) =>
+                        $record->getAllImages()
+                            ->filter(fn ($item, $index) => $index != 0)
+                            ->map(fn ($media) => $media->getUrl('thumb'))
+                            ->toArray()
+
+                    )
+                    ->limit(5)
+                    ->limitedRemainingText()
+                    ->stacked()
+
+            ])
+            ->contentGrid([
+                'md' => 3,
+                'xl' => 4,
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('owner')
