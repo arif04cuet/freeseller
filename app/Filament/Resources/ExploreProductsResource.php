@@ -125,11 +125,8 @@ class ExploreProductsResource extends Resource
 
                     ]),
                 ])->space(3),
-                Tables\Columns\TextColumn::make('quantity')
-                    ->badge()
-                    ->wrap()
-                    ->label('Color wise quantity')
-                    ->getStateUsing(fn (Model $record) => $record->colorQuantity()),
+                Tables\Columns\ViewColumn::make('quantity')
+                    ->view('products.color'),
 
                 Tables\Columns\ImageColumn::make('skus')
                     ->circular()
@@ -141,7 +138,7 @@ class ExploreProductsResource extends Resource
                             ->toArray()
 
                     )
-                    ->limit(5)
+                    ->limit(10)
                     ->limitedRemainingText()
                     ->stacked()
 

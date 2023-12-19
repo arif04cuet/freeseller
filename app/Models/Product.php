@@ -84,8 +84,8 @@ class Product extends Model implements HasMedia
     {
         return $this->skus->map(
             function ($sku) {
-                $color = array_slice(explode('-', $sku->name), -2, 2);
-                return $color[0] . '-' . $color[1] . '-' . $sku->quantity;
+                $color = array_reverse(explode('-', $sku->name))[0];
+                return $color . '-' . $sku->quantity;
             }
         )->toArray();
     }

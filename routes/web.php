@@ -19,6 +19,8 @@ use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Route;
 
+use function App\Helpers\test;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -32,42 +34,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/mail', function () {
 
-    $minPrice = 200; // Example minimum price (can be null)
-    $maxPrice = 300; // Example maximum price (can be null)
-
-    return Product::where(function ($query) use ($minPrice, $maxPrice) {
-        if ($minPrice !== null && $maxPrice !== null) {
-            $query->where(function ($query) use ($minPrice, $maxPrice) {
-                $query->where(function ($query) use ($minPrice, $maxPrice) {
-                    $query->whereNotNull('offer_price')
-                        ->whereBetween('offer_price', [$minPrice, $maxPrice]);
-                })->orWhere(function ($query) use ($minPrice, $maxPrice) {
-                    $query->whereNull('offer_price')
-                        ->whereBetween('price', [$minPrice, $maxPrice]);
-                });
-            });
-        } elseif ($minPrice !== null) {
-            $query->where(function ($query) use ($minPrice) {
-                $query->where(function ($query) use ($minPrice) {
-                    $query->whereNotNull('offer_price')
-                        ->where('offer_price', '>=', $minPrice);
-                })->orWhere(function ($query) use ($minPrice) {
-                    $query->whereNull('offer_price')
-                        ->where('price', '>=', $minPrice);
-                });
-            });
-        } elseif ($maxPrice !== null) {
-            $query->where(function ($query) use ($maxPrice) {
-                $query->where(function ($query) use ($maxPrice) {
-                    $query->whereNotNull('offer_price')
-                        ->where('offer_price', '<=', $maxPrice);
-                })->orWhere(function ($query) use ($maxPrice) {
-                    $query->whereNull('offer_price')
-                        ->where('price', '<=', $maxPrice);
-                });
-            });
-        }
-    })->get()->toArray();
+    $product = Product::with('skus')->find(160)->colorQuantity();
+    return '';
 });
 
 Route::post('/push', function () {
