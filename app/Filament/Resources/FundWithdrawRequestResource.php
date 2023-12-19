@@ -114,8 +114,12 @@ class FundWithdrawRequestResource extends Resource
                 Tables\Columns\TextColumn::make('id')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('user.business.name')
-                    ->formatStateUsing(fn (Model $record) => $record->user->business->name . '- ' . $record->user->id_number),
-                Tables\Columns\TextColumn::make('user.name')->label('Owner'),
+                    ->html()
+                    ->formatStateUsing(
+                        fn (Model $record) => $record->user->business->name . '- ' . $record->user->id_number . '<br/>' .
+                            $record->user->name
+                    ),
+                //Tables\Columns\TextColumn::make('user.name')->label('Owner'),
                 Tables\Columns\TextColumn::make('amount')
                     ->label('Amount')
                     ->summarize(
@@ -125,8 +129,10 @@ class FundWithdrawRequestResource extends Resource
                     ),
                 Tables\Columns\TextColumn::make('fund_transfer_fee')
                     ->label('Fee'),
-                Tables\Columns\TextColumn::make('paymentChannel.type')
-                    ->label('Channel'),
+                Tables\Columns\TextColumn::make('paymentChannel.label')
+                    ->label('Channel')
+                    ->html()
+                    ->formatStateUsing(fn ($state) => str_replace('-', '<br/>', $state)),
                 Tables\Columns\TextColumn::make('status')
                     ->colors([
                         'warning' => WalletRechargeRequestStatus::Pending->value,
