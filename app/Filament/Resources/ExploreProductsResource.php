@@ -114,9 +114,9 @@ class ExploreProductsResource extends Resource
                                     ->columnSpan(1)
                                     ->sum('skus', 'quantity'),
                                 \App\Tables\Columns\ProductPrice::make('price')
-                                    ->columnSpan(1),
-                                Tables\Columns\TextColumn::make('category.name')
                                     ->columnSpan(2),
+                                Tables\Columns\TextColumn::make('category.name')
+                                    ->columnSpan(1),
                             ]),
 
 
