@@ -83,19 +83,19 @@ class ExploreProductsResource extends Resource
                         ->alignCenter()
                         ->width('100%')
                         ->height('100%')
-                        ->action(
-                            Tables\Actions\Action::make('View Image')
-                                ->action(function (Product $record): void {
-                                })
-                                ->modalSubmitAction(false)
-                                ->modalCancelAction(false)
-                                ->modalContent(fn (Model $record) => view(
-                                    'products.gallery',
-                                    [
-                                        'medias' => $record->getAllImages(),
-                                    ]
-                                )),
-                        )
+                        // ->action(
+                        //     Tables\Actions\Action::make('View Image')
+                        //         ->action(function (Product $record): void {
+                        //         })
+                        //         ->modalSubmitAction(false)
+                        //         ->modalCancelAction(false)
+                        //         ->modalContent(fn (Model $record) => view(
+                        //             'products.gallery',
+                        //             [
+                        //                 'medias' => $record->getAllImages(),
+                        //             ]
+                        //         )),
+                        // )
                         ->conversion('thumb'),
                     Tables\Columns\Layout\Stack::make([
 
