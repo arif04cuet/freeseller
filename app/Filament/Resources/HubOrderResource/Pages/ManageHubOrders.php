@@ -36,8 +36,8 @@ class ManageHubOrders extends ManageRecords
         return OrderService::resource(static::$resource)::tabs(SystemRole::HubManager);
     }
 
-    protected function paginateTableQuery(Builder $query): Paginator
-    {
-        return $query->simplePaginate(($this->getTableRecordsPerPage() === 'all') ? $query->count() : $this->getTableRecordsPerPage());
-    }
+    // protected function paginateTableQuery(Builder $query): Paginator
+    // {
+    //     return $query->simplePaginate(($this->getTableRecordsPerPage() === 'all') ? $query->count() : $this->getTableRecordsPerPage());
+    // }
 }
