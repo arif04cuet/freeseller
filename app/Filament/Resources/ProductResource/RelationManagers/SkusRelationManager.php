@@ -66,7 +66,9 @@ class SkusRelationManager extends RelationManager
                             )),
                     )
                     ->conversion('thumb'),
-                Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Color')
+                    ->formatStateUsing(fn (Model $record) => array_reverse(explode('–', $record->name))[0]),
                 Tables\Columns\TextColumn::make('quantity'),
                 Tables\Columns\TextColumn::make('price')->hidden(true),
                 Tables\Columns\TextColumn::make('resellerLists.name')

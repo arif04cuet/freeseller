@@ -35,15 +35,8 @@ class ExploreProductsResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with([
-                'category' => fn ($q) => $q->select('id', 'name'),
-                'productType' => fn ($q) => $q->select('id', 'name'),
-                'media',
-                'skus',
-                'skus.media',
-                'owner'
-            ])
-            ->latest();
+            ->explorerProducts()
+            ->inRandomOrder();
     }
     public static function form(Form $form): Form
     {
@@ -209,8 +202,12 @@ class ExploreProductsResource extends Resource
                         $to = $data['to'];
                         return $from || $to ?  'Price: ' . $from . '-' . $to : '';
                     })
-                    ->query(function (Builder $query, array $data): Builder {
+
+                    ->baseQuery(function (Builder $query, array $data): Builder {
                         return $query
+                            ->explorerProducts()
+                            ->reorder()
+                            ->orderByRaw('CASE WHEN offer_price IS NOT NULL THEN LEAST(offer_price, price) ELSE price END')
                             ->when(
                                 $data['from'],
                                 fn (Builder $query, $from): Builder => $query
