@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enum\SystemRole;
 use App\Filament\Resources\ExploreProductsResource\Pages;
+use App\Filament\Resources\ExploreProductsResource\Widgets\CatalogOverview;
 use App\Filament\Resources\ProductResource\RelationManagers\SkusRelationManager;
 use App\Models\AttributeValue;
 use App\Models\Product;
@@ -125,9 +126,8 @@ class ExploreProductsResource extends Resource
                     ->circular()
                     ->getStateUsing(
                         fn (Model $record) =>
-                        $record->getAllImages()
-                            ->filter(fn ($item, $index) => $index != 0)
-                            ->map(fn ($media) => $media->getUrl('thumb'))
+                        $record->skus
+                            ->map(fn ($sku) => $sku->getMedia('sharees')->first()?->getUrl('thumb'))
                             ->toArray()
 
                     )
@@ -295,6 +295,12 @@ class ExploreProductsResource extends Resource
     {
         return [
             SkusRelationManager::class,
+        ];
+    }
+    public static function getWidgets(): array
+    {
+        return [
+            CatalogOverview::class
         ];
     }
 
