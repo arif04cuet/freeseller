@@ -472,8 +472,9 @@ class HubOrderResource extends Resource
                                                 function ($item)  use ($order, $returnSkus) {
 
                                                     $return_qnt = $returnSkus->toArray()[$item->sku_id];
+
                                                     //stock update
-                                                    $item->sku->increment('quantity', $return_qnt);
+                                                    //$item->sku->increment('quantity', $return_qnt);
 
                                                     //send notification to wholesaler
                                                     User::sendMessage(
@@ -495,9 +496,9 @@ class HubOrderResource extends Resource
                                             ]));
 
                                             //update stock
-                                            $order->items->each(
-                                                fn ($item) => $item->loadMissing('sku')->sku->increment('quantity', $item->quantity)
-                                            );
+                                            // $order->items->each(
+                                            //     fn ($item) => $item->loadMissing('sku')->sku->increment('quantity', $item->quantity)
+                                            // );
 
                                             $order->refresh();
 
