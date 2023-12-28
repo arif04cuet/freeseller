@@ -34,26 +34,25 @@ class OrderItemObserver
     {
         $orderItem->loadMissing('sku');
 
-        if ($orderItem->status == OrderItemStatus::WaitingForWholesalerApproval) {
+        $oldQnt = $orderItem->getOriginal('quantity');
 
-            $oldQnt = $orderItem->getOriginal('quantity');
+        // if product change on edit
+        if ($orderItem->isDirty('sku_id')) {
+            $oldSku = $orderItem->getOriginal('sku_id');
+            Sku::find($oldSku)->increment('quantity', $oldQnt);
+            $orderItem->sku->decrement('quantity', $orderItem->quantity);
+        }
 
-            // if product change on edit
-            if ($orderItem->isDirty('sku_id')) {
-                $oldSku = $orderItem->getOriginal('sku_id');
-                Sku::find($oldSku)->increment('quantity', $oldQnt);
-                $orderItem->sku->decrement('quantity', $orderItem->quantity);
-            }
+        // if product not change but quantity change on edit
+        if (!$orderItem->isDirty('sku_id') && $orderItem->isDirty('quantity')) {
+            $orderItem->sku->increment('quantity', $oldQnt);
+            $orderItem->sku->decrement('quantity', $orderItem->quantity);
+        }
 
-            // if product not change but quantity change on edit
-            if (!$orderItem->isDirty('sku_id') && $orderItem->isDirty('quantity')) {
-                $orderItem->sku->increment('quantity', $oldQnt);
-                $orderItem->sku->decrement('quantity', $orderItem->quantity);
-            }
-        } elseif (
-            in_array($orderItem->status, [OrderItemStatus::Cancelled, OrderItemStatus::Returned])
-        ) {
-            $orderItem->sku->increment('quantity', $orderItem->quantity);
+
+        if (in_array($orderItem->status, [OrderItemStatus::Cancelled, OrderItemStatus::Returned])) {
+            $quantity = $orderItem->return_qnt ?: $orderItem->quantity;
+            $orderItem->sku->increment('quantity', $quantity);
         }
     }
 

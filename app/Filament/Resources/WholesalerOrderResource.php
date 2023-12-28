@@ -173,11 +173,9 @@ class WholesalerOrderResource extends Resource
                                             'cancelled_note' => $data['cancel_note'],
                                             'cancelled_by' => $wholesaler->id
                                         ]);
-                                        $record->items()
-                                            ->where('wholesaler_id', $wholesaler->id)
-                                            ->update([
-                                                'status' => OrderItemStatus::Cancelled->value
-                                            ]);
+
+                                        //update order items status
+                                        $record->items->each->markAsCancelled();
 
                                         //send notification to reseller
                                         User::sendMessage(

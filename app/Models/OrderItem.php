@@ -75,4 +75,11 @@ class OrderItem extends Model
             OrderItemApproved::dispatch($this);
         }
     }
+
+    public function markAsCancelled(): void
+    {
+        if ($this->status != OrderItemStatus::Cancelled) {
+            $this->update(['status' => OrderItemStatus::Cancelled->value]);
+        }
+    }
 }

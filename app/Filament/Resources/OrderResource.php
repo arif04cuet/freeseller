@@ -651,18 +651,20 @@ class OrderResource extends Resource
                         ->action(
                             function (Model $record, array $data, $action) {
 
-                                $record->update([
-                                    'status' => OrderStatus::Cancelled->value,
-                                    'cancelled_note' => $data['cancel_note'],
-                                    'cancelled_by' => auth()->user()->id
-                                ]);
-                                $record->items()->update([
-                                    'status' => OrderItemStatus::Cancelled->value
-                                ]);
+                                DB::transaction(function () use ($record, $data) {
+                                    $record->update([
+                                        'status' => OrderStatus::Cancelled->value,
+                                        'cancelled_note' => $data['cancel_note'],
+                                        'cancelled_by' => auth()->user()->id
+                                    ]);
+                                    $record->items->each(
+                                        fn ($item) => $item->update(['status' => OrderItemStatus::Cancelled->value])
+                                    );
 
-                                NotificationsNotification::make()
-                                    ->title('Order cancelled successfully')
-                                    ->send();
+                                    NotificationsNotification::make()
+                                        ->title('Order cancelled successfully')
+                                        ->send();
+                                });
                             }
                         ),
 
