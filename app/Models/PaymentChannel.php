@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enum\PaymentChannel as EnumPaymentChannel;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +19,15 @@ class PaymentChannel extends Model
         'type' => EnumPaymentChannel::class,
     ];
 
+
+    public function label(): Attribute
+    {
+        return new Attribute(
+            get: fn ($value, array $attributes) => $this->type == EnumPaymentChannel::Bank ?
+                $this->account_name . ' - ' . $this->bank_name :
+                $this->mobile_no . ' - ' . $this->type->name,
+        );
+    }
     //scopes
 
     public function scopeType(Builder $builder, $type): void
@@ -51,7 +61,7 @@ class PaymentChannel extends Model
             ->map(function ($item) use ($type) {
                 return [
                     'id' => $item->id,
-                    'label' => $type == EnumPaymentChannel::Bank->value ? $item->account_name : $item->mobile_no,
+                    'label' => $item->label,
                 ];
             })
             ->pluck('label', 'id')

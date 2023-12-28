@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enum\SystemRole;
 use App\Filament\Resources\ExploreProductsResource\Pages;
+use App\Filament\Resources\ExploreProductsResource\Widgets\CatalogOverview;
 use App\Filament\Resources\ProductResource\RelationManagers\SkusRelationManager;
 use App\Models\AttributeValue;
 use App\Models\Product;
@@ -15,6 +16,7 @@ use Filament\Forms\Form;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Table;
@@ -34,14 +36,8 @@ class ExploreProductsResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with([
-                'category' => fn ($q) => $q->select('id', 'name'),
-                'productType' => fn ($q) => $q->select('id', 'name'),
-                'media',
-                'skus',
-                'owner'
-            ])
-            ->latest();
+            ->explorerProducts()
+            ->inRandomOrder();
     }
     public static function form(Form $form): Form
     {
@@ -73,39 +69,76 @@ class ExploreProductsResource extends Resource
     {
         return $table
             ->columns([
-                SpatieMediaLibraryImageColumn::make('image')
-                    ->extraImgAttributes(['loading' => 'lazy'])
-                    ->collection('sharees')
-                    ->action(
-                        Tables\Actions\Action::make('View Image')
-                            ->action(function (Product $record): void {
-                            })
-                            ->modalSubmitAction(false)
-                            ->modalCancelAction(false)
-                            ->modalContent(fn (Model $record) => view(
-                                'products.gallery',
-                                [
-                                    'medias' => $record->getAllImages(),
-                                ]
-                            )),
+
+                Tables\Columns\Layout\Stack::make([
+                    SpatieMediaLibraryImageColumn::make('image')
+                        ->extraImgAttributes(['loading' => 'lazy',])
+                        ->collection('sharees')
+                        ->alignCenter()
+                        ->width('100%')
+                        ->height('100%')
+                        // ->action(
+                        //     Tables\Actions\Action::make('View Image')
+                        //         ->action(function (Product $record): void {
+                        //         })
+                        //         ->modalSubmitAction(false)
+                        //         ->modalCancelAction(false)
+                        //         ->modalContent(fn (Model $record) => view(
+                        //             'products.gallery',
+                        //             [
+                        //                 'medias' => $record->getAllImages(),
+                        //             ]
+                        //         )),
+                        // )
+                        ->conversion('thumb'),
+                    Tables\Columns\Layout\Stack::make([
+
+                        Tables\Columns\Layout\Grid::make([
+                            'default' => 3
+                        ])
+
+                            ->schema([
+                                Tables\Columns\TextColumn::make('name')
+                                    ->searchable()
+                                    ->columnSpan(2)
+                                    ->limit(30)
+                                    ->weight(FontWeight::Bold),
+                                Tables\Columns\TextColumn::make('skus_sum_quantity')
+                                    ->label('Total')
+                                    ->columnSpan(1)
+                                    ->sum('skus', 'quantity'),
+                                \App\Tables\Columns\ProductPrice::make('price')
+                                    ->columnSpan(2),
+                                Tables\Columns\TextColumn::make('category.name')
+                                    ->columnSpan(1),
+                            ]),
+
+
+
+
+
+                    ]),
+                ])->space(3),
+                Tables\Columns\ViewColumn::make('quantity')
+                    ->view('products.color'),
+
+                Tables\Columns\ImageColumn::make('skus')
+                    ->circular()
+                    ->getStateUsing(
+                        fn (Model $record) =>
+                        $record->skus
+                            ->map(fn ($sku) => $sku->getMedia('sharees')->first()?->getUrl('thumb'))
+                            ->toArray()
+
                     )
-                    ->conversion('thumb'),
+                    ->limit(10)
+                    ->limitedRemainingText()
+                    ->stacked()
 
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-                \App\Tables\Columns\ProductPrice::make('price'),
-
-                Tables\Columns\TextColumn::make('quantity')
-                    ->badge()
-                    ->wrap()
-                    ->label('Color wise quantity')
-                    ->getStateUsing(fn (Model $record) => $record->colorQuantity()),
-                Tables\Columns\TextColumn::make('skus_sum_quantity')
-                    ->label('Total')
-                    ->sum('skus', 'quantity'),
-                Tables\Columns\TextColumn::make('productType.name'),
-                Tables\Columns\TextColumn::make('category.name'),
-
+            ])
+            ->contentGrid([
+                'md' => 3,
+                'xl' => 4,
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('owner')
@@ -164,15 +197,42 @@ class ExploreProductsResource extends Resource
                                 Forms\Components\TextInput::make('to')->numeric(),
                             ]),
                     ])
-                    ->query(function (Builder $query, array $data): Builder {
+                    ->indicateUsing(function (array $data): ?string {
+                        $from = $data['from'];
+                        $to = $data['to'];
+                        return $from || $to ?  'Price: ' . $from . '-' . $to : '';
+                    })
+
+                    ->baseQuery(function (Builder $query, array $data): Builder {
                         return $query
+                            ->explorerProducts()
+                            ->reorder()
+                            ->orderByRaw('CASE WHEN offer_price IS NOT NULL THEN LEAST(offer_price, price) ELSE price END')
                             ->when(
                                 $data['from'],
-                                fn (Builder $query, $from): Builder => $query->where('price', '>=', $from),
+                                fn (Builder $query, $from): Builder => $query
+                                    ->where(function ($query) use ($from) {
+                                        $query->where(function ($query) use ($from) {
+                                            $query->whereNotNull('offer_price')
+                                                ->where('offer_price', '>=', $from);
+                                        })->orWhere(function ($query) use ($from) {
+                                            $query->whereNull('offer_price')
+                                                ->where('price', '>=', $from);
+                                        });
+                                    })
                             )
                             ->when(
                                 $data['to'],
-                                fn (Builder $query, $to): Builder => $query->where('price', '<=', $to),
+                                fn (Builder $query, $to): Builder => $query
+                                    ->where(function ($query) use ($to) {
+                                        $query->where(function ($query) use ($to) {
+                                            $query->whereNotNull('offer_price')
+                                                ->where('offer_price', '<=', $to);
+                                        })->orWhere(function ($query) use ($to) {
+                                            $query->whereNull('offer_price')
+                                                ->where('price', '<=', $to);
+                                        });
+                                    })
                             );
                     }),
             ])
@@ -235,6 +295,12 @@ class ExploreProductsResource extends Resource
     {
         return [
             SkusRelationManager::class,
+        ];
+    }
+    public static function getWidgets(): array
+    {
+        return [
+            CatalogOverview::class
         ];
     }
 

@@ -12,11 +12,14 @@ use App\Http\Integrations\Pathao\Requests\GetCitiesRequest;
 use App\Http\Integrations\Pathao\Requests\GetZonesRequest;
 use App\Jobs\SavePathaoToken;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
 use App\Models\UserLockAmount;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Route;
+
+use function App\Helpers\test;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,13 +34,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/mail', function () {
 
-    $splitOrders = Order::whereHas('items', function ($q) {
-        return $q->select('order_id')
-            ->groupBy('order_id')
-            ->havingRaw('COUNT(DISTINCT wholesaler_id) > 1');
-    })
-        ->get();
-    dd($splitOrders->pluck('id')->toArray());
+    $product = Product::with('skus')->find(160)->colorQuantity();
+    return '';
 });
 
 Route::post('/push', function () {

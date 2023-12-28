@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Enum\OrderItemStatus;
+use App\Enum\OrderStatus;
 use App\Models\OrderItem;
 use App\Models\Sku;
 
@@ -14,6 +15,16 @@ class OrderItemObserver
     public function created(OrderItem $orderItem): void
     {
         $orderItem->sku->decrement('quantity', $orderItem->quantity);
+
+        // add order items after wholesaler approval.
+        // make status back to waiting for whoesaler approval
+
+        $order = $orderItem->order;
+        if ($order->status == OrderStatus::WaitingForHubCollection) {
+            $order->update([
+                'status' => OrderStatus::WaitingForWholesalerApproval->value
+            ]);
+        }
     }
 
     /**

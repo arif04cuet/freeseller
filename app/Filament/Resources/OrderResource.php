@@ -111,10 +111,12 @@ class OrderResource extends Resource
                     ->cloneable()
                     ->live()
                     ->visible(fn (\Filament\Forms\Get $get) => $get('hub_id') && $get('list'))
-                    ->disableItemCreation(
-                        fn (?Model $record, $context) => $context == 'edit' &&
-                            $record?->status?->value != OrderStatus::WaitingForWholesalerApproval->value
-                    )
+                    // ->addable(
+                    //     fn (?Model $record) => in_array($record?->status, [
+                    //         OrderStatus::WaitingForWholesalerApproval,
+                    //         OrderStatus::WaitingForHubCollection,
+                    //     ])
+                    // )
                     ->schema([
 
                         Forms\Components\Select::make('sku')
@@ -298,17 +300,20 @@ class OrderResource extends Resource
                             ->pluck('label', 'id')
                     )
                     ->createOptionAction(
-                        fn ($action, \Filament\Forms\Set $set) => $action->action(
-                            function ($data) use ($set) {
-                                $data['courier'] = config('freeseller.default_courier');
-                                $customer = Customer::updateOrCreate(
-                                    ['mobile' => $data['mobile']],
-                                    $data
-                                );
-                                $customer->resellers()->syncWithoutDetaching([auth()->user()->id]);
-                                $set('customer_id', $customer->id);
-                            }
-                        )
+                        fn ($action, \Filament\Forms\Set $set) =>
+                        $action
+                            ->closeModalByClickingAway(false)
+                            ->action(
+                                function ($data) use ($set) {
+                                    $data['courier'] = config('freeseller.default_courier');
+                                    $customer = Customer::updateOrCreate(
+                                        ['mobile' => $data['mobile']],
+                                        $data
+                                    );
+                                    $customer->resellers()->syncWithoutDetaching([auth()->user()->id]);
+                                    $set('customer_id', $customer->id);
+                                }
+                            )
                     )
                     ->createOptionForm([
                         Forms\Components\Grid::make('customer')
@@ -463,7 +468,7 @@ class OrderResource extends Resource
                     ->label('COD')
                     ->required()
                     ->helperText('total saleable + courier')
-                    ->live(debounce: 1000)
+                    ->live(onBlur: true)
                     ->numeric()
                     ->afterStateUpdated(function (\Filament\Forms\Set $set, Get $get, $state) {
 
@@ -613,6 +618,12 @@ class OrderResource extends Resource
                         Forms\Components\DatePicker::make('created_from'),
                         Forms\Components\DatePicker::make('created_until'),
                     ])
+                    ->indicateUsing(function (array $data): ?string {
+                        $from = $data['created_from'];
+                        $to = $data['created_until'];
+
+                        return $from || $to ? 'Date : ' . $from . ' - ' . $to : '';
+                    })
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
                             ->when(
@@ -673,7 +684,10 @@ class OrderResource extends Resource
                         ->visible(fn (Order $record) => $record->tracking_code)
                         ->openUrlInNewTab(),
                     Tables\Actions\EditAction::make()
-                        ->visible(fn (?Model $record) => $record?->status?->value == OrderStatus::WaitingForWholesalerApproval->value),
+                        ->visible(fn (Model $record) => in_array($record->status, [
+                            OrderStatus::WaitingForWholesalerApproval,
+                            OrderStatus::WaitingForHubCollection
+                        ])),
 
                     Tables\Actions\Action::make('show_customer')
                         ->label('Customer')

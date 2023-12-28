@@ -38,7 +38,17 @@ class Product extends Model implements HasMedia
     }
 
     //scopes
-
+    public function scopeExplorerProducts(Builder $builder): void
+    {
+        $builder->with([
+            'category' => fn ($q) => $q->select('id', 'name'),
+            'productType' => fn ($q) => $q->select('id', 'name'),
+            'media',
+            'skus',
+            'skus.media',
+            'owner'
+        ])->has('skus');
+    }
     public function scopeMine(Builder $builder): void
     {
         $builder
@@ -84,8 +94,8 @@ class Product extends Model implements HasMedia
     {
         return $this->skus->map(
             function ($sku) {
-                $color = array_slice(explode('-', $sku->name), -2, 2);
-                return $color[0] . '-' . $color[1] . '-' . $sku->quantity;
+                $color = array_reverse(explode('-', $sku->name))[0];
+                return $color . '-' . $sku->quantity;
             }
         )->toArray();
     }
