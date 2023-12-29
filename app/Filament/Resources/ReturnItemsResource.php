@@ -13,6 +13,7 @@ use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -117,38 +118,20 @@ class ReturnItemsResource extends Resource
             )
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\BulkAction::make('send_otp')
+                    Tables\Actions\BulkAction::make('Return Items')
                         ->visible(fn () => auth()->user()->isHubManager())
                         ->icon('heroicon-o-envelope')
                         ->deselectRecordsAfterCompletion()
-                        ->modalHeading('OTP has been sent to wholesaler.')
+                        ->modalHeading('Send OTP by clicking on mobile icon. then verify OTP')
+                        ->modalSubmitActionLabel('Verify')
                         ->fillForm(
                             function (Collection $records): array {
 
                                 $parcels = $records->pluck('order_id')->unique();
                                 $return_qnt = $records->sum('return_qnt');
 
-                                $otp = random_int(100000, 999999);
-                                $item = $records->first();
-                                //logger($otp);
-                                Notification::make()
-                                    ->success()
-                                    ->title('OTP sent to wholesaler')
-                                    ->send();
-
-                                User::sendMessage(
-                                    users: $item->wholesaler,
-                                    title: 'Product return OTP = ' . $otp,
-                                    body: 'Total Products= ' . $return_qnt . ' and Total Orders = ' . $parcels->count() . ' (' . $parcels->implode(',') . ')',
-                                    actions: [
-                                        Action::make('read')
-                                            ->button()
-                                            ->markAsRead()
-                                    ]
-                                );
-
                                 return [
-                                    'sent_otp' => $otp,
+                                    'records' => $records,
                                     'orders' => $parcels->count(),
                                     'items' => $return_qnt
                                 ];
@@ -161,7 +144,38 @@ class ReturnItemsResource extends Resource
                             Forms\Components\TextInput::make('entered_otp')
                                 ->label('Enter OTP to verify')
                                 ->required()
-                                ->numeric(),
+                                ->numeric()
+                                ->suffixAction(
+                                    fn ($get) =>
+                                    Forms\Components\Actions\Action::make('send otp')
+                                        ->icon('heroicon-m-device-phone-mobile')
+                                        ->action(function (Set $set, $state) use ($get) {
+                                            $records = $get('records');
+                                            $return_qnt = $get('items');
+                                            $parcels = $records->pluck('order_id')->unique();
+
+                                            $otp = random_int(100000, 999999);
+                                            $item = $records->first();
+                                            logger($otp);
+                                            Notification::make()
+                                                ->success()
+                                                ->title('OTP sent to wholesaler')
+                                                ->send();
+
+                                            User::sendMessage(
+                                                users: $item->wholesaler,
+                                                title: 'Product return OTP = ' . $otp,
+                                                body: 'Total Products= ' . $return_qnt . ' and Total Orders = ' . $parcels->count() . ' (' . $parcels->implode(',') . ')',
+                                                actions: [
+                                                    Action::make('read')
+                                                        ->button()
+                                                        ->markAsRead()
+                                                ]
+                                            );
+
+                                            $set('sent_otp', $otp);
+                                        })
+                                ),
                             Forms\Components\TextInput::make('sent_otp')
                                 ->hidden()
                         ])
@@ -183,6 +197,8 @@ class ReturnItemsResource extends Resource
 
                                 OrderItem::query()
                                     ->whereIn('id', $records->pluck('id')->toArray())
+                                    ->get()
+                                    ->each
                                     ->update([
                                         'is_returned_to_wholesaler' => true,
                                         'return_received_at' => now()

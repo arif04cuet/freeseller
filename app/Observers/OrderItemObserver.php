@@ -50,7 +50,11 @@ class OrderItemObserver
         }
 
 
-        if (in_array($orderItem->status, [OrderItemStatus::Cancelled, OrderItemStatus::Returned])) {
+        if ($orderItem->status == OrderItemStatus::Cancelled) {
+            $orderItem->sku->increment('quantity', $orderItem->quantity);
+        }
+
+        if ($orderItem->status == OrderItemStatus::Returned && $orderItem->is_returned_to_wholesaler) {
             $quantity = $orderItem->return_qnt ?: $orderItem->quantity;
             $orderItem->sku->increment('quantity', $quantity);
         }

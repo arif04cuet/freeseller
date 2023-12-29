@@ -471,7 +471,7 @@ class HubOrderResource extends Resource
                                             $items->each(
                                                 function ($item)  use ($order, $returnSkus) {
 
-                                                    $return_qnt = $returnSkus->toArray()[$item->sku_id];
+                                                    //$return_qnt = $returnSkus->toArray()[$item->sku_id];
 
                                                     //stock update
                                                     //$item->sku->increment('quantity', $return_qnt);

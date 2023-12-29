@@ -66,6 +66,7 @@ class ProductResource extends Resource
                 Forms\Components\Select::make('product_type_id')
                     ->relationship('productType', 'name')
                     ->preload()
+                    ->default(1)
                     ->required()
                     ->reactive(),
 
@@ -73,9 +74,12 @@ class ProductResource extends Resource
                     ->label('Category')
                     ->preload()
                     ->searchable()
-                    ->options(fn (\Filament\Forms\Get $get) => Category::query()
-                        ->where('product_type_id', $get('product_type_id'))
-                        ->pluck('name', 'id'))
+                    ->options(
+                        fn (\Filament\Forms\Get $get) => Category::query()
+                            ->where('product_type_id', $get('product_type_id'))
+                            ->whereNotNull('category_id')
+                            ->pluck('name', 'id')
+                    )
                     ->required(),
 
                 Forms\Components\TextInput::make('name')
