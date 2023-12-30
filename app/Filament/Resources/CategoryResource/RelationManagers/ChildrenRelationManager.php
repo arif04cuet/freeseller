@@ -20,7 +20,8 @@ class ChildrenRelationManager extends RelationManager
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
-                    ->maxLength(255)
+                    ->unique(ignoreRecord: true)
+                    ->rules('required|max:100'),
             ]);
     }
 
@@ -36,7 +37,7 @@ class ChildrenRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make()
+                Tables\Actions\CreateAction::make('create_child')
                     ->mutateFormDataUsing(function (array $data, $livewire) {
                         $parent = $livewire->getOwnerRecord();
                         $data['product_type_id'] = $parent->product_type_id;
@@ -50,6 +51,7 @@ class ChildrenRelationManager extends RelationManager
                         $parent = $livewire->getOwnerRecord();
                         $data['product_type_id'] = $parent->product_type_id;
                         $data['category_id'] = $parent->id;
+
                         return $data;
                     })
             ])
