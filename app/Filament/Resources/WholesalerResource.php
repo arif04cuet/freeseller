@@ -41,7 +41,8 @@ class WholesalerResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return static::getModel()::query()->with('address');
+        return static::getModel()::query()
+            ->with(['wallet', 'roles', 'products']);
     }
 
     public static function getNavigationBadge(): ?string
@@ -132,19 +133,21 @@ class WholesalerResource extends Resource
                     }),
                 TextColumn::make('business.name'),
                 TextColumn::make('name')
-                    ->label('Owner')
-                    ->searchable(),
+                    ->searchable(['name', 'email', 'mobile'])
+                    ->html()
+                    ->formatStateUsing(
+                        fn (Model $record, $state) => $state . '<br/>' . $record->email . '<br/>' . $record->mobile
+                    ),
+
+                TextColumn::make('balance_float')
+                    ->label('Balance'),
+                TextColumn::make('products_count')
+                    ->label('Product')
+                    ->counts('products'),
                 TextColumn::make('skus_sum_quantity')
-                    ->label('Products')
+                    ->label('Stock')
                     ->sum('skus', 'quantity'),
-                TextColumn::make('email')
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make('mobile')
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make('hub')
-                    ->getStateUsing(fn (Model $record) => Address::find($record->address->address_id)->name),
+
                 TextColumn::make('created_at')->datetime(),
                 ToggleColumn::make('is_active')
                     ->updateStateUsing(

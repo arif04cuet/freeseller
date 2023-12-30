@@ -38,6 +38,7 @@ class ResellersResource extends Resource
 
     protected static ?string $slug = 'resellers';
 
+
     public static function getNavigationBadge(): ?string
     {
         return static::getEloquentQuery()->resellers()->count();
@@ -130,7 +131,9 @@ class ResellersResource extends Resource
                         $baseNumber = config('freeseller.base_id_number');
                         return $query->whereRaw('CONCAT("R","", ? + id) = ?', [$baseNumber, $search]);
                     }),
-                TextColumn::make('business.name'),
+                TextColumn::make('business.name')
+                    ->html()
+                    ->formatStateUsing(fn (Model $record, $state) => $state . '<br/>' . $record->name),
                 TextColumn::make('business.url')
                     ->label('Business Url')
                     ->formatStateUsing(
@@ -138,9 +141,8 @@ class ResellersResource extends Resource
                     )
                     ->html()
                     ->openUrlInNewTab(),
-                TextColumn::make('name')
-                    ->label('Owner')
-                    ->searchable(),
+                TextColumn::make('balance_float')
+                    ->label('Balance'),
                 TextColumn::make('email')
                     ->sortable()
                     ->searchable(),

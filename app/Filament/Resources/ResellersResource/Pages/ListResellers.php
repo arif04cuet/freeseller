@@ -12,6 +12,9 @@ class ListResellers extends ListRecords
 
     protected function getTableQuery(): Builder
     {
-        return parent::getTableQuery()->with('business')->resellers()->latest();
+        return parent::getTableQuery()
+            ->with(['business', 'wallet'])
+            ->resellers()
+            ->latest();
     }
 }
