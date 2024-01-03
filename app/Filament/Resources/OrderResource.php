@@ -500,9 +500,9 @@ class OrderResource extends Resource
                                     $set('error', 1);
                                     return 'Please recharge your wallet with TK = ' . abs($amount);
                                 } elseif ($state > $cod) {
-                                    $set('error', 1);
+                                    //$set('error', 1);
 
-                                    return 'COD can\'t be grater than ' . $cod;
+                                    //return 'COD can\'t be grater than ' . $cod;
                                 }
                             }
                         }
