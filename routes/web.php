@@ -12,6 +12,7 @@ use App\Http\Integrations\Pathao\Requests\GetCitiesRequest;
 use App\Http\Integrations\Pathao\Requests\GetZonesRequest;
 use App\Jobs\SavePathaoToken;
 use App\Models\Order;
+use App\Models\OrderClaim;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\UserLockAmount;
@@ -34,8 +35,9 @@ use function App\Helpers\test;
 
 Route::get('/mail', function () {
 
-    $product = Product::with('skus')->find(160)->colorQuantity();
-    return '';
+    return OrderClaim::query()
+        ->whereJsonContains('wholesalers', ['id' => "6"])
+        ->get();
 });
 
 Route::post('/push', function () {

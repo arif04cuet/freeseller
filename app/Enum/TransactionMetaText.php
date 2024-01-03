@@ -18,6 +18,7 @@ enum TransactionMetaText: string
     case PACKAGING_FEE_DEDUCTED = 'packaging_fee_deducted';
     case COD_FEE_DEDUCTED = 'cod_fee_deducted';
     case PRODUCT_COST_DEDUCTED = 'product_cost_deducted';
+    case ORDER_CLAIM = 'order_claim';
 
     public function getLabel($order): ?string
     {
@@ -31,6 +32,7 @@ enum TransactionMetaText: string
             self::PACKAGING_FEE_DEDUCTED => 'Packaging fee deducted for order#' . $order->id,
             self::COD_FEE_DEDUCTED => 'COD fee deducted for order#' . $order->id,
             self::PRODUCT_COST_DEDUCTED => 'Product cost deducted for order#' . $order->id,
+            self::ORDER_CLAIM => 'Order claim amount from wholesaler to reseller for order#' . $order->id,
         };
     }
 }

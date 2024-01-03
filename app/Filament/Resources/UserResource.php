@@ -32,10 +32,10 @@ class UserResource extends Resource
         return static::getModel()::query()->hubUsers()->mine();
     }
 
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getEloquentQuery()->count();
-    }
+    // public static function getNavigationBadge(): ?string
+    // {
+    //     return static::getEloquentQuery()->count();
+    // }
 
     public static function form(Form $form): Form
     {

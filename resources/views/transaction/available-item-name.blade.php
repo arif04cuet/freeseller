@@ -5,6 +5,12 @@
         'order' => $record->type == 'withdraw' ? 'Charges for Order #' . $orderNo : 'Order #' . $orderNo,
         'recharge' => 'Wallet Rechage',
         'fund' => 'Fund Withdrawal',
+        'claim' => 'Order Claim ' .
+            (auth()
+                ->user()
+                ->isWholesaler()
+                ? ''
+                : '# <a href="' . route('filament.app.resources.order-claims.index', ['tableSearch' => $item[1]]) . '"><u>' . $item[1] . '</u></a>'),
     };
 @endphp
 

@@ -75,6 +75,10 @@ class Order extends Model
 
     //relations
 
+    public function claim(): HasOne
+    {
+        return $this->hasOne(OrderClaim::class, 'order_id');
+    }
     public function lockAmount(): MorphOne
     {
         return $this->morphOne(UserLockAmount::class, 'entity');

@@ -49,6 +49,7 @@ class AvailableBalanceList extends Component implements HasForms, HasTable
                                 CASE
                                     WHEN JSON_VALUE(meta,'$.order') THEN CONCAT('order','#',JSON_VALUE(meta,'$.order'))
                                     WHEN JSON_VALUE(meta,'$.wallet_recharge') THEN CONCAT('recharge','#',JSON_VALUE(meta,'$.wallet_recharge'))
+                                    WHEN JSON_VALUE(meta,'$.claim') THEN CONCAT('claim','#',JSON_VALUE(meta,'$.claim'))
                                     ELSE CONCAT('fund','#',id)
                                 END as item_type
                             ")

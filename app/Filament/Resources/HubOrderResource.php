@@ -277,7 +277,7 @@ class HubOrderResource extends Resource
                                 ->visible(fn (\Filament\Forms\Get $get, Order $record) => $record->status == OrderStatus::WaitingForHubCollection)
                                 ->required(fn (\Filament\Forms\Get $get) => !$get('all'))
                                 ->options(
-                                    fn (Order $record) => $record->loadMissing('items.wholesaler')
+                                    fn (Order $record) => $record->loadMissing('items.wholesaler.business')
                                         ->items
                                         ->filter(fn ($item) => $item->status == OrderItemStatus::Approved)
                                         ->map(fn ($item) => [
@@ -449,6 +449,7 @@ class HubOrderResource extends Resource
                                             $returnSkus = collect($data['return'])->pluck('return_qtn', 'sku');
 
                                             $returnItems = $order->items()
+                                                ->with('wholesaler')
                                                 ->whereIn('sku_id', $returnSkus->keys()->toArray());
 
 

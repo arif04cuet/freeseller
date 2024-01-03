@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enum\AddressType;
 use App\Enum\Courier;
+use App\Enum\OrderClaimType;
 use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
@@ -19,6 +20,7 @@ use App\Models\ResellerList;
 use App\Models\Sku;
 use Filament\Forms;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -639,34 +641,6 @@ class OrderResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
 
-                    Tables\Actions\Action::make('cancel')
-                        ->visible(fn (Model $record) => $record?->status == OrderStatus::WaitingForWholesalerApproval)
-                        ->requiresConfirmation()
-                        ->color('danger')
-                        ->icon('heroicon-m-trash')
-                        ->form([
-                            forms\Components\Textarea::make('cancel_note')
-                                ->required()
-                        ])
-                        ->action(
-                            function (Model $record, array $data, $action) {
-
-                                DB::transaction(function () use ($record, $data) {
-                                    $record->update([
-                                        'status' => OrderStatus::Cancelled->value,
-                                        'cancelled_note' => $data['cancel_note'],
-                                        'cancelled_by' => auth()->user()->id
-                                    ]);
-                                    $record->items->each(
-                                        fn ($item) => $item->update(['status' => OrderItemStatus::Cancelled->value])
-                                    );
-
-                                    NotificationsNotification::make()
-                                        ->title('Order cancelled successfully')
-                                        ->send();
-                                });
-                            }
-                        ),
 
                     Tables\Actions\Action::make('transactions')
                         ->color('success')

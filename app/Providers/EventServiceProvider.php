@@ -22,8 +22,10 @@ use App\Listeners\SendNewOrderNotifications;
 use App\Listeners\SendNewSignupEmailNotificationToAdmins;
 use App\Listeners\SendOrderCancelledNotificationListener;
 use App\Models\FundWithdrawRequest;
+use App\Models\OrderClaim;
 use App\Models\OrderItem;
 use App\Observers\FundWithdrawRequestbserver;
+use App\Observers\OrderClaimObserver;
 use App\Observers\OrderItemObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
@@ -81,6 +83,7 @@ class EventServiceProvider extends ServiceProvider
     {
         FundWithdrawRequest::observe(FundWithdrawRequestbserver::class);
         OrderItem::observe(OrderItemObserver::class);
+        OrderClaim::observe(OrderClaimObserver::class);
     }
 
     /**

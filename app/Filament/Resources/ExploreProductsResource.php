@@ -37,7 +37,7 @@ class ExploreProductsResource extends Resource
     {
         return parent::getEloquentQuery()
             ->explorerProducts()
-            ->inRandomOrder();
+            ->latest();
     }
     public static function form(Form $form): Form
     {
@@ -206,8 +206,11 @@ class ExploreProductsResource extends Resource
                     ->baseQuery(function (Builder $query, array $data): Builder {
                         return $query
                             ->explorerProducts()
-                            ->reorder()
-                            ->orderByRaw('CASE WHEN offer_price IS NOT NULL THEN LEAST(offer_price, price) ELSE price END')
+                            ->when(
+                                $data['from'] || $data['to'],
+                                fn ($q) => $q->reorder()
+                                    ->orderByRaw('CASE WHEN offer_price IS NOT NULL THEN LEAST(offer_price, price) ELSE price END')
+                            )
                             ->when(
                                 $data['from'],
                                 fn (Builder $query, $from): Builder => $query

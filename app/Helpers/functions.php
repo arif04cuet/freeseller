@@ -2,7 +2,19 @@
 
 namespace App\Helpers;
 
+if (!function_exists('App\Helpers\floatFn')) {
+    function floatFn($number)
+    {
+        return number_format($number, 2, '.', '');
+    }
+}
 
+if (!function_exists('App\Helpers\percentange')) {
+    function percentange($amount, $percentage)
+    {
+        return floatFn((($percentage / 100) * $amount));
+    }
+}
 if (!function_exists('App\Helpers\colors')) {
     function colorCode($name)
     {

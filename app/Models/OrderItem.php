@@ -61,6 +61,7 @@ class OrderItem extends Model
     //helpers
     public function returnedMessage(): string
     {
+        $this->loadMissing('sku');
         return 'Your product ' . $this->sku->name . ' has been returned.
         please collect it from hub within 3 days.';
     }

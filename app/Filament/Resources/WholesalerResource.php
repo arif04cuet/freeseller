@@ -45,10 +45,10 @@ class WholesalerResource extends Resource
             ->with(['wallet', 'roles', 'products']);
     }
 
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getEloquentQuery()->wholesalers()->mine()->count();
-    }
+    // public static function getNavigationBadge(): ?string
+    // {
+    //     return static::getEloquentQuery()->wholesalers()->mine()->count();
+    // }
 
     public static function form(Form $form): Form
     {
