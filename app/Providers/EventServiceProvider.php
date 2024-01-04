@@ -6,6 +6,7 @@ use App\Events\NewOrderCreated;
 use App\Events\OrderCancelled;
 use App\Events\OrderDelivered;
 use App\Events\OrderItemApproved;
+use App\Events\OrderNoteAdded;
 use App\Events\OrderPartialDelivered;
 use App\Listeners\ActivateUser;
 use App\Listeners\AddSkuNumnerToImage;
@@ -21,6 +22,7 @@ use App\Listeners\OrderDisbursmentForPartialDelivery;
 use App\Listeners\SendNewOrderNotifications;
 use App\Listeners\SendNewSignupEmailNotificationToAdmins;
 use App\Listeners\SendOrderCancelledNotificationListener;
+use App\Listeners\SendOrderNoteNotification;
 use App\Models\FundWithdrawRequest;
 use App\Models\OrderClaim;
 use App\Models\OrderItem;
@@ -72,6 +74,10 @@ class EventServiceProvider extends ServiceProvider
         ],
         OrderCancelled::class => [
             OrderCancelledListener::class,
+        ],
+
+        OrderNoteAdded::class => [
+            SendOrderNoteNotification::class
         ]
 
     ];

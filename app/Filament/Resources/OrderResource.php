@@ -8,6 +8,7 @@ use App\Enum\OrderClaimType;
 use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
+use App\Events\OrderNoteAdded;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\Widgets\OrderInstruction;
 use App\Http\Integrations\Pathao\Requests\GetAreasRequest;
@@ -24,20 +25,13 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Filament\Notifications\Notification as NotificationsNotification;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Columns\Summarizers\Count;
-use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\HtmlString;
-use Notification;
 
 class OrderResource extends Resource
 {
@@ -641,7 +635,38 @@ class OrderResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
 
+                    Tables\Actions\Action::make('notes')
+                        ->color('success')
+                        ->icon('heroicon-o-document-plus')
+                        ->form([
+                            Forms\Components\Textarea::make('text')
+                                ->required()
+                        ])
+                        ->action(
+                            function (Model $record, array $data, $action) {
 
+                                $note = $data['text'];
+                                $notes = $record->notes;
+                                $notes[] = [
+                                    'text' => $note,
+                                    'time' => now()->format('d/m/Y H:i:s'),
+                                    'status' => 'pending'
+                                ];
+
+                                $record->update(['notes' => $notes]);
+
+                                OrderNoteAdded::dispatch($record, $note);
+
+                                Notification::make()
+                                    ->success()
+                                    ->title('Note added.')
+                                    ->send();
+
+                                $action->halt();
+                            }
+                        )
+                        ->modalHeading(fn (Model $record) => 'Notes for order#' . $record->id . ' (' . $record->customer->name . ')')
+                        ->modalContent(fn (Model $record) => view('order.notes', compact('record'))),
                     Tables\Actions\Action::make('transactions')
                         ->color('success')
                         ->icon('heroicon-o-currency-dollar')

@@ -41,7 +41,8 @@ class Order extends Model
         'courier_charge' => 'int',
         'total_amount' => 'int',
         'packaging_charge' => 'int',
-        'collected_cod' => 'int'
+        'collected_cod' => 'int',
+        'notes' => 'array'
     ];
 
     //scopes

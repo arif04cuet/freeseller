@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Address extends Model
 {
@@ -54,5 +55,12 @@ class Address extends Model
             ->role(SystemRole::HubManager->value)
             ->whereRelation('address', 'address_id', $this->id)
             ->first();
+    }
+    public function allHubMembers(): Collection
+    {
+        return User::query()
+            ->hubUsers()
+            ->whereRelation('address', 'address_id', $this->id)
+            ->get();
     }
 }
