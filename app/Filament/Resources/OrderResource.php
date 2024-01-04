@@ -640,6 +640,7 @@ class OrderResource extends Resource
                         ->icon('heroicon-o-document-plus')
                         ->form([
                             Forms\Components\Textarea::make('text')
+                                ->label('New Note')
                                 ->required()
                         ])
                         ->action(
