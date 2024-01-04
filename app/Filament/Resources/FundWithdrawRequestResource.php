@@ -152,6 +152,16 @@ class FundWithdrawRequestResource extends Resource
                     ->dateTime(),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('type')
+                    ->options(PaymentChannel::class)
+                    ->query(
+                        fn (Builder $query, array $data): Builder => $query
+                            ->when(
+                                $data['value'],
+                                fn ($q) => $q->whereRelation('paymentChannel', 'type', $data['value'])
+                            )
+                    ),
+
                 Tables\Filters\SelectFilter::make('status')
                     ->options(WalletRechargeRequestStatus::class),
                 Tables\Filters\Filter::make('approved_at')

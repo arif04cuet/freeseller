@@ -14,6 +14,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -80,7 +81,7 @@ class WalletRechargeRequestResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')->since(),
                 Tables\Columns\TextColumn::make('user.business.name'),
-                Tables\Columns\TextColumn::make('amount'),
+                Tables\Columns\TextColumn::make('amount')->summarize(Sum::make()),
                 Tables\Columns\TextColumn::make('bank')->label('Payment Channel'),
                 Tables\Columns\TextColumn::make('tnx_id')->searchable(),
                 SpatieMediaLibraryImageColumn::make('image')
@@ -103,7 +104,31 @@ class WalletRechargeRequestResource extends Resource
                 //     ->dateTime(),
 
             ])
-            ->filters([])
+            ->filters([
+                Tables\Filters\SelectFilter::make('bank')
+                    ->label('Channel')
+                    ->options(PaymentChannel::class),
+
+                Tables\Filters\SelectFilter::make('status')
+                    ->options(WalletRechargeRequestStatus::class),
+
+                Tables\Filters\Filter::make('action_taken_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('from')->label('From'),
+                        Forms\Components\DatePicker::make('to'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('action_taken_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['to'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('action_taken_at', '<=', $date),
+                            );
+                    })
+            ])
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->visible(

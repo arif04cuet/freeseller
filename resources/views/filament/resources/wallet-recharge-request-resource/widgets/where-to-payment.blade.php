@@ -5,11 +5,11 @@
         <div class="mt-2 flex justify-between flex-col md:flex-row gap-4">
             <div>
                 <strong> Bank Information</strong>
-                <p><strong>Bank Name</strong> : Bank Asia Limited</p>
-                <p><strong>Branch</strong> : Gulshan Branch</p>
-                <p><strong>A/C Name</strong> : Arif Hossain</p>
+                <p><strong>Bank Name</strong> : Southeast Bank PLC</p>
+                <p><strong>Branch</strong> : Balla Branch</p>
+                <p><strong>A/C Name</strong> : FREE SELLER</p>
                 <p>
-                    <strong>A/C No.</strong> : 00434030848
+                    <strong>A/C No.</strong> : 010911100000484
                 </p>
 
             </div>
