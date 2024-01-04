@@ -65,7 +65,7 @@ class OrderNotes extends BaseWidget
 
                                 Notification::make()
                                     ->success()
-                                    ->title('Note Approve.')
+                                    ->title('Note Approved.')
                                     ->send();
 
                                 User::sendMessage(

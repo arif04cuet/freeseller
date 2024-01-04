@@ -54,11 +54,11 @@ class FundWithdrawRequestResource extends Resource
                 Forms\Components\Select::make('type')
                     ->label('Channel')
                     ->options(PaymentChannel::array())
-                    ->reactive()
+                    ->live()
                     ->dehydrated(false)
-                    ->afterStateHydrated(
-                        fn (?Model $record, $component) => $record && $component->state($record->paymentChannel->type->value)
-                    )
+                    // ->afterStateHydrated(
+                    //     fn (?Model $record, $component) => $record && $component->state($record->paymentChannel->type->value)
+                    // )
                     ->required(),
 
                 Forms\Components\Select::make('payment_channel_id')
@@ -69,8 +69,10 @@ class FundWithdrawRequestResource extends Resource
                 Forms\Components\TextInput::make('amount')
                     ->numeric()
                     ->helperText(
-                        function () use ($minimumBalance) {
-                            $limit = (int) auth()->user()->active_balance - $minimumBalance;
+                        function (?Model $record, $operation) use ($minimumBalance) {
+                            $limit = (int) ($operation == 'edit' ?
+                                (auth()->user()->active_balance + $record->lockAmount->amount - $minimumBalance) : (auth()->user()->active_balance - $minimumBalance)
+                            );
                             $limit = $limit > 0 ? $limit : 0;
 
                             return new HtmlString(
@@ -80,7 +82,9 @@ class FundWithdrawRequestResource extends Resource
                         }
                     )
                     ->maxValue(
-                        fn () => (int) (auth()->user()->active_balance - $minimumBalance)
+                        fn (?Model $record, $operation) => (int) ($operation == 'edit' ?
+                            (auth()->user()->active_balance + $record->lockAmount->amount - $minimumBalance) : (auth()->user()->active_balance - $minimumBalance)
+                        )
                     )
                     ->minValue(100)
                     ->required(),
