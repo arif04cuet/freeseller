@@ -41,10 +41,10 @@ class FilamentServiceProvider extends ServiceProvider
                 fn (): string => new HtmlString('<link rel="manifest" href="/manifest.json" />')
             );
 
-            FilamentView::registerRenderHook(
-                'panels::head.start',
-                fn (): View => view('app.pacejs'),
-            );
+            // FilamentView::registerRenderHook(
+            //     'panels::head.start',
+            //     fn (): View => view('app.pacejs'),
+            // );
 
             // Filament::pushMeta([
             //     new HtmlString('<link rel="manifest" href="/manifest.json" />'),
