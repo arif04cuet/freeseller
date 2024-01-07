@@ -46,31 +46,19 @@ class UserResource extends Resource
                 TextInput::make('mobile'),
 
                 TextInput::make('business.name')
-                    ->label('Business Name')
-                    ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
-                        $business = $record->business->first();
-                        $component->state($business?->name);
-                    }),
+                    ->label('Business Name'),
+                // ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
+                //     $business = $record->business->first();
+                //     $component->state($business?->name);
+                // }),
 
                 TextInput::make('business.address')
-                    ->label('Business Address')
-                    ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
-                        $business = $record->business->first();
-                        $component->state($business?->address);
-                    }),
+                    ->label('Business Address'),
 
                 TextInput::make('business.estd_year')
-                    ->label('Business Estd Year')
-                    ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
-                        $business = $record->business->first();
-                        $component->state($business?->estd_year);
-                    }),
+                    ->label('Business Estd Year'),
                 TextInput::make('business.type')
-                    ->label('Business Type')
-                    ->afterStateHydrated(function (TextInput $component, $state, ?Model $record) {
-                        $business = $record->business->first();
-                        $component->state($business?->type);
-                    }),
+                    ->label('Business Type'),
             ]);
     }
 
