@@ -1,28 +1,14 @@
-@if ($courierMsg = $record->note_for_courier)
-    <div class="pb-2">
-        <div class="flex">
-            <p>{{ $record->created_at->format('d/m/Y H:i:s') }}</p>
-            <span style="color: green;" class="px-4">approved</span>
-        </div>
-
-        <p>{{ $courierMsg }}</p>
-
-    </div>
-@endif
-<div class="py-4">
-    {{ $record->consignment_id ?? '' }}
+<div class="">
+    Customer: {{ $record->customer->name }} <br />
+    CN: {{ $record->consignment_id ?? '' }}
 </div>
+
+@if ($courierMsg = $record->note_for_courier)
+    <x-note :time="$record->created_at->format('d/m/Y H:i:s')" status="approved" :note="$courierMsg" />
+@endif
+
 @if ($record->notes)
     @foreach ($record->notes as $note)
-        <div class="pb-2">
-            <div class="flex">
-                <p>{{ $note['time'] ?? '' }}</p>
-                <span class = 'px-4'
-                    style="{{ isset($note['status']) && $note['status'] == 'approved' ? 'color:green' : 'color:orange' }}">
-                    {{ $note['status'] ?? 'pending' }}</span>
-            </div>
-            <p>{{ $note['text'] ?? '' }}</p>
-        </div>
+        <x-note :time="$record->created_at->format('d/m/Y H:i:s')" :status="$note['status'] ?? 'pending'" :note="$note['text']" />
     @endforeach
-
 @endif

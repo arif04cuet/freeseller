@@ -640,9 +640,21 @@ class OrderResource extends Resource
                         ->icon('heroicon-o-document-plus')
                         ->form([
                             Forms\Components\Textarea::make('text')
+                                ->visible(fn (Model $record) => !in_array($record->status, [
+                                    OrderStatus::Delivered,
+                                    OrderStatus::Partial_Delivered,
+                                    OrderStatus::Cancelled,
+                                ]))
                                 ->label('New Note')
                                 ->required()
                         ])
+                        ->modalSubmitAction(
+                            fn (Model $record, $action) => !in_array($record->status, [
+                                OrderStatus::Delivered,
+                                OrderStatus::Partial_Delivered,
+                                OrderStatus::Cancelled,
+                            ]) ? $action : false
+                        )
                         ->action(
                             function (Model $record, array $data, $action) {
 
@@ -666,7 +678,7 @@ class OrderResource extends Resource
                                 $action->halt();
                             }
                         )
-                        ->modalHeading(fn (Model $record) => 'Notes for order#' . $record->id . ' (' . $record->customer->name . ')')
+                        ->modalHeading(fn (Model $record) => 'Notes for order#' . $record->id)
                         ->modalContent(fn (Model $record) => view('order.notes', compact('record'))),
                     Tables\Actions\Action::make('transactions')
                         ->color('success')
