@@ -9,7 +9,9 @@
 
     </div>
 @endif
-
+<div class="py-4">
+    {{ $record->consignment_id ?? '' }}
+</div>
 @if ($record->notes)
     @foreach ($record->notes as $note)
         <div class="pb-2">
