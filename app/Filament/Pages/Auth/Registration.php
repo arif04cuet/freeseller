@@ -198,10 +198,10 @@ class Registration extends Register
 
             $user = $this->getUserModel()::create($preparedData);
 
-            app()->bind(
-                \Illuminate\Auth\Listeners\SendEmailVerificationNotification::class,
-                \Filament\Listeners\Auth\SendEmailVerificationNotification::class,
-            );
+            // app()->bind(
+            //     \Illuminate\Auth\Listeners\SendEmailVerificationNotification::class,
+            //     \Filament\Listeners\Auth\SendEmailVerificationNotification::class,
+            // );
 
             //create address
             $user->address()->create($preparedData['addressData']);
