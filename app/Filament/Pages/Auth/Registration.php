@@ -133,15 +133,15 @@ class Registration extends Register
                 Forms\Components\Fieldset::make('Owner Information')
                     ->schema([
                         Forms\Components\TextInput::make('name')
-                            ->label(__('filament-breezy::default.fields.name'))
+                            ->label('Name')
                             ->required(),
                         Forms\Components\TextInput::make('email')
-                            ->label(__('filament-breezy::default.fields.email'))
+                            ->label('Email')
                             ->required()
                             ->email()
-                            ->unique(table: config('filament-breezy.user_model')),
+                            ->unique($this->getUserModel()),
                         Forms\Components\TextInput::make('password')
-                            ->label(__('filament-breezy::default.fields.password'))
+                            ->label('Password')
                             ->required()
                             ->password()
                             ->dehydrateStateUsing(fn ($state) => Hash::make($state))
@@ -150,7 +150,7 @@ class Registration extends Register
                                 Password::min(8),
                             ]),
                         Forms\Components\TextInput::make('password_confirm')
-                            ->label(__('filament-breezy::default.fields.password_confirm'))
+                            ->label('Confirm')
                             ->required()
                             ->password()
                             ->same('password'),
@@ -159,7 +159,7 @@ class Registration extends Register
                             ->rules('numeric|digits_between:11,11')
                             ->regex('/^(?:\+?88|0088)?01[3-9]\d{8}$/i')
                             ->placeholder('01xxxxxxxxx')
-                            ->unique(table: config('filament-breezy.user_model'))
+                            ->unique($this->getUserModel())
                             ->required(),
                     ]),
 
