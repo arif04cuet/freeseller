@@ -10,6 +10,7 @@ use App\Models\PaymentChannel as ModelsPaymentChannel;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
@@ -56,9 +57,10 @@ class FundWithdrawRequestResource extends Resource
                     ->options(PaymentChannel::array())
                     ->live()
                     ->dehydrated(false)
-                    // ->afterStateHydrated(
-                    //     fn (?Model $record, $component) => $record && $component->state($record->paymentChannel->type->value)
-                    // )
+                    ->afterStateHydrated(
+                        fn (?Model $record, $component) => $record && $component->state($record->paymentChannel->type)
+                    )
+                    ->afterStateUpdated(fn (Set $set) => $set('payment_channel_id', []))
                     ->required(),
 
                 Forms\Components\Select::make('payment_channel_id')

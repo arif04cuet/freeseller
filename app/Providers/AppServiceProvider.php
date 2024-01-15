@@ -26,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
         URL::forceScheme('https');
         Model::preventLazyLoading(!app()->isProduction());
 
-        if (app()->isLocal() && 0)
+        if (app()->isLocal())
             $this->logQuesries();
     }
 

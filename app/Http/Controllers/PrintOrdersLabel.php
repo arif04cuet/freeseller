@@ -18,6 +18,7 @@ class PrintOrdersLabel extends Controller
         $orders = Order::query()->with([
             'items',
             'items.sku',
+            'items.sku',
             'reseller',
             'reseller.business',
             'reseller.address',
@@ -28,6 +29,6 @@ class PrintOrdersLabel extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
-        return view('orders.print-invoices', compact('orders'));
+        return view('orders.new-print-invoices', compact('orders'));
     }
 }
