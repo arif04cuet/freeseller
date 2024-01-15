@@ -17,9 +17,9 @@
         <div class="flex justify-between gap-2">
 
             <div class="w-1/2 text-wrap">
-                <div class="flex">
+                <div class="">
                     @if ($logo = $business->logo)
-                        <img class="w-12 " src="/storage/{{ $logo }}" alt="" srcset="">
+                        <img class="w-12 float-left mr-2 " src="/storage/{{ $logo }}" alt="" srcset="">
                     @endif
                     <div class="text-left">
                         <h4 class="text-xl"> {{ $business->name }}</h4>
