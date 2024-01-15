@@ -7,7 +7,7 @@
         $customer = $order->customer;
     @endphp
 
-    <div class="mx-auto max-w-3xl break-inside-avoid">
+    <div class="mx-auto py-2 max-w-3xl break-inside-avoid">
         <div class="mb-2 flex justify-between font-bold px-2">
             <div>Parcel ID# {{ $order->consignment_id }}</div>
             <div>Merchant ID# {{ config('services.steadfast.merchant_id') }}</div>

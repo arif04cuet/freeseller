@@ -1,7 +1,7 @@
 @extends('layout.print')
 @section('content')
     <div class="main-page">
-        <div class="sub-page px-2 py-4">
+        <div class="sub-page px-2">
 
             <div class="grid grid-cols-2 gap-4">
 
@@ -14,6 +14,6 @@
         </div>
     </div>
     <script>
-        //window.print();
+        window.print();
     </script>
 @endsection
