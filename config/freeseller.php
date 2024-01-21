@@ -12,7 +12,7 @@ return [
     'delivery_charge' => 120,
     'delivery_charge_same_city' => 70,
     'per_saree_weight' => 500, //g,
-    'support_number' => '01615645860',
+    'support_number' => '01766-652553',
     'platform_bkash' => '01717348147',
     'low_stock_threshold' => 5,
     'default_courier' => Courier::SteadFast->value,

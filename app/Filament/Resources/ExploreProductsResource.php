@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\ResellerList;
 use App\Models\Sku;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists;
@@ -67,6 +68,7 @@ class ExploreProductsResource extends Resource
 
     public static function table(Table $table): Table
     {
+
         return $table
             ->columns([
 
@@ -145,22 +147,19 @@ class ExploreProductsResource extends Resource
                     ->label('Business')
                     ->multiple()
                     ->preload()
-                    ->relationship('owner', 'name', fn (Builder $query) => $query->with(['business', 'roles'])->wholesalers())
+                    ->relationship('owner', 'name', fn (Builder $query) => $query->with(['roles'])->wholesalers())
                     ->getOptionLabelFromRecordUsing(
-                        function (Model $record) {
-                            return  $record->business->name . '(' . $record->id_number . ')';
-                        }
+                        fn (Model $record) => $record->id_number
 
                     )->indicateUsing(function (array $data): ?string {
 
                         if (empty($data['values'])) {
                             return null;
                         }
-                        $businesses = User::with('business')->whereIn('id', $data['values'])
-                            ->get()
+                        $businesses = User::query()->find($data['values'])
                             ->map(fn ($user) => [
                                 'id' => $user->id,
-                                'name' => $user->business->name . '(' . $user->id_number . ')',
+                                'name' => $user->id_number,
                             ])
                             ->pluck('name', 'id')
                             ->implode(', ');
@@ -265,7 +264,7 @@ class ExploreProductsResource extends Resource
                             ->label('Manufacturer')
                             ->html()
                             ->getStateUsing(
-                                fn (Model $record) => '<a href="' . route('filament.app.resources.explore-products.index') . '?tableFilters[owner][values][0]=' . $record->owner->id . '"><u>' . $record->owner->business->name . '</u></a>'
+                                fn (Model $record) => '<a href="' . route('filament.app.resources.explore-products.index') . '?tableFilters[owner][values][0]=' . $record->owner->id . '"><u>' . $record->owner->id_number . '</u></a>'
                             ),
                         Infolists\Components\ImageEntry::make('focus_image')
                             ->columnSpan([
