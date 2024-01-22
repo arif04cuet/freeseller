@@ -11,6 +11,8 @@ use App\Http\Integrations\Pathao\Requests\GetAreasRequest;
 use App\Http\Integrations\Pathao\Requests\GetCitiesRequest;
 use App\Http\Integrations\Pathao\Requests\GetZonesRequest;
 use App\Jobs\SavePathaoToken;
+use App\Livewire\Home;
+use App\Livewire\Team;
 use App\Models\Order;
 use App\Models\OrderClaim;
 use App\Models\Product;
@@ -32,6 +34,9 @@ use function App\Helpers\test;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+Route::get('/', Home::class)->name('home');
+Route::get('/team', Team::class)->name('team');
 
 Route::get('/mail', function () {
 
@@ -56,11 +61,6 @@ Route::post('/push', function () {
     return response()->json(['success' => true], 200);
 });
 
-Route::get('/', function () {
-    return redirect()->to('/dashboard');
-
-    return view('welcome');
-});
 
 Route::name('verification.')
     ->prefix('/email-verification')
