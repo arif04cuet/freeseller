@@ -28,11 +28,11 @@
                     @else
                         <a href="{{ route('filament.app.auth.register') }}"
                             class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-2 lg:px-5 py-2 lg:py-2.5 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-                            Get started
+                            রিসেলিং শুরু করুন
                         </a>
                         <a href="{{ route('filament.app.auth.login') }}"
                             class="text-white bg-amber-600 hover:bg-amber-800 focus:ring-4 focus:ring-amber-300 font-medium rounded-lg text-sm px-2 lg:px-5 py-2 lg:py-2.5 mr-2 dark:bg-amber-600 dark:hover:bg-amber-700 focus:outline-none dark:focus:ring-amber-800">
-                            Login
+                            লগইন
                         </a>
                     @endif
 
@@ -95,6 +95,7 @@
         {{ $slot }}
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>
 </body>
 
 </html>
