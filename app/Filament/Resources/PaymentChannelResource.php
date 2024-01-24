@@ -39,7 +39,7 @@ class PaymentChannelResource extends Resource
                     ->type('number')
                     ->rules('numeric|digits_between:11,11')
                     ->placeholder('01xxxxxxxxx')
-                    ->unique(ignoreRecord: true)
+                    //->unique(ignoreRecord: true)
                     ->required()
                     ->hintAction(
                         Forms\Components\Actions\Action::make('copyMyMobile')
