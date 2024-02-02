@@ -1,5 +1,8 @@
 <div class="div flex gap-2">
-    <div>{{ $product->price }}</div>
+    <div>
+        <span>&#2547</span>
+        {{ $product->price }}
+    </div>
 
     @if ($product->getOfferPrice())
         <div>

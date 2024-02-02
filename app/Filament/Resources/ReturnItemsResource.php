@@ -59,7 +59,7 @@ class ReturnItemsResource extends Resource
                 'order',
                 'wholesaler',
                 'wholesaler.business',
-                'sku'
+                'sku.media'
             ])->latest();
     }
 

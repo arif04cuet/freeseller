@@ -28,7 +28,7 @@ class ManageHubOrders extends ManageRecords
 
     public function getDefaultActiveTab(): string | int | null
     {
-        return  OrderStatus::WaitingForHubCollection->name;
+        return  'All';
     }
 
     public function getTabs(): array

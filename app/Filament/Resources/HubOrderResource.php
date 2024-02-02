@@ -56,6 +56,7 @@ class HubOrderResource extends Resource
     {
         return parent::getEloquentQuery()
             ->with([
+                'customer',
                 'reseller',
                 'reseller.business'
             ])->mine()->latest();
@@ -84,6 +85,7 @@ class HubOrderResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->searchDebounce('1000ms')
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->searchable(query: function (Builder $query, string $search): Builder {
@@ -99,14 +101,16 @@ class HubOrderResource extends Resource
                         fn ($state) => $state->since() . '<br/>' . $state->format('d-m-Y')
                     )->html(),
                 Tables\Columns\TextColumn::make('reseller')
-                    ->getStateUsing(fn (Model $record) => $record
-                        ->reseller
-                        ->business
-                        ->name),
-                // Tables\Columns\TextColumn::make('reseller.name')
-                //     ->label('Owner'),
-                // Tables\Columns\TextColumn::make('reseller.mobile')
-                //     ->label('Mobile'),
+                    ->html()
+                    ->getStateUsing(
+                        fn (Model $record) => $record
+                            ->reseller
+                            ->business
+                            ->name . '<br/>' .
+                            $record->reseller->name . '<br/>' .
+                            $record->reseller->mobile . '<br/>'
+                    ),
+
                 Tables\Columns\TextColumn::make('total_payable'),
                 Tables\Columns\TextColumn::make('cod')
                     ->label('Order COD'),
@@ -549,35 +553,35 @@ class HubOrderResource extends Resource
                         ->visible(fn (Model $record) => $record->status == OrderStatus::HandOveredToCourier),
 
 
-                    Tables\Actions\Action::make('collector')
-                        ->icon('heroicon-o-user')
-                        ->label('Assign Collector')
-                        ->visible(
-                            fn (Model $record) => 0 & $record->wholesalers()->count() > 1 &&
-                                ($record->status == OrderStatus::WaitingForHubCollection) &&
-                                auth()->user()->isHubManager()
-                        )
-                        ->action(
-                            fn (Order $record, array $data) => $data['self'] ?
-                                $record->addCollector(auth()->user()->id) : $record->addCollector($data['collector_id'])
-                        )
-                        ->modalHeading(fn (Model $record) => 'Assign Collector to Order no ' . $record->id)
-                        ->form([
-                            Forms\Components\Checkbox::make('self')
-                                ->label('Assign Myself')
-                                ->reactive(),
-                            Forms\Components\Select::make('collector_id')
-                                ->label('Select Collector')
-                                ->visible(fn (\Filament\Forms\Get $get) => !$get('self'))
-                                ->required(fn (\Filament\Forms\Get $get) => !$get('self'))
-                                ->options(
-                                    fn () => User::query()
-                                        ->whereRelation('address', 'address_id', auth()->user()->address->address_id)
-                                        ->role(SystemRole::HubMember->value)
-                                        ->pluck('name', 'id')
+                    // Tables\Actions\Action::make('collector')
+                    //     ->icon('heroicon-o-user')
+                    //     ->label('Assign Collector')
+                    //     ->visible(
+                    //         fn (Model $record) => 0 & $record->wholesalers()->count() > 1 &&
+                    //             ($record->status == OrderStatus::WaitingForHubCollection) &&
+                    //             auth()->user()->isHubManager()
+                    //     )
+                    //     ->action(
+                    //         fn (Order $record, array $data) => $data['self'] ?
+                    //             $record->addCollector(auth()->user()->id) : $record->addCollector($data['collector_id'])
+                    //     )
+                    //     ->modalHeading(fn (Model $record) => 'Assign Collector to Order no ' . $record->id)
+                    //     ->form([
+                    //         Forms\Components\Checkbox::make('self')
+                    //             ->label('Assign Myself')
+                    //             ->reactive(),
+                    //         Forms\Components\Select::make('collector_id')
+                    //             ->label('Select Collector')
+                    //             ->visible(fn (\Filament\Forms\Get $get) => !$get('self'))
+                    //             ->required(fn (\Filament\Forms\Get $get) => !$get('self'))
+                    //             ->options(
+                    //                 fn () => User::query()
+                    //                     ->whereRelation('address', 'address_id', auth()->user()->address->address_id)
+                    //                     ->role(SystemRole::HubMember->value)
+                    //                     ->pluck('name', 'id')
 
-                                ),
-                        ]),
+                    //             ),
+                    //     ]),
 
                 ])
             ], position: Tables\Enums\ActionsPosition::BeforeColumns)

@@ -30,7 +30,9 @@ class CustomerResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->mine();
+        return parent::getEloquentQuery()
+            ->with(['district', 'upazila'])
+            ->mine();
     }
 
     public static function form(Form $form): Form

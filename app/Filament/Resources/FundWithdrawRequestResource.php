@@ -39,6 +39,7 @@ class FundWithdrawRequestResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
+            ->with(['user', 'user.business', 'user.roles'])
             ->when(!auth()->user()->isSuperAdmin(), function ($query) {
                 $query->whereBelongsTo(auth()->user());
             })
