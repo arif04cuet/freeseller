@@ -10,6 +10,7 @@ use App\Events\OrderNoteAdded;
 use App\Events\OrderPartialDelivered;
 use App\Listeners\ActivateUser;
 use App\Listeners\AddSkuNumnerToImage;
+use App\Listeners\AddUserDataToSessionAfterLogin;
 use App\Listeners\ChangeOrderStatusWhenItemApproved;
 use App\Listeners\CreateWallet;
 use App\Listeners\DecrementItemStockQuantity;
@@ -29,6 +30,7 @@ use App\Models\OrderItem;
 use App\Observers\FundWithdrawRequestbserver;
 use App\Observers\OrderClaimObserver;
 use App\Observers\OrderItemObserver;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -48,7 +50,9 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
             // SendNewSignupEmailNotificationToAdmins::class
         ],
-
+        // Login::class => [
+        //     AddUserDataToSessionAfterLogin::class
+        // ],
         NewOrderCreated::class => [
             SendNewOrderNotifications::class,
             //LockResellerAmount::class,

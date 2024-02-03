@@ -312,6 +312,15 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
         return $name;
     }
 
+    public function isBusiness()
+    {
+        return $this->hasRole([
+            SystemRole::Wholesaler->value,
+            SystemRole::Reseller->value
+        ]);
+    }
+
+
     public function isSuperAdmin()
     {
         return $this->hasRole('super_admin');
@@ -329,7 +338,10 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
 
     public function isHubManager()
     {
-        return $this->hasRole(SystemRole::HubManager->value) || $this->isHubMember();
+        return $this->hasRole([
+            SystemRole::HubManager->value,
+            SystemRole::HubMember->value
+        ]);
     }
 
     public function isHubMember()

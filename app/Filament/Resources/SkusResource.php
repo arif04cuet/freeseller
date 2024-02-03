@@ -46,11 +46,6 @@ class SkusResource extends Resource
             ->orderBy('quantity', 'asc');
     }
 
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getEloquentQuery()->sum('quantity');
-    }
-
     public static function form(Form $form): Form
     {
         return $form

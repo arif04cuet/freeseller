@@ -91,6 +91,6 @@ class CurrentBalance extends BaseWidget implements HasForms, HasActions
         /** @var App\Models\User $user */
         $user = auth()->user();
 
-        return $user->isSuperAdmin() || $user->isWholesaler() || $user->isReseller();
+        return $user->isSuperAdmin() || $user->isBusiness();
     }
 }

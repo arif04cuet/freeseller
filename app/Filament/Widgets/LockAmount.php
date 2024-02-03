@@ -75,6 +75,6 @@ class LockAmount extends Widget implements HasForms, HasActions
     {
         /** @var App\Models\User $user */
         $user = auth()->user();
-        return $user->isReseller() || $user->isWholesaler();
+        return $user->isBusiness();
     }
 }

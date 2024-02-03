@@ -61,11 +61,6 @@ class OrderResource extends Resource
         ]);
     }
 
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getEloquentQuery()->count();
-    }
-
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->with('items')->mine()->latest();

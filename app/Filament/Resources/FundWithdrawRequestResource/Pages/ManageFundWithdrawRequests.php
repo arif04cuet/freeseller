@@ -5,6 +5,8 @@ namespace App\Filament\Resources\FundWithdrawRequestResource\Pages;
 use App\Enum\WalletRechargeRequestStatus;
 use App\Filament\Resources\FundWithdrawRequestResource;
 use App\Models\User;
+use App\Traits\RecordCountTrait;
+use App\Traits\UseSimplePagination;
 use Filament\Actions;
 use Filament\Actions\StaticAction;
 use Filament\Resources\Pages\ManageRecords;
@@ -12,6 +14,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class ManageFundWithdrawRequests extends ManageRecords
 {
+    use UseSimplePagination;
+    use RecordCountTrait;
+
     protected static string $resource = FundWithdrawRequestResource::class;
 
     protected function getHeaderActions(): array

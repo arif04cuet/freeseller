@@ -36,15 +36,6 @@ class WalletRechargeRequestResource extends Resource
     {
         return parent::getEloquentQuery()->mine()->latest();
     }
-    public static function getNavigationBadge(): ?string
-    {
-        if (!auth()->user()->isSuperAdmin())
-            return static::getEloquentQuery()->count();
-
-        return parent::getEloquentQuery()
-            ->where('status', WalletRechargeRequestStatus::Pending->value)
-            ->count();
-    }
 
     public static function form(Form $form): Form
     {

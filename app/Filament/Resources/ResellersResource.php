@@ -38,11 +38,6 @@ class ResellersResource extends Resource
     protected static ?string $slug = 'resellers';
 
 
-    // public static function getNavigationBadge(): ?string
-    // {
-    //     return static::getEloquentQuery()->resellers()->count();
-    // }
-
     public static function form(Form $form): Form
     {
         return $form

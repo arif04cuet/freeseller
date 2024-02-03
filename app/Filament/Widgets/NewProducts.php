@@ -18,18 +18,25 @@ class NewProducts extends BaseWidget
     protected static ?int $sort = 9;
     protected int | string | array $columnSpan = 2;
 
+    public static function canView(): bool
+    {
+        return auth()->user()->isWholesaler();
+    }
+
+
     public function table(Table $table): Table
     {
         $date = Carbon::today()->subDays(7);
 
         return $table
             ->deferLoading()
-            ->defaultPaginationPageOption(5)
+            ->paginated(false)
             ->query(
                 Sku::query()
                     ->with('product')
                     ->where('created_at', '>=', $date)
                     ->latest()
+                    ->take(5)
             )
             ->columns([
                 Tables\Columns\Layout\Split::make([

@@ -2,6 +2,25 @@
 
 namespace App\Helpers;
 
+if (!function_exists('App\Helpers\hasRole')) {
+    function hasRole($role)
+    {
+        if ($sessionRole = session('user_info.role')) {
+            $roles = is_array($role) ? $role : [$role];
+            return in_array($sessionRole, $roles);
+        }
+
+        return auth()->user()->hasRole($role);
+    }
+}
+
+if (!function_exists('App\Helpers\sessionData')) {
+    function sessionData($key)
+    {
+        return session('user_info.' . $key);
+    }
+}
+
 if (!function_exists('App\Helpers\floatFn')) {
     function floatFn($number)
     {

@@ -5,12 +5,13 @@ namespace App\Services;
 use App\Enum\OrderItemStatus;
 use App\Enum\OrderStatus;
 use App\Enum\SystemRole;
-use Filament\Resources\Pages\ListRecords;
+use Filament\Resources\Components\Tab;
 use Filament\Resources\Resource;
 
 final class OrderService
 {
     public static $resource;
+    public $orders = null;
 
     public static function resource($resource): static
     {
@@ -19,22 +20,25 @@ final class OrderService
         return new static();
     }
 
-    public  static function tabs(SystemRole $role = null): array
+    public static function tabs(SystemRole $role = null): array
     {
+        $orders = self::$resource::getEloquentQuery()
+            ->select(['id', 'status', 'delivered_at'])
+            ->setEagerLoads([])
+            ->get();
+
         return [
-            'All' => ListRecords\Tab::make()
-                ->badge(
-                    self::$resource::getEloquentQuery()->count()
-                )
+            'All' => Tab::make()
+                ->badge($orders->count())
                 ->query(
                     fn ($query) => $query
                 ),
-            OrderStatus::WaitingForWholesalerApproval->name => ListRecords\Tab::make()
+            OrderStatus::WaitingForWholesalerApproval->name => Tab::make()
                 ->badge(
-                    self::$resource::getEloquentQuery()
+                    $orders
                         ->whereIn('status', [
-                            OrderStatus::WaitingForWholesalerApproval->value,
-                            OrderStatus::Processing->value,
+                            OrderStatus::WaitingForWholesalerApproval,
+                            OrderStatus::Processing,
                         ])->count()
                 )
                 ->query(
@@ -44,38 +48,38 @@ final class OrderService
                     ])
                 ),
 
-            OrderStatus::WaitingForHubCollection->name => ListRecords\Tab::make()
+            OrderStatus::WaitingForHubCollection->name => Tab::make()
                 ->badge(
-                    self::$resource::getEloquentQuery()
-                        ->where('status', OrderStatus::WaitingForHubCollection->value)
+                    $orders
+                        ->where('status', OrderStatus::WaitingForHubCollection)
                         ->count()
                 )
                 ->query(
                     fn ($query) => $query->where('status', OrderStatus::WaitingForHubCollection->value)
                 ),
-            OrderStatus::ProcessingForHandOverToCourier->name => ListRecords\Tab::make()
+            OrderStatus::ProcessingForHandOverToCourier->name => Tab::make()
                 ->badge(
-                    self::$resource::getEloquentQuery()
-                        ->where('status', OrderStatus::ProcessingForHandOverToCourier->value)
+                    $orders
+                        ->where('status', OrderStatus::ProcessingForHandOverToCourier)
                         ->count()
                 )
                 ->query(
                     fn ($query) => $query->where('status', OrderStatus::ProcessingForHandOverToCourier->value)
                 ),
-            OrderStatus::HandOveredToCourier->name => ListRecords\Tab::make()
+            OrderStatus::HandOveredToCourier->name => Tab::make()
                 ->badge(
-                    self::$resource::getEloquentQuery()
-                        ->where('status', OrderStatus::HandOveredToCourier->value)
+                    $orders
+                        ->where('status', OrderStatus::HandOveredToCourier)
                         ->count()
                 )
                 ->query(
                     fn ($query) => $query->where('status', OrderStatus::HandOveredToCourier->value)
                 ),
 
-            OrderStatus::Cancelled->name => ListRecords\Tab::make()
+            OrderStatus::Cancelled->name => Tab::make()
                 ->badge(
-                    self::$resource::getEloquentQuery()
-                        ->where('status', OrderStatus::Cancelled->value)
+                    $orders
+                        ->where('status', OrderStatus::Cancelled)
                         ->whereNotNull('delivered_at')
                         ->count()
                 )
@@ -84,27 +88,27 @@ final class OrderService
                         ->where('status', OrderStatus::Cancelled->value)
                         ->whereNotNull('delivered_at')
                 ),
-            OrderStatus::Partial_Delivered->name => ListRecords\Tab::make()
+            OrderStatus::Partial_Delivered->name => Tab::make()
                 ->badge(
-                    self::$resource::getEloquentQuery()
-                        ->where('status', OrderStatus::Partial_Delivered->value)
+                    $orders
+                        ->where('status', OrderStatus::Partial_Delivered)
                         ->count()
                 )
                 ->query(
                     fn ($query) => $query
                         ->where('status', OrderStatus::Partial_Delivered->value)
                 ),
-            OrderStatus::Delivered->name => ListRecords\Tab::make()
+            OrderStatus::Delivered->name => Tab::make()
                 ->badge(
-                    self::$resource::getEloquentQuery()
-                        ->where('status', OrderStatus::Delivered->value)
+                    $orders
+                        ->where('status', OrderStatus::Delivered)
                         ->count()
                 )
                 ->query(
                     fn ($query) => $query->where('status', OrderStatus::Delivered->value)
                 ),
 
-            'Trashed' => ListRecords\Tab::make()
+            'Trashed' => Tab::make()
                 ->badge(
                     self::$resource::getEloquentQuery()
                         ->with('items')

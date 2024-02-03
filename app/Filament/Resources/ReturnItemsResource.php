@@ -43,10 +43,6 @@ class ReturnItemsResource extends Resource
         ]);
     }
 
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getEloquentQuery()->where('is_returned_to_wholesaler', 0)->count();
-    }
 
     public static function getEloquentQuery(): Builder
     {

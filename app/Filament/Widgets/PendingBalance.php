@@ -99,6 +99,6 @@ class PendingBalance extends Widget implements HasForms, HasActions
     {
         /** @var App\Models\User $user */
         $user = auth()->user();
-        return  $user->isWholesaler() || $user->isReseller();
+        return  $user->isBusiness();
     }
 }

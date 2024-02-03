@@ -53,10 +53,6 @@ class WholesalerOrderResource extends Resource
             ->latest();
     }
 
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getEloquentQuery()->count();
-    }
 
     public static function form(Form $form): Form
     {

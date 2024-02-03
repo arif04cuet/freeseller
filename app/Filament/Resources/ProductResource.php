@@ -32,6 +32,7 @@ class ProductResource extends Resource
 
     protected static ?string $navigationLabel = 'My Products';
 
+
     public static function shouldRegisterNavigation(): bool
     {
         return auth()->user()->hasAnyRole([
@@ -52,11 +53,6 @@ class ProductResource extends Resource
             ])
             ->mine()
             ->latest();
-    }
-
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getEloquentQuery()->count();
     }
 
     public static function form(Form $form): Form

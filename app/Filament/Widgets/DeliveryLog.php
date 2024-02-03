@@ -23,6 +23,7 @@ class DeliveryLog extends BaseWidget
 
     public static function canView(): bool
     {
+        return false;
         return auth()->user()->isSuperAdmin() || auth()->user()->isHubManager();
     }
 

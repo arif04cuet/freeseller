@@ -62,11 +62,6 @@ class HubOrderResource extends Resource
             ])->mine()->latest();
     }
 
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getEloquentQuery()->count();
-    }
-
     public static function getQueries(Builder $builder)
     {
         $addSlashes = str_replace('?', "'?'", $builder->toSql());

@@ -71,6 +71,7 @@ class PaymentChannelResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->paginated(false)
             ->columns([
                 Tables\Columns\TextColumn::make('type'),
                 Tables\Columns\TextColumn::make('mobile_no'),

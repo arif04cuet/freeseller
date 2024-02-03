@@ -6,12 +6,17 @@ use App\Enum\WalletRechargeRequestStatus;
 use App\Filament\Resources\WalletRechargeRequestResource;
 use App\Filament\Resources\WalletRechargeRequestResource\Widgets\WhereToPayment;
 use App\Models\User;
+use App\Traits\RecordCountTrait;
+use App\Traits\UseSimplePagination;
 use Filament\Actions;
 use Filament\Resources\Pages\ManageRecords;
 use Illuminate\Database\Eloquent\Model;
 
 class ManageWalletRechargeRequests extends ManageRecords
 {
+    use UseSimplePagination;
+    use RecordCountTrait;
+
     protected static string $resource = WalletRechargeRequestResource::class;
 
     protected function getHeaderActions(): array
