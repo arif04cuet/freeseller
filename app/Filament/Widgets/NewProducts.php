@@ -18,11 +18,6 @@ class NewProducts extends BaseWidget
     protected static ?int $sort = 9;
     protected int | string | array $columnSpan = 2;
 
-    public static function canView(): bool
-    {
-        return auth()->user()->isWholesaler();
-    }
-
 
     public function table(Table $table): Table
     {
