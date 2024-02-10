@@ -25,7 +25,7 @@ class ZipAndSendToReseller implements ShouldQueue
         public User $reseller,
         public array $files,
     ) {
-        //
+        $this->queue = 'download';
     }
 
     /**
