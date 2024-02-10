@@ -1,6 +1,6 @@
 <div class="div flex gap-2">
     <div>
-        <span>&#2547</span>
+        <span>৳</span>
         {{ $product->price }}
     </div>
 
