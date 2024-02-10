@@ -14,7 +14,7 @@ trait RecordCountTrait
     public function getSubheading(): string | Htmlable | null
     {
         if (!$this->subh)
-            $this->subh = 'Total = ' . $this->getTableQuery()->setEagerLoads([])->count();
+            $this->subh = 'Total = ' . $this->getTableRecords()->count();
 
         return $this->subh;
     }

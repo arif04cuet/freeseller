@@ -50,9 +50,9 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
             // SendNewSignupEmailNotificationToAdmins::class
         ],
-        // Login::class => [
-        //     AddUserDataToSessionAfterLogin::class
-        // ],
+        Login::class => [
+            AddUserDataToSessionAfterLogin::class
+        ],
         NewOrderCreated::class => [
             SendNewOrderNotifications::class,
             //LockResellerAmount::class,

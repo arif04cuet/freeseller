@@ -165,7 +165,8 @@ class Product extends Model implements HasMedia
         $productType = $this->productType;
 
         //need to do dynamic it
-        $varients = \App\Models\Attribute::get()
+        $varients = \App\Models\Attribute::with('values')
+            ->get()
             ->map(function ($attribute) {
 
                 return Forms\Components\Select::make($attribute->id)

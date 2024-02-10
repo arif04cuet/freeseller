@@ -12,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\File;
+use ZipArchive;
 
 class ZipAndSendToReseller implements ShouldQueue
 {
@@ -22,8 +23,7 @@ class ZipAndSendToReseller implements ShouldQueue
      */
     public function __construct(
         public User $reseller,
-        //public string $tmpDir,
-        public string $folderName,
+        public array $files,
     ) {
         //
     }
@@ -33,20 +33,9 @@ class ZipAndSendToReseller implements ShouldQueue
      */
     public function handle(): void
     {
-        //$zip = new \ZipArchive();
+        $zipFileName = uniqid() . '.zip';
 
-        // $tmpDir = $this->tmpDir;
-        $folderName = $this->folderName;
-        $zipFileName = $folderName . '.zip';
-        // $destination = public_path($tmpDir . '/' . $zipFileName);
-
-        $tmpDirPath = public_path('tmp');
-        $command = "cd $tmpDirPath; zip -r $zipFileName $folderName";
-        exec($command);
-
-        $dirTobeDeleted = $tmpDirPath . '/' . $folderName;
-
-        File::isDirectory($dirTobeDeleted) && File::deleteDirectory($dirTobeDeleted);
+        $this->makeZipWithFiles($zipFileName, $this->files);
 
         User::sendMessage(
             users: $this->reseller,
@@ -58,5 +47,26 @@ class ZipAndSendToReseller implements ShouldQueue
                     ->url('/tmp/' . $zipFileName)
             ]
         );
+    }
+
+    public function makeZipWithFiles(string $zipPathAndName, array $filesAndPaths): void
+    {
+        $zip = new ZipArchive();
+
+        $dirname = public_path('tmp/' . $zipPathAndName);
+
+        if ($zip->open($dirname, ZipArchive::CREATE) !== TRUE) {
+            logger('Could not open ZIP file.');
+            return;
+        }
+
+        // Add File in ZipArchive
+        foreach ($filesAndPaths as $file) {
+            if (!$zip->addFile($file, basename($file))) {
+                logger('Could not add file to ZIP: ' . $file);
+            }
+        }
+        // Close ZipArchive
+        $zip->close();
     }
 }

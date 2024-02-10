@@ -129,25 +129,17 @@ class SkusRelationManager extends RelationManager
                     ->label('Business')
                     ->searchable()
                     ->preload()
-                    ->options(Business::query()->wholesaler()->pluck('name', 'id'))
-                    ->query(
-                        function (Builder $query, array $data): Builder {
-                            return $query->when(
-                                $data['value'],
-                                fn ($q) => $q->whereHas(
-                                    'product',
-                                    fn ($q) => $q->whereHas(
-                                        'owner',
-                                        fn ($q) => $q->whereHas(
-                                            'business',
-                                            fn ($q) => $q->whereIn('id', [$data['value']])
-                                        )
-                                    )
-                                )
-                            );
-                        }
-                    ),
+                    ->relationship('product.owner', 'name', fn (Builder $query) => $query->with(['roles'])->wholesalers())
+                    ->getOptionLabelFromRecordUsing(
+                        fn (Model $record) => $record->id_number
+                    )
+                    ->indicateUsing(function (array $data): ?string {
 
+                        if (empty($data['value'])) {
+                            return null;
+                        }
+                        return 'Business :' . User::query()->find($data['value'])->id_number;
+                    }),
                 Tables\Filters\SelectFilter::make('category')
                     ->searchable()
                     ->preload()
@@ -257,27 +249,22 @@ class SkusRelationManager extends RelationManager
                         ->label('Download Images')
                         ->modalSubmitActionLabel('Download')
                         ->icon('heroicon-o-arrow-down-tray')
-                        ->form([
-                            Forms\Components\Select::make('watermark_position')
-                                ->label('Watermark Position')
-                                ->required()
-                                ->options([
-                                    'top_left' => 'Top Left',
-                                    'top_right' => 'Top Right',
-                                    'bottom_left' => 'Bottom Left',
-                                    'bottom_right' => 'Bootom Right',
-                                ]),
-                        ])
+                        // ->form([
+                        //     Forms\Components\Select::make('watermark_position')
+                        //         ->label('Watermark Position')
+                        //         ->required()
+                        //         ->options([
+                        //             'top_left' => 'Top Left',
+                        //             'top_right' => 'Top Right',
+                        //             'bottom_left' => 'Bottom Left',
+                        //             'bottom_right' => 'Bootom Right',
+                        //         ]),
+                        // ])
                         ->action(
                             function (Collection $records, array $data) {
 
-                                $folderName = uniqid();
-                                $dirname = public_path('tmp');
-                                $folder = $dirname . '/' . $folderName;
+                                $urls = [];
 
-                                !File::isDirectory($folder) && File::makeDirectory($folder, 0777, true, true);
-
-                                $watermarkJobs = [];
                                 foreach ($records as $sku) {
 
                                     $images = $sku->getMedia('sharees');
@@ -286,35 +273,13 @@ class SkusRelationManager extends RelationManager
                                         continue;
                                     }
 
-                                    foreach ($images as $media) {
-                                        $watermarkJobs[] = new AddWaterMarkToMedia(
-                                            $media,
-                                            $sku,
-                                            $data['watermark_position'],
-                                            $folder
-                                        );
+                                    foreach ($sku->getMedia('sharees') as $media) {
+                                        $urls[] = $media->getPath();
                                     }
                                 }
 
-                                //zip and download
-                                //exec("tar -zcvf archive.tar.gz /folder/tozip");
-
-                                // $zip = new \ZipArchive();
-                                $zipFileName = $folderName . '.zip';
-                                // $destination = public_path($tmpDir . '/' . $zipFileName);
-
-                                // $tmpDirPath = public_path('tmp');
-                                // $command = "cd $tmpDirPath; zip -r $zipFileName $folderName";
-                                // exec($command);
                                 $user = auth()->user();
-                                $batch = Bus::batch($watermarkJobs)
-                                    ->then(function (Batch $batch) use ($folderName, $user) {
-
-                                        ZipAndSendToReseller::dispatch($user, $folderName);
-                                    })->catch(function (Batch $batch, Throwable $e) {
-                                        // First batch job failure detected...
-                                    })->finally(function (Batch $batch) use ($folder, $dirname, $zipFileName) {
-                                    })->dispatch();
+                                ZipAndSendToReseller::dispatch($user, $urls);
 
                                 Notification::make()
                                     ->title('Success. your download will be avilable after a minute in notification sections')
