@@ -11,7 +11,10 @@ use App\Http\Integrations\Pathao\Requests\GetAreasRequest;
 use App\Http\Integrations\Pathao\Requests\GetCitiesRequest;
 use App\Http\Integrations\Pathao\Requests\GetZonesRequest;
 use App\Jobs\SavePathaoToken;
+use App\Livewire\Catalog;
 use App\Livewire\Home;
+use App\Livewire\Product as LivewireProduct;
+use App\Livewire\Products;
 use App\Livewire\Team;
 use App\Models\Order;
 use App\Models\OrderClaim;
@@ -37,6 +40,10 @@ use function App\Helpers\test;
 
 Route::get('/', Home::class)->name('home');
 Route::get('/team', Team::class)->name('team');
+Route::get('/catalog', Catalog::class)->name('catalog');
+Route::get('/catalog/{product}', LivewireProduct::class)->name('product');
+
+
 
 Route::get('/mail', function () {
 
