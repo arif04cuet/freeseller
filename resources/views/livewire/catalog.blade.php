@@ -1,4 +1,4 @@
-<div>
+<div class="px-2">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         @foreach ($products as $product)
             <x-product :product="$product" />
