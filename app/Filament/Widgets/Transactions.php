@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 class Transactions extends BaseWidget
 {
     use CanPoll;
-
+    protected static bool $isLazy = false;
     protected static ?int $sort = 11;
     protected int | string | array $columnSpan = 2;
 

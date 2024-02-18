@@ -17,7 +17,7 @@ class NewProducts extends BaseWidget
 
     protected static ?int $sort = 9;
     protected int | string | array $columnSpan = 2;
-
+    protected static bool $isLazy = false;
 
     public function table(Table $table): Table
     {

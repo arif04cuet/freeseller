@@ -21,6 +21,7 @@ class TodaysWholesalers extends BaseWidget
 
     protected static ?int $sort = 11;
     protected int | string | array $columnSpan = 2;
+    protected static bool $isLazy = false;
 
     public function getTableRecordKey(Model $record): string
     {

@@ -24,7 +24,7 @@ class LockAmount extends Widget implements HasForms, HasActions
     use CanPoll;
 
 
-
+    protected static bool $isLazy = false;
     protected static ?int $sort = 6;
     protected int | string | array $columnSpan = [
         'default' => 2,

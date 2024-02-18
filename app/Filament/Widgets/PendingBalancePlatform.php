@@ -17,6 +17,7 @@ class PendingBalancePlatform extends BaseWidget
     protected static ?string $pollingInterval = null;
     protected static ?int $sort = 5;
     protected int | string | array $columnSpan = 1;
+    protected static bool $isLazy = false;
 
     protected function getColumns(): int
     {

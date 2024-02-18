@@ -23,6 +23,7 @@ class OrderNotes extends BaseWidget
     protected static ?int $sort = 7;
     protected int | string | array $columnSpan = 2;
     protected static ?string $heading = 'Order Pending Notes';
+    protected static bool $isLazy = false;
 
     public static function canView(): bool
     {

@@ -19,7 +19,7 @@ class DailyOrder extends BaseWidget
 {
     protected static ?int $sort = 8;
     protected int | string | array $columnSpan = 2;
-    //protected static ?string $heading = 'Daily Orders';
+    protected static bool $isLazy = false;
 
     public bool $dataLoaded = false;
 

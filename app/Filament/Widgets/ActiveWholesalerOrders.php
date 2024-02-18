@@ -16,6 +16,7 @@ use Notification;
 
 class ActiveWholesalerOrders extends BaseWidget
 {
+    protected static bool $isLazy = false;
     protected static ?int $sort = 7;
     protected int | string | array $columnSpan = 2;
 

@@ -14,6 +14,7 @@ class DailyProfit extends BaseWidget
     protected static ?int $sort = 10;
     protected int | string | array $columnSpan = 2;
     protected static ?string $heading = 'Profit Earned';
+    protected static bool $isLazy = false;
     public static function canView(): bool
     {
         return false;

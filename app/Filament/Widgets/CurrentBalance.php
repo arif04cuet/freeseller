@@ -23,6 +23,8 @@ class CurrentBalance extends BaseWidget implements HasForms, HasActions
     use InteractsWithActions;
     use InteractsWithForms;
 
+    protected static bool $isLazy = false;
+
     protected static ?int $sort = 3;
 
     protected int | string | array $columnSpan = [

@@ -29,7 +29,11 @@
             </h5>
         </a>
         <div class="mb-2 flex justify-between">
-            <div><span class="text-xl font-bold text-gray-900 dark:text-white">$599</span></div>
+            <div>
+                @auth
+                    <x-product.price :product="$product" />
+                @endauth
+            </div>
             <div> সুতি-Cotton</div>
         </div>
         <div style="--col-span-default: span 1 / span 1;" class="col-[--col-span-default] flex-1 w-full">

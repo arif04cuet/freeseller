@@ -15,10 +15,10 @@ use Illuminate\Database\Eloquent\Builder;
 
 class DeliveryLog extends BaseWidget
 {
-    use CanPoll;
 
     protected static ?int $sort = 11;
     protected int | string | array $columnSpan = 2;
+    protected static bool $isLazy = false;
 
 
     public static function canView(): bool

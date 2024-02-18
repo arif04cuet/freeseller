@@ -20,6 +20,7 @@ class DailyOrderForWholesale extends BaseWidget
 {
     protected static ?int $sort = 7;
     protected int | string | array $columnSpan = 2;
+    protected static bool $isLazy = false;
 
     protected static ?string $heading = 'Daily Parcels delivered to Hub';
 
