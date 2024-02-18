@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('cache:clear')->daily();
+        // $schedule->command('cache:clear')->daily();
 
         $schedule->command('queue:work --queue=default,download --tries=1 --stop-when-empty')
             ->everyMinute()
