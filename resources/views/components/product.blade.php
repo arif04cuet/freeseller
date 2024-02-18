@@ -1,7 +1,7 @@
 <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
     <a class="text-center" wire:navigate href="{{ route('product', ['product' => $product]) }}">
         @if ($image = $product->getMedia('sharees')?->first()?->getUrl('thumb'))
-            <img loading="lazy" class="rounded-t-lg" src="{{ $image }}" alt="{{ $product->name }}" />
+            <img loading="lazy" class="rounded-t-lg mx-auto" src="{{ $image }}" alt="{{ $product->name }}" />
         @else
             <svg fill="#000000" width="w-full" viewBox="0 0 32 32" id="icon" xmlns="http://www.w3.org/2000/svg">
                 <defs>
