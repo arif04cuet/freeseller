@@ -6,7 +6,7 @@
 
     @if ($product->getOfferPrice())
         <div>
-            <del> <span class="text-sm"> {{ (int) $product->getAttributes()['price'] }} </span> </del>
+            <del> <span class=""> {{ (int) $product->getAttributes()['price'] }} </span> </del>
         </div>
     @endif
 </div>
