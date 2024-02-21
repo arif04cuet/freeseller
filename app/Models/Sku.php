@@ -45,6 +45,13 @@ class Sku extends Model implements HasMedia
             ->withTimestamps();
     }
 
+    public function myResellerLists(): BelongsToMany
+    {
+        return $this->belongsToMany(ResellerList::class)
+            ->where('user_id', auth()->id())
+            ->withTimestamps();
+    }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

@@ -264,7 +264,17 @@ class ExploreProductsResource extends Resource
                             ->label('Manufacturer')
                             ->html()
                             ->getStateUsing(
-                                fn (Model $record) => '<a href="' . route('filament.app.resources.explore-products.index') . '?tableFilters[owner][values][0]=' . $record->owner->id . '"><u>' . $record->owner->id_number . '</u></a>'
+                                function (Model $record) {
+
+                                    $label = $record->owner->id_number;
+
+                                    if (!auth()->user()->isBusiness())
+                                        $label .= ' ( ' . $record->owner->business->name . ')';
+
+                                    return '<a href="' . route('filament.app.resources.explore-products.index') . '?tableFilters[owner][values][0]=' . $record->owner->id . '">
+                                <u>' . $label . '</u>
+                                </a>';
+                                }
                             ),
                         Infolists\Components\ImageEntry::make('focus_image')
                             ->columnSpan([

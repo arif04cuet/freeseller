@@ -48,7 +48,7 @@ class SkusRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with('resellerLists'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with('myResellerLists'))
             ->columns([
                 SpatieMediaLibraryImageColumn::make('image')
                     ->collection('sharees')
@@ -71,12 +71,12 @@ class SkusRelationManager extends RelationManager
                     ->formatStateUsing(fn (Model $record) => array_reverse(explode('–', $record->name))[0]),
                 Tables\Columns\TextColumn::make('quantity'),
                 Tables\Columns\TextColumn::make('price')->hidden(true),
-                Tables\Columns\TextColumn::make('resellerLists.name')
+                Tables\Columns\TextColumn::make('myResellerLists.name')
                     ->label('In your List')
-                    ->getStateUsing(
-                        fn (Model $record) => $record->resellerLists()->where('user_id', auth()->id())->pluck('name')->toArray()
-                    )
-                    ->toggleable(isToggledHiddenByDefault: fn () => auth()->user()->isWholesaler())
+                    // ->getStateUsing(
+                    //     fn (Model $record) => $record->resellerLists()->where('user_id', auth()->id())->pluck('name')->toArray()
+                    // )
+                    // ->toggleable(isToggledHiddenByDefault: fn () => auth()->user()->isWholesaler())
                     ->badge(),
 
             ])
