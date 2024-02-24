@@ -9,7 +9,7 @@ use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Contracts\View\View;
+use Filament\Tables\Table;
 
 class FilamentServiceProvider extends ServiceProvider
 {
@@ -50,6 +50,9 @@ class FilamentServiceProvider extends ServiceProvider
             //     new HtmlString('<link rel="manifest" href="/manifest.json" />'),
             // ]);
 
+            Table::configureUsing(function (Table $table): void {
+                $table->paginationPageOptions([10, 20]);
+            });
         });
     }
 }
