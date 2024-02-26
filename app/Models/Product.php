@@ -215,6 +215,8 @@ class Product extends Model implements HasMedia
             ->maxFiles(5)
             ->columnSpanFull()
             ->enableDownload()
+            ->maxSize(1024)
+            ->helperText('Each image size max 1 MB')
             ->collection('sharees');
 
         return $fields;

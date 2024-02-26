@@ -134,6 +134,8 @@ class ProductResource extends Resource
                     ->required()
                     ->enableReordering()
                     ->image()
+                    ->maxSize(1024)
+                    ->helperText('Image size max 1 MB')
                     ->enableDownload()
                     ->collection('sharees'),
 
