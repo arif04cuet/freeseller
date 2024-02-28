@@ -1,63 +1,68 @@
-<div class="bg-gray-100 dark:bg-gray-800 py-8">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-2">
+<div class="bg-gray-100 dark:bg-gray-800 py-8" x-data="{ selectedImg: @entangle('selectedImg') }">
+    <div class="mx-auto px-4 sm:px-6 lg:px-2">
         <div class="flex flex-col md:flex-row -mx-4">
-            <div class="md:flex-1 px-4">
+            <div class="md:flex-1 px-4 mb-4">
 
+                <div class="grid gap-4">
+                    <div class="h-96">
+                        <span class="" x-show="!selectedImg">
 
-                <div id="custom-controls-gallery" class="relative w-full" data-carousel="slide">
-                    <!-- Carousel wrapper -->
-                    <div class="relative h-56 overflow-hidden rounded-lg md:h-96">
+                            <svg class="mx-auto" width="24" height="24" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <style>
+                                    .spinner_ajPY {
+                                        transform-origin: center;
+                                        animation: spinner_AtaB .75s infinite linear
+                                    }
 
+                                    @keyframes spinner_AtaB {
+                                        100% {
+                                            transform: rotate(360deg)
+                                        }
+                                    }
+                                </style>
+                                <path d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
+                                    opacity=".25" />
+                                <path
+                                    d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z"
+                                    class="spinner_ajPY" />
+                            </svg>
+                        </span>
+                        <img x-show="selectedImg" class="object-cover h-full mx-auto max-w-full rounded-lg"
+                            :src="selectedImg" alt="">
+                    </div>
+
+                    <div class="grid grid-cols-5 gap-2">
+
+                        @php
+                            $f = 0;
+                        @endphp
                         @foreach ($product->skus as $sku)
                             @foreach ($sku->getMedia('sharees') as $media)
-                                <div class="duration-700 ease-in-out" data-carousel-item>
-                                    <img loading="lazy" src="{{ $media->getUrl() }}"
-                                        class="absolute block max-w-full h-auto -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
-                                        alt="{{ $product->name }}">
+                                @php
+                                    if (!$f) {
+                                        $f = $media->id;
+                                    }
+                                @endphp
+                                <div wire:key="{{ $media->id }}" class="h-24">
+                                    <img @click="selectedImg=null" wire:click="loadImg({{ $media->id }})"
+                                        loading="lazy" class="h-full object-cover cursor-pointer max-w-full rounded-lg"
+                                        src="{{ $media->getUrl() }}" alt="{{ $product->name }}" />
                                 </div>
                             @endforeach
                         @endforeach
 
+                        <span x-init="$wire.loadImg({{ $f }})"></span>
 
-                    </div>
-                    <div class="flex justify-center items-center pt-4">
-                        <button type="button"
-                            class="flex justify-center items-center me-4 h-full cursor-pointer group focus:outline-none"
-                            data-carousel-prev>
-                            <span
-                                class="text-gray-400 hover:text-gray-900 dark:hover:text-white group-focus:text-gray-900 dark:group-focus:text-white">
-                                <svg class="rtl:rotate-180 w-5 h-5" aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="M13 5H1m0 0 4 4M1 5l4-4" />
-                                </svg>
-                                <span class="sr-only">Previous</span>
-                            </span>
-                        </button>
-                        <button type="button"
-                            class="flex justify-center items-center h-full cursor-pointer group focus:outline-none"
-                            data-carousel-next>
-                            <span
-                                class="text-gray-400 hover:text-gray-900 dark:hover:text-white group-focus:text-gray-900 dark:group-focus:text-white">
-                                <svg class="rtl:rotate-180 w-5 h-5" aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
-                                </svg>
-                                <span class="sr-only">Next</span>
-                            </span>
-                        </button>
                     </div>
                 </div>
-
-
             </div>
-            <div class="md:flex-1 px-4">
+            <div class="md:flex-1">
                 <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">{{ $product->name }}</h2>
                 <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">
                     {!! $product->description !!}
                 </p>
-                <div class="flex mb-4 mt-4 justify-between">
+                <div class="flex mb-4 mt-4 gap-8">
                     <div class="mr-4 flex gap-4">
                         <span class="font-bold text-gray-700 dark:text-gray-300">দাম:</span>
                         <span class="text-gray-600 dark:text-gray-300 text-lg">
