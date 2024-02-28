@@ -51,7 +51,9 @@ class FilamentServiceProvider extends ServiceProvider
             // ]);
 
             Table::configureUsing(function (Table $table): void {
-                $table->paginationPageOptions([10, 20]);
+                $table
+                    ->searchDebounce('1000ms')
+                    ->paginationPageOptions([10, 20]);
             });
         });
     }

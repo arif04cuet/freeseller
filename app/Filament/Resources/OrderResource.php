@@ -551,6 +551,7 @@ class OrderResource extends Resource
                             ])),
                     ),
                 Tables\Columns\TextColumn::make('consignment_id')
+                    ->searchable()
                     ->label('CN'),
                 Tables\Columns\TextColumn::make('created_at')->date(),
                 Tables\Columns\TextColumn::make('items_sum_quantity')
