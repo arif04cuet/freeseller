@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enum\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Bavix\Wallet\Models\Transaction;
@@ -23,6 +24,8 @@ class TodaysWholesalers extends BaseWidget
     protected int | string | array $columnSpan = 2;
     protected static bool $isLazy = false;
 
+    protected static ?string $heading = 'Collection Pending';
+
     public function getTableRecordKey(Model $record): string
     {
         return $record->wholesaler_id;
@@ -40,21 +43,28 @@ class TodaysWholesalers extends BaseWidget
             ->query(
                 OrderItem::query()
                     ->with('wholesaler.business')
+                    ->whereHas(
+                        'order',
+                        fn ($q) => $q->whereIn('status', [
+                            OrderStatus::WaitingForWholesalerApproval->value,
+                            OrderStatus::WaitingForHubCollection->value
+                        ])->doesntHave('collections')
+                    )
                     ->select([
                         'wholesaler_id',
                         DB::raw("count(DISTINCT(order_id)) as order_count"),
                         DB::raw("sum(quantity) as item_count")
                     ])
-                    ->whereDate('created_at', Carbon::today())
+                    //->whereDate('created_at', Carbon::today())
                     ->groupBy('wholesaler_id')
             )
             ->columns([
-                Tables\Columns\TextColumn::make('wholesaler.name')
+                Tables\Columns\TextColumn::make('wholesaler')
                     ->html()
                     ->formatStateUsing(
-                        function (Model $record) {
+                        function ($state) {
 
-                            $wholesaler = $record->wholesaler;
+                            $wholesaler = $state;
 
                             return '<a href="tel:' . $wholesaler->mobile . '">' .
                                 $wholesaler->business->name . '<br/>' .
