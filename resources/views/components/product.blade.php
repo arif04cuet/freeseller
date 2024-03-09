@@ -32,6 +32,8 @@
             <div>
                 @auth
                     <x-product.price :product="$product" />
+                @else
+                    <span class="text-yellow-600">মূল্য দেখতে লগইন করুন</span>
                 @endauth
             </div>
             <div> সুতি-Cotton</div>

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Services\CartService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
@@ -15,7 +17,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind('cart', function ($app) {
+            return new CartService($app->make(SessionManager::class));
+        });
     }
 
     /**

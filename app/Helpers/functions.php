@@ -1612,6 +1612,13 @@ if (!function_exists('App\Helpers\colors')) {
 }
 
 
+if (!function_exists('App\Helpers\money')) {
+    function money($value)
+    {
+        return '৳ ' . $value;
+    }
+}
+
 if (!function_exists('App\Helpers\test')) {
     function test()
     {

@@ -5,27 +5,13 @@ use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\PrintOrderLabel;
 use App\Http\Controllers\PrintOrdersCourierLabel;
 use App\Http\Controllers\PrintOrdersLabel;
-use App\Http\Integrations\Pathao\Requests\AddPathaoParcelRequest;
-use App\Http\Integrations\Pathao\Requests\GetAccessTokenRequest;
-use App\Http\Integrations\Pathao\Requests\GetAreasRequest;
-use App\Http\Integrations\Pathao\Requests\GetCitiesRequest;
-use App\Http\Integrations\Pathao\Requests\GetZonesRequest;
-use App\Jobs\SavePathaoToken;
 use App\Livewire\Catalog;
 use App\Livewire\Home;
-use App\Livewire\Product as LivewireProduct;
-use App\Livewire\Products;
+use App\Livewire\ProductComponent;
 use App\Livewire\Team;
-use App\Models\Order;
-use App\Models\OrderClaim;
 use App\Models\Product;
-use App\Models\User;
-use App\Models\UserLockAmount;
-use Filament\Notifications\Actions\Action;
-use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Route;
 
-use function App\Helpers\test;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,15 +27,12 @@ use function App\Helpers\test;
 Route::get('/', Home::class)->name('home');
 Route::get('/team', Team::class)->name('team');
 Route::get('/catalog', Catalog::class)->name('catalog');
-Route::get('/catalog/{product}', LivewireProduct::class)->name('product');
+Route::get('/catalog/{product}', ProductComponent::class)->name('product');
 
 
 
 Route::get('/mail', function () {
-
-    return OrderClaim::query()
-        ->whereJsonContains('wholesalers', ['id' => "6"])
-        ->get();
+    return Product::with('skus')->find(6);
 });
 
 Route::post('/push', function () {

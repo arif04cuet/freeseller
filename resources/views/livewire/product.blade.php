@@ -32,32 +32,36 @@
                             :src="selectedImg" alt="">
                     </div>
 
-                    <div class="grid grid-cols-5 gap-2">
+                    <div wire:ignore class="grid grid-cols-5 md:grid-cols-7 gap-2" wire:ignore>
 
                         @php
-                            $f = 0;
+                            $m = 0;
+                            $s = 0;
+                            $product = $this->product;
                         @endphp
                         @foreach ($product->skus as $sku)
                             @foreach ($sku->getMedia('sharees') as $media)
                                 @php
-                                    if (!$f) {
-                                        $f = $media->id;
+                                    if (!$m) {
+                                        $m = $media->id;
+                                        $s = $sku->id;
                                     }
                                 @endphp
-                                <div wire:key="{{ $media->id }}" class="h-24">
-                                    <img @click="selectedImg=null" wire:click="loadImg({{ $media->id }})"
-                                        loading="lazy" class="h-full object-cover cursor-pointer max-w-full rounded-lg"
+                                <div wire:key="{{ $media->id }}" class="h-14 w-14">
+                                    <img @click="selectedImg=null"
+                                        wire:click="loadImg({{ $sku->id }}, {{ $media->id }})" loading="lazy"
+                                        class="h-full object-cover cursor-pointer w-full rounded-lg"
                                         src="{{ $media->getUrl() }}" alt="{{ $product->name }}" />
                                 </div>
                             @endforeach
                         @endforeach
 
-                        <span x-init="$wire.loadImg({{ $f }})"></span>
+                        <span x-init="$wire.loadImg({{ $s }}, {{ $m }})"></span>
 
                     </div>
                 </div>
             </div>
-            <div class="md:flex-1">
+            <div class="md:flex-1 px-4" wire:ignore>
                 <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">{{ $product->name }}</h2>
                 <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">
                     {!! $product->description !!}
@@ -81,24 +85,29 @@
                             {{ $product->skus->sum('quantity') }}</span>
                     </div>
                 </div>
-                {{-- <div class="mb-4">
-                    <span class="font-bold text-gray-700 dark:text-gray-300">কালার:</span>
-                    <div class="flex items-center mt-2">
-                        <button class="w-6 h-6 rounded-full bg-gray-800 dark:bg-gray-200 mr-2"></button>
-                        <button class="w-6 h-6 rounded-full bg-red-500 dark:bg-red-700 mr-2"></button>
-                        <button class="w-6 h-6 rounded-full bg-blue-500 dark:bg-blue-700 mr-2"></button>
-                        <button class="w-6 h-6 rounded-full bg-yellow-500 dark:bg-yellow-700 mr-2"></button>
-                    </div>
-                </div>
-                <div class="flex -mx-2 mb-4">
-                    <div class="w-1/2 px-2">
-                        <button
-                            class="w-full bg-gray-900 dark:bg-gray-600 text-white py-2 px-4 rounded-full font-bold hover:bg-gray-800 dark:hover:bg-gray-700">
-                            Add
-                            to Cart</button>
-                    </div>
 
-                </div> --}}
+                @auth
+                    <div x-data="{ show: false }" class="flex -mx-2 mb-4">
+                        <input type="number" wire:model="quantity" class="border border-black rounded-lg w-1/4 px-2">
+                        <div class="w-1/2 px-2" x-show="!show">
+                            <button
+                                @click="$dispatch('productAddedToCart');show = true;setTimeout(() => show = false, 5000)"
+                                wire:click="addToCart"
+                                class="w-full bg-blue-700 dark:bg-blue-800 text-white py-2 px-4 rounded-full font-bold hover:bg-blue-800 dark:hover:bg-blue-700">
+                                Add to Cart
+                            </button>
+                        </div>
+
+                        <div x-transition x-show="show">
+                            <div class="alert alert-success">
+                                <x-flash title="Product Added." />
+                            </div>
+                        </div>
+
+                    </div>
+                @else
+                    <span class="text-yellow-600">মূল্য দেখতে লগইন করুন</span>
+                @endauth
             </div>
         </div>
     </div>

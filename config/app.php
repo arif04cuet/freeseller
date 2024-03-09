@@ -187,6 +187,7 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
+        'Busket' => App\Facades\CartFacade::class,
     ])->toArray(),
 
 ];
