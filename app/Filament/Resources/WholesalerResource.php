@@ -131,7 +131,8 @@ class WholesalerResource extends Resource
                         $baseNumber = config('freeseller.base_id_number');
                         return $query->whereRaw('CONCAT("W","", ? + id) = ?', [$baseNumber, $search]);
                     }),
-                TextColumn::make('business.name'),
+                TextColumn::make('business.name')
+                    ->searchable(),
                 TextColumn::make('name')
                     ->searchable(['name', 'email', 'mobile'])
                     ->html()

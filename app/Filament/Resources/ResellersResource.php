@@ -127,6 +127,7 @@ class ResellersResource extends Resource
                     }),
                 TextColumn::make('business.name')
                     ->html()
+                    ->searchable()
                     ->formatStateUsing(fn (Model $record, $state) => $state . '<br/>' . $record->name),
                 TextColumn::make('business.url')
                     ->label('Business Url')

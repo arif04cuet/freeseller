@@ -9,8 +9,8 @@ return [
     'platform_fee' => 2, //%
     'cod_fee' => 1, //%
     'packaging_fee' => 10, //taka
-    'delivery_charge' => 120,
-    'delivery_charge_same_city' => 70,
+    'delivery_charge' => 130,
+    'delivery_charge_same_city' => 80,
     'per_saree_weight' => 500, //g,
     'support_number' => '01766-652553',
     'platform_bkash' => '01717348147',

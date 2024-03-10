@@ -47,6 +47,7 @@ class TodaysWholesalers extends BaseWidget
                         'order',
                         fn ($q) => $q->whereIn('status', [
                             OrderStatus::WaitingForWholesalerApproval->value,
+                            OrderStatus::Processing->value,
                             OrderStatus::WaitingForHubCollection->value
                         ])->doesntHave('collections')
                     )
