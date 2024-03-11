@@ -58,7 +58,7 @@ class OrderItemsView extends Component implements HasForms, HasTable
                             )),
                     )
                     ->defaultImageUrl(
-                        fn (Model $record) => $record->sku->getMedia('sharees')->first()->getUrl('thumb')
+                        fn (Model $record) => $record->sku?->getMedia('sharees')?->first()?->getUrl('thumb')
                     ),
                 Tables\Columns\TextColumn::make('sku.name')
                     ->label('Product Name')
