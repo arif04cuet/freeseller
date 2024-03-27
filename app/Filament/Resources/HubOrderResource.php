@@ -27,6 +27,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class HubOrderResource extends Resource
@@ -181,7 +182,43 @@ class HubOrderResource extends Resource
                             );
                         }
                     ),
+                Tables\Filters\Filter::make('today_courier')
+                    ->label("Today's Courier")
+                    ->query(
+                        function (Builder $query, array $data) {
+                            return $query->when(
+                                $data['isActive'],
+                                fn ($q) => $q->whereDate('sent_to_courier_at', Carbon::today())
+                            );
+                        }
+                    ),
 
+                Tables\Filters\Filter::make('courier_at')
+                    ->visible(
+                        fn ($livewire) => in_array($livewire->activeTab, [
+                            OrderStatus::HandOveredToCourier->name
+                        ])
+                    )
+                    ->form([
+                        Forms\Components\Grid::make()
+                            ->schema([
+                                Forms\Components\DatePicker::make('courier_from')->native(false)
+                                    ->closeOnDateSelection(),
+                                Forms\Components\DatePicker::make('courier_until')->native(false)
+                                    ->closeOnDateSelection(),
+                            ])
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['courier_from'] ?? false,
+                                fn (Builder $query, $date): Builder => $query->whereDate('sent_to_courier_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['courier_until'] ?? false,
+                                fn (Builder $query, $date): Builder => $query->whereDate('sent_to_courier_at', '<=', $date),
+                            );
+                    }),
                 Tables\Filters\SelectFilter::make('business_id')
                     ->label('Business')
                     ->preload()
@@ -205,6 +242,11 @@ class HubOrderResource extends Resource
                     ->options(OrderStatus::array()),
 
                 Tables\Filters\Filter::make('created_at')
+                    ->visible(
+                        fn ($livewire) => !in_array($livewire->activeTab, [
+                            OrderStatus::HandOveredToCourier->name
+                        ])
+                    )
                     ->form([
                         Forms\Components\DatePicker::make('created_from')->native(false)
                             ->closeOnDateSelection(),
@@ -214,14 +256,15 @@ class HubOrderResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
                             ->when(
-                                $data['created_from'],
+                                $data['created_from'] ?? false,
                                 fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
-                                $data['created_until'],
+                                $data['created_until'] ?? false,
                                 fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
-                    })
+                    }),
+
             ])
             ->actions([
 
@@ -548,50 +591,9 @@ class HubOrderResource extends Resource
                         ->visible(fn (Model $record) => $record->status == OrderStatus::HandOveredToCourier),
 
 
-                    // Tables\Actions\Action::make('collector')
-                    //     ->icon('heroicon-o-user')
-                    //     ->label('Assign Collector')
-                    //     ->visible(
-                    //         fn (Model $record) => 0 & $record->wholesalers()->count() > 1 &&
-                    //             ($record->status == OrderStatus::WaitingForHubCollection) &&
-                    //             auth()->user()->isHubManager()
-                    //     )
-                    //     ->action(
-                    //         fn (Order $record, array $data) => $data['self'] ?
-                    //             $record->addCollector(auth()->user()->id) : $record->addCollector($data['collector_id'])
-                    //     )
-                    //     ->modalHeading(fn (Model $record) => 'Assign Collector to Order no ' . $record->id)
-                    //     ->form([
-                    //         Forms\Components\Checkbox::make('self')
-                    //             ->label('Assign Myself')
-                    //             ->reactive(),
-                    //         Forms\Components\Select::make('collector_id')
-                    //             ->label('Select Collector')
-                    //             ->visible(fn (\Filament\Forms\Get $get) => !$get('self'))
-                    //             ->required(fn (\Filament\Forms\Get $get) => !$get('self'))
-                    //             ->options(
-                    //                 fn () => User::query()
-                    //                     ->whereRelation('address', 'address_id', auth()->user()->address->address_id)
-                    //                     ->role(SystemRole::HubMember->value)
-                    //                     ->pluck('name', 'id')
-
-                    //             ),
-                    //     ]),
-
                 ])
             ], position: Tables\Enums\ActionsPosition::BeforeColumns)
-            ->checkIfRecordIsSelectableUsing(
-                function (Model $record): bool {
 
-                    $statusArray = [OrderStatus::HandOveredToCourier];
-
-                    if (config('freeseller.add_parcel_manually'))
-                        $statusArray[] = OrderStatus::ProcessingForHandOverToCourier;
-
-                    return in_array($record->status, $statusArray);
-                }
-
-            )
             ->bulkActions([
                 Tables\Actions\ActionGroup::make([
 
@@ -652,11 +654,22 @@ class HubOrderResource extends Resource
                                     ->send();
                             }
                         ),
+                    Tables\Actions\BulkAction::make('send-to-courier-all')
+                        ->label('Send to courier')
+                        ->icon('heroicon-o-arrow-up-circle')
+                        ->deselectRecordsAfterCompletion()
+                        ->visible(fn ($livewire) => $livewire->activeTab == OrderStatus::ProcessingForHandOverToCourier->getLabel())
+                        ->action(
+                            function (Collection $records) {
+                                $records->each(fn ($order) => $order->addToCourier($order));
+                            }
+                        ),
 
                     Tables\Actions\BulkAction::make('bulk-print')
                         ->icon('heroicon-o-printer')
                         ->label('Bulk Print Invoice')
                         ->color('success')
+                        ->visible(fn ($livewire) => $livewire->activeTab == OrderStatus::HandOveredToCourier->name)
                         ->deselectRecordsAfterCompletion()
                         ->action(
                             function (Collection $records) {
@@ -668,6 +681,7 @@ class HubOrderResource extends Resource
                     Tables\Actions\BulkAction::make('print_list_for_courier')
                         ->icon('heroicon-o-printer')
                         ->label('Order List for Courier')
+                        ->visible(fn ($livewire) => $livewire->activeTab == OrderStatus::HandOveredToCourier->name)
                         ->deselectRecordsAfterCompletion()
                         ->color('success')
                         ->action(

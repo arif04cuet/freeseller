@@ -2,6 +2,14 @@
 
 namespace App\Helpers;
 
+
+if (!function_exists('App\Helpers\minimumBalance')) {
+    function minimumBalance()
+    {
+        return config('freeseller.minimum_acount_balance');
+    }
+}
+
 if (!function_exists('App\Helpers\hasRole')) {
     function hasRole($role)
     {

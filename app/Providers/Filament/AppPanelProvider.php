@@ -28,6 +28,7 @@ class AppPanelProvider extends PanelProvider
     {
         return $panel
             ->spa()
+            ->homeUrl('/')
             ->default()
             ->id('app')
             ->path('dashboard')

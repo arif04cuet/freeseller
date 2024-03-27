@@ -1,4 +1,7 @@
 <div class="bg-gray-100 dark:bg-gray-800 py-8" x-data="{ selectedImg: @entangle('selectedImg') }">
+
+
+
     <div class="mx-auto px-4 sm:px-6 lg:px-2">
         <div class="flex flex-col md:flex-row -mx-4">
             <div class="md:flex-1 px-4 mb-4">
@@ -61,7 +64,7 @@
                     </div>
                 </div>
             </div>
-            <div class="md:flex-1 px-4" wire:ignore>
+            <div class="md:flex-1 px-4">
                 <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">{{ $product->name }}</h2>
                 <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">
                     {!! $product->description !!}
@@ -82,29 +85,35 @@
                     </div>
                     <div>
                         <span class="font-bold text-gray-700 dark:text-gray-300"> স্টক:
-                            {{ $product->skus->sum('quantity') }}</span>
+                            {{ $stock }}
+                        </span>
                     </div>
                 </div>
 
                 @auth
-                    <div x-data="{ show: false }" class="flex -mx-2 mb-4">
-                        <input type="number" wire:model="quantity" class="border border-black rounded-lg w-1/4 px-2">
-                        <div class="w-1/2 px-2" x-show="!show">
-                            <button
-                                @click="$dispatch('productAddedToCart');show = true;setTimeout(() => show = false, 5000)"
-                                wire:click="addToCart"
-                                class="w-full bg-blue-700 dark:bg-blue-800 text-white py-2 px-4 rounded-full font-bold hover:bg-blue-800 dark:hover:bg-blue-700">
-                                Add to Cart
-                            </button>
-                        </div>
-
-                        <div x-transition x-show="show">
-                            <div class="alert alert-success">
-                                <x-flash title="Product Added." />
+                    @if ($stock)
+                        <div x-data="{ show: false }" class="flex -mx-2 mb-4">
+                            <input type="number" wire:model.live="quantity" min="1" max="{{ $stock }}"
+                                class="border border-black rounded-lg w-1/4 px-2">
+                            <div class="w-1/2 px-2" x-show="!show">
+                                <button
+                                    @click="$dispatch('productAddedToCart');show = true;setTimeout(() => show = false, 5000)"
+                                    wire:click="addToCart"
+                                    class="w-full bg-blue-700 dark:bg-blue-800 text-white py-2 px-4 rounded-full font-bold hover:bg-blue-800 dark:hover:bg-blue-700">
+                                    Add to Cart
+                                </button>
                             </div>
-                        </div>
 
-                    </div>
+                            <div class="w-1/2 px-2" style="display: none" x-transition x-show="show">
+                                <div class="alert alert-success">
+                                    <x-flash title="Product Added." />
+                                </div>
+                            </div>
+
+                        </div>
+                    @else
+                        <span class="text-yellow-600">স্টক নেই</span>
+                    @endif
                 @else
                     <span class="text-yellow-600">মূল্য দেখতে লগইন করুন</span>
                 @endauth

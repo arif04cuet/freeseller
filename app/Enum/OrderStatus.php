@@ -46,6 +46,7 @@ enum OrderStatus: string implements HasColor, HasLabel
         return match ($this) {
             self::WaitingForWholesalerApproval => 'Waiting for Manufacturer Approval',
             self::WaitingForHubCollection => 'Waiting for Hub Collection',
+            self::ProcessingForHandOverToCourier => 'Hub Received',
             self::HandOveredToCourier => 'Handovered to Courier',
             default => $this->name
         };

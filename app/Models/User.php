@@ -42,6 +42,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 
+use function App\Helpers\minimumBalance;
+
 class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, HasAvatar, FilamentUser, HasMedia
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -93,6 +95,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
     }
 
     //accessors
+
 
     //balance considering lock amount
     public function activeBalance(): Attribute
@@ -218,6 +221,11 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
     }
 
     //functions
+
+    public function canPlaceOrder(): bool
+    {
+        return $this->isReseller() && ($this->activeBalance >= minimumBalance());
+    }
 
     public function registerMediaConversions(Media $media = null): void
     {

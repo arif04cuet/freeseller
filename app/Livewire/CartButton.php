@@ -18,4 +18,9 @@ class CartButton extends Component
             'product_count' => Busket::content()->count()
         ]);
     }
+
+    public function openCart()
+    {
+        $this->dispatch('show-cart');
+    }
 }

@@ -10,11 +10,13 @@ use Livewire\Component;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Busket;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 
 class ProductComponent extends Component
 {
     public $productId;
     public int $quantity = 1;
+    public int $stock = 0;
 
 
     public ?string $selectedImg = null;
@@ -26,6 +28,13 @@ class ProductComponent extends Component
     {
         $this->productId = $product;
     }
+
+    function updatedQuantity()
+    {
+
+        $this->quantity = $this->quantity > $this->stock ? $this->stock : $this->quantity;
+    }
+
 
     #[Computed(persist: true)]
     public function product()
@@ -44,8 +53,8 @@ class ProductComponent extends Component
     public function loadImg($sku_id, $mediaId)
     {
         $this->sku_id = $sku_id;
-
         $sku = $this->selectedSku();
+        $this->stock = $sku->quantity;
         $media = $sku->media->filter(fn ($media) => $media->id == $mediaId)->first();
 
         $this->selectedImg = $media->getUrl();
@@ -59,8 +68,10 @@ class ProductComponent extends Component
         }
     }
 
+    #[On('showMessage')]
     public function render()
     {
+        logger(session('message'));
         return view('livewire.product');
     }
 }

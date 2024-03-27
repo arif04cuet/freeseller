@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Order;
+use App\Models\Sku;
 use Illuminate\Support\Collection;
 use Illuminate\Session\SessionManager;
 use stdClass;
@@ -65,7 +67,9 @@ class CartService
 
             switch ($action) {
                 case 'plus':
-                    $cartItem->quantity = $content->get($id)->quantity + 1;
+                    $stock = Sku::find($id)->quantity;
+                    $cartQuantity = $content->get($id)->quantity;
+                    $cartItem->quantity = $cartQuantity >= $stock ? $stock : $cartQuantity + 1;
                     break;
                 case 'minus':
                     $updatedQuantity = $content->get($id)->quantity - 1;
@@ -124,15 +128,28 @@ class CartService
      *
      * @return string
      */
-    public function total(): string
+    public function total()
     {
         $content = $this->getContent();
 
-        $total = $content->reduce(function ($total, $item) {
+        return $content->reduce(function ($total, $item) {
             return $total += $item->price * $item->quantity;
         });
+    }
 
-        return number_format($total, 2);
+    /**
+     * Returns total price of the items in the cart.
+     *
+     * @return string
+     */
+    public function deliveryCharge($customer_id = null)
+    {
+        $content = $this->getContent();
+
+        $items = $content
+            ->map(fn ($item, $skuId) => ['sku' => $skuId, 'quantity' => $item->quantity]);
+
+        return Order::courierCharge($items, $customer_id);
     }
 
     /**

@@ -38,6 +38,19 @@ class Product extends Model implements HasMedia
     }
 
     //scopes
+
+    public function scopeSearch($query, $searchTerm)
+    {
+        return $query
+            ->when($searchTerm, fn ($query) => $query->where('name', 'like', '%' . $searchTerm . '%'));
+    }
+
+    public function scopeFilter($query, array $filters)
+    {
+        return $query
+            ->when($filters['cat'], fn ($query, $cat) => $query->where('category_id', $cat));
+    }
+
     public function scopeExplorerProducts(Builder $builder): void
     {
         $builder->with([

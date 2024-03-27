@@ -57,7 +57,7 @@ final class OrderService
                 ->query(
                     fn ($query) => $query->where('status', OrderStatus::WaitingForHubCollection->value)
                 ),
-            OrderStatus::ProcessingForHandOverToCourier->name => Tab::make()
+            OrderStatus::ProcessingForHandOverToCourier->getLabel() => Tab::make()
                 ->badge(
                     $orders
                         ->where('status', OrderStatus::ProcessingForHandOverToCourier)

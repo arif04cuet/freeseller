@@ -381,8 +381,8 @@ class Order extends Model
         if ($notDelivered->count() == 0) {
             $this->forceFill(['status' => OrderStatus::ProcessingForHandOverToCourier->value])->save();
             // add order to steadfast as a parcel
-            $order = $this->refresh();
-            $this->addToCourier($order);
+            //$order = $this->refresh();
+            //$this->addToCourier($order);
         }
     }
     public function addToCourier($order): void
