@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Product;
+use App\Models\ResellerList;
 use App\Models\Sku;
 use App\Services\CartService;
 use Cache;
@@ -35,7 +36,11 @@ class ProductComponent extends Component
         $this->quantity = $this->quantity > $this->stock ? $this->stock : $this->quantity;
     }
 
-
+    #[Computed(persist: true)]
+    public function lists()
+    {
+        return ResellerList::query()->whereBelongsTo(auth()->user())->get(['id', 'name']);
+    }
     #[Computed(persist: true)]
     public function product()
     {

@@ -66,6 +66,15 @@
             </div>
             <div class="md:flex-1 px-4">
                 <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">{{ $product->name }}</h2>
+                <div class="flex " style="display: none">
+                    <select class="focus:outline-none border text-sm rounded-lg block p-2.5 bg-white">
+                        <option value="" class="">Select list to add
+                        </option>
+                        @foreach ($this->lists as $list)
+                            <option value="{{ $list->id }}">{{ $list->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">
                     {!! $product->description !!}
                 </p>
