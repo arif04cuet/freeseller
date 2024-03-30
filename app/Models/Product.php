@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Filament\Resources\ProductResource\RelationManagers\SkusRelationManager;
+use DB;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Notifications\Notification;
@@ -50,13 +51,24 @@ class Product extends Model implements HasMedia
         return $query
             ->when($filters['cat'], fn ($query, $cat) => $query->where('category_id', $cat));
     }
-    public function scopeSort($query, array $sorts)
+    public function scopeSort($query, $sort)
     {
         return $query
             ->when(
-                $sorts['price'],
+                $sort == 'price',
                 fn ($query, $value) => $query
                     ->orderByRaw('CASE WHEN offer_price IS NOT NULL THEN LEAST(offer_price, price) ELSE price END')
+            )->when(
+                $sort == 'new',
+                fn ($query, $value) => $query
+                    ->orderBy('created_at', 'desc')
+            )->when(
+                $sort == 'sales',
+                fn ($query, $value) => $query
+                    ->select('products.*', DB::raw('SUM(order_items.quantity) as total_quantity_sold'))
+                    ->join('order_items', 'products.id', '=', 'order_items.product_id')
+                    ->groupBy('products.id')
+                    ->orderByDesc('total_quantity_sold')
             );
     }
 

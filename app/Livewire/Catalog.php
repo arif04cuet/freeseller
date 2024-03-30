@@ -24,9 +24,7 @@ class Catalog extends Component
         'list' => ''
     ];
     #[Url()]
-    public $sorts = [
-        'price' => ''
-    ];
+    public $sort = '';
 
 
 
@@ -36,7 +34,7 @@ class Catalog extends Component
         return Product::query()
             ->search($this->search)
             ->filter($this->filters)
-            ->sort($this->sorts)
+            ->sort($this->sort)
             ->with(['media', 'category', 'skus.media'])
             ->paginate(8);
     }
@@ -50,14 +48,14 @@ class Catalog extends Component
             ->pluck('name', 'id')
             ->toArray();
     }
+    public function resetAll()
+    {
+        $this->reset();
+    }
+
+
     public function render()
     {
-
-        // $products = Cache::remember('all-products-' . $this->getPage(), 3600, function () {
-        //     return Product::query()
-        //         ->with(['media', 'category', 'skus.media'])
-        //         ->paginate(8);
-        // });
 
         return view('livewire.catalog', [
             'products' => $this->products
