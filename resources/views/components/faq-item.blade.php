@@ -1,15 +1,26 @@
-<div class="">
-    <h3 class="flex items-center mb-4 text-lg font-medium text-gray-900 dark:text-white">
-        <svg class="flex-shrink-0 mr-2 w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20"
-            xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                clip-rule="evenodd"></path>
-        </svg>
-        {{ $item->question }}
-    </h3>
-    <div class="text-gray-500 dark:text-gray-400 text-justify">
-
-        {!! $item->answer !!}
+<div x-data="{ expanded: false }" class="py-2">
+    <h2>
+        <button id="faqs-title-03" type="button"
+            class="flex items-center justify-between w-full text-left font-semibold py-2" @click="expanded = !expanded"
+            :aria-expanded="expanded" aria-controls="faqs-text-03">
+            <span class="hover:text-blue-700 font-semibold">{{ $item->question }}</span>
+            <svg class="fill-indigo-500 shrink-0 ml-8" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+                <rect y="7" width="16" height="2" rx="1"
+                    class="transform origin-center transition duration-200 ease-out"
+                    :class="{ '!rotate-180': expanded }" />
+                <rect y="7" width="16" height="2" rx="1"
+                    class="transform origin-center rotate-90 transition duration-200 ease-out"
+                    :class="{ '!rotate-180': expanded }" />
+            </svg>
+        </button>
+    </h2>
+    <div id="faqs-text-03" role="region" aria-labelledby="faqs-title-03"
+        class="grid  text-slate-600 overflow-hidden transition-all duration-300 ease-in-out pl-2"
+        :class="expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'">
+        <div class="overflow-hidden">
+            <p class="pb-3 text-justify">
+                {!! $item->answer !!}
+            </p>
+        </div>
     </div>
 </div>
