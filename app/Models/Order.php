@@ -75,7 +75,10 @@ class Order extends Model
     }
 
     //relations
-
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
     public function claim(): HasOne
     {
         return $this->hasOne(OrderClaim::class, 'order_id');

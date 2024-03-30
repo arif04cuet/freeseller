@@ -146,6 +146,9 @@ class HubOrderResource extends Resource
                 Tables\Columns\TextColumn::make('cancelled_note')
                     ->wrap()
                     ->color('danger')
+                    ->formatStateUsing(
+                        fn (Model $record, $state) => $state . ' (' . $record->loadMissing('cancelledBy')->cancelledBy?->id_number . ')'
+                    )
                     ->visible(
                         fn ($livewire) => in_array($livewire->activeTab, [
                             OrderStatus::Cancelled->name,
