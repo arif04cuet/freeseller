@@ -1,4 +1,4 @@
-<div class="bg-gray-100 dark:bg-gray-800 py-8" x-data="{ selectedImg: @entangle('selectedImg') }">
+<div class="py-8" x-data="{ selectedImg: @entangle('selectedImg') }">
 
 
 
