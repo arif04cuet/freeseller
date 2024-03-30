@@ -50,6 +50,15 @@ class Product extends Model implements HasMedia
         return $query
             ->when($filters['cat'], fn ($query, $cat) => $query->where('category_id', $cat));
     }
+    public function scopeSort($query, array $sorts)
+    {
+        return $query
+            ->when(
+                $sorts['price'],
+                fn ($query, $value) => $query
+                    ->orderByRaw('CASE WHEN offer_price IS NOT NULL THEN LEAST(offer_price, price) ELSE price END')
+            );
+    }
 
     public function scopeExplorerProducts(Builder $builder): void
     {

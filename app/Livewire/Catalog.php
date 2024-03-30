@@ -23,6 +23,11 @@ class Catalog extends Component
         'cat' => '',
         'list' => ''
     ];
+    #[Url()]
+    public $sorts = [
+        'price' => ''
+    ];
+
 
 
     #[Computed()]
@@ -31,6 +36,7 @@ class Catalog extends Component
         return Product::query()
             ->search($this->search)
             ->filter($this->filters)
+            ->sort($this->sorts)
             ->with(['media', 'category', 'skus.media'])
             ->paginate(8);
     }

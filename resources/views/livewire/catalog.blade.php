@@ -1,19 +1,34 @@
 <div class="px-2 md:px-0">
 
-    <div class="py-2 flex gap-4 ">
+    <div class="py-2 flex flex-col md:flex-row gap-2 mb-2 md:gap-4 ">
 
-        <input class="w-1/2 md:w-auto  border px-2" placeholder="Search" type="text" wire:model.live="search">
-        <select class="w-1/2  md:w-auto border text-sm rounded-lg block p-2.5" wire:model.live="filters.cat">
-            <option value="">Select</option>
-            @foreach ($this->categories as $id => $name)
-                <option value="{{ $id }}">{{ $name }}</option>
-            @endforeach
-        </select>
+        <input class="md:w-auto  border p-2 md:px-2" placeholder="Search" type="search"
+            wire:model.live.debounce.1000ms="search">
+        <div class="flex gap-4">
+            <select class=" w-1/2  md:w-auto border text-sm rounded-lg block p-2.5 bg-white"
+                wire:model.live="filters.cat">
+                <option value="">Select Category</option>
+                @foreach ($this->categories as $id => $name)
+                    <option value="{{ $id }}">{{ $name }}</option>
+                @endforeach
+            </select>
+
+            <select class=" w-1/2 md:w-auto border text-sm rounded-lg block p-2.5 bg-white "
+                wire:model.live="sorts.price">
+                <option value="">Sort by</option>
+                <option value="1">Low to high</option>
+            </select>
+        </div>
+
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        @foreach ($products as $product)
-            <x-product :product="$product" />
-        @endforeach
+        @if ($products->count())
+            @foreach ($products as $product)
+                <x-product :product="$product" />
+            @endforeach
+        @else
+            No products found.
+        @endif
     </div>
 
     <div class="my-2">
