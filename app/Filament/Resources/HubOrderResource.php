@@ -272,6 +272,38 @@ class HubOrderResource extends Resource
             ->actions([
 
                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('trash')
+                        ->visible(
+                            fn (Model $record) => in_array($record->status, [
+                                OrderStatus::WaitingForWholesalerApproval,
+                                OrderStatus::Processing,
+                                OrderStatus::WaitingForHubCollection,
+                            ])
+                        )
+                        ->requiresConfirmation()
+                        ->color('danger')
+                        ->icon('heroicon-m-trash')
+                        ->form([
+                            forms\Components\Textarea::make('cancel_note')
+                                ->required()
+                        ])
+                        ->action(
+                            function (Model $record, array $data, $action) {
+
+                                $record->update([
+                                    'status' => OrderStatus::Cancelled->value,
+                                    'cancelled_note' => $data['cancel_note'],
+                                    'cancelled_by' => auth()->user()->id
+                                ]);
+
+                                //update order items status
+                                $record->items->each->markAsCancelled();
+
+                                Notification::make()
+                                    ->title('Order cancelled successfully')
+                                    ->send();
+                            }
+                        ),
 
                     Tables\Actions\Action::make('items')
                         ->label('Products')
