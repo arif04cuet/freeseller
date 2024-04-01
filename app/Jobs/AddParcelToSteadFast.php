@@ -47,11 +47,6 @@ class AddParcelToSteadFast
                 'status' => OrderStatus::HandOveredToCourier->value,
                 'sent_to_courier_at' => now()
             ]);
-
-            Notification::make()
-                ->title('Order successfully sent to Courier')
-                ->success()
-                ->send();
         }
     }
 }

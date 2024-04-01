@@ -697,6 +697,10 @@ class HubOrderResource extends Resource
                         ->action(
                             function (Collection $records) {
                                 $records->each(fn ($order) => $order->addToCourier($order));
+                                Notification::make()
+                                    ->title('Orders successfully sent to Courier')
+                                    ->success()
+                                    ->send();
                             }
                         ),
 
