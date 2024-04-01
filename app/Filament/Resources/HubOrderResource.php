@@ -44,6 +44,25 @@ class HubOrderResource extends Resource
 
     protected static ?string $slug = 'hub/orders';
 
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasAnyRole([
+            SystemRole::HubManager->value,
+            SystemRole::HubMember->value,
+            'super_admin',
+        ]);
+    }
+
+    public static function canView(Model $record): bool
+    {
+        return auth()->user()->hasAnyRole([
+            SystemRole::HubManager->value,
+            SystemRole::HubMember->value,
+            'super_admin',
+        ]);
+    }
+
+
     public static function shouldRegisterNavigation(): bool
     {
         return auth()->user()->hasAnyRole([
