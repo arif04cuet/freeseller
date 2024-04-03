@@ -49,7 +49,8 @@
                     {{ $product->name }}
                 </h2>
                 <div class="flex items-center justify-between">
-                    @if ($this->lists)
+
+                    @if (auth()->check() && auth()->user()->canPlaceOrder() && $this->lists)
                         <div class="flex ">
                             <select wire:model.live="listId" wire:confirm="Are you sure?"
                                 class="focus:outline-none border text-sm rounded-lg block p-2.5 bg-white">

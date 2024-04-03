@@ -2,6 +2,12 @@
 
 namespace App\Helpers;
 
+if (!function_exists('App\Helpers\isEligibleReseller')) {
+    function isEligibleReseller()
+    {
+        return config('freeseller.minimum_acount_balance');
+    }
+}
 
 if (!function_exists('App\Helpers\minimumBalance')) {
     function minimumBalance()
