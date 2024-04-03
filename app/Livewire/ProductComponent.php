@@ -26,9 +26,12 @@ class ProductComponent extends Component
 
     public int $sku_id;
 
+    public $currentUrl;
+
     function mount($product)
     {
         $this->productId = $product;
+        $this->currentUrl = url()->current();
     }
 
     function updatedListId()

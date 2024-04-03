@@ -62,7 +62,7 @@
                             </select>
                         </div>
                     @endif
-                    <x-share-buttons :title="$product->name" />
+                    <x-share-buttons :url="$currentUrl" />
                 </div>
                 <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">
                     {!! $product->description !!}
