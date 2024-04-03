@@ -19,6 +19,7 @@ class ProductComponent extends Component
     public int $quantity = 1;
     public int $stock = 0;
 
+    public $listId = null;
 
     public ?string $selectedImg = null;
     public ?string $selectedThumb = null;
@@ -30,6 +31,19 @@ class ProductComponent extends Component
         $this->productId = $product;
     }
 
+    function updatedListId()
+    {
+
+        if (in_array($this->listId, array_keys($this->lists))) {
+
+            ResellerList::find($this->listId)
+                ->skus()
+                ->syncWithoutDetaching([$this->sku_id]);
+
+            $this->dispatch('success', message: "Product added to selected list successfully!");
+        }
+    }
+
     function updatedQuantity()
     {
 
@@ -39,7 +53,13 @@ class ProductComponent extends Component
     #[Computed(persist: true)]
     public function lists()
     {
-        return ResellerList::query()->whereBelongsTo(auth()->user())->get(['id', 'name']);
+        $list = ResellerList::query()
+            ->select(['id', 'name'])
+            ->where('user_id', auth()->user()->id)
+            ->pluck('name', 'id')
+            ->toArray();
+
+        return $list;
     }
     #[Computed(persist: true)]
     public function product()
@@ -59,6 +79,7 @@ class ProductComponent extends Component
     {
         $this->sku_id = $sku_id;
         $sku = $this->selectedSku();
+        $this->listId = $sku->loadMissing('myResellerLists:id')->myResellerLists?->first()?->id;
         $this->stock = $sku->quantity;
         $media = $sku->media->filter(fn ($media) => $media->id == $mediaId)->first();
 
@@ -76,7 +97,7 @@ class ProductComponent extends Component
     #[On('showMessage')]
     public function render()
     {
-        logger(session('message'));
-        return view('livewire.product');
+        return view('livewire.product')
+            ->title($this->product->name);
     }
 }
