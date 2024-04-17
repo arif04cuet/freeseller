@@ -26,6 +26,14 @@ class Catalog extends Component
     #[Url()]
     public $sort = '';
 
+    public $perPage = 8;
+
+
+    #[Computed]
+    public function total(): int
+    {
+        return Product::count();
+    }
 
 
     #[Computed()]
@@ -36,7 +44,7 @@ class Catalog extends Component
             ->filter($this->filters)
             ->sort($this->sort)
             ->with(['media', 'category', 'skus.media'])
-            ->paginate(8);
+            ->paginate($this->perPage);
     }
     #[Computed(persist: true)]
     public function categories()
@@ -53,6 +61,10 @@ class Catalog extends Component
         $this->reset();
     }
 
+    public function loadMore()
+    {
+        $this->perPage += 8;
+    }
 
     public function render()
     {
