@@ -7,6 +7,7 @@ use App\Http\Controllers\PrintOrdersCourierLabel;
 use App\Http\Controllers\PrintOrdersLabel;
 use App\Livewire\Catalog;
 use App\Livewire\Home;
+use App\Livewire\MyCatalog;
 use App\Livewire\ProductComponent;
 use App\Livewire\Team;
 use App\Models\Product;
@@ -26,9 +27,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', Home::class)->name('home');
 Route::get('/team', Team::class)->name('team');
+Route::get('/my-catalog', MyCatalog::class)->name('my.catalog');
 Route::get('/catalog', Catalog::class)->name('catalog');
 Route::get('/catalog/{product}', ProductComponent::class)->name('product');
 
+//sitemap
+Route::get('/sitemap', function () {
+    $products = Product::with(['skus.media'])->get();
+    return response()->view('app.sitemap', compact('products'))->header('Content-Type', 'text/xml');
+})->name('sitemap');
 
 
 Route::get('/mail', function () {

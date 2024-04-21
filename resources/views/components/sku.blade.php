@@ -1,7 +1,8 @@
 <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-    <a class="text-center" wire:navigate href="{{ route('product', ['product' => $product]) }}">
-        @if ($image = $product->getMedia('sharees')?->first()?->getUrl('thumb'))
-            <img loading="lazy" class="rounded-t-lg mx-auto" src="{{ $image }}" alt="{{ $product->name }}" />
+    <a class="text-center" wire:navigate href="{{ route('product', ['product' => $sku->product]) }}">
+        @if ($image = $sku->getMedia('sharees')?->first()?->getUrl('thumb'))
+            <img loading="lazy" class="rounded-t-lg mx-auto w-3/4 md:w-1/2" src="{{ $image }}"
+                alt="{{ $sku->product->name }}" />
         @else
             <svg fill="#000000" width="w-full" viewBox="0 0 32 32" id="icon" xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -23,20 +24,20 @@
 
     </a>
     <div class="p-3 md:p-4">
-        <a wire:navigate href="{{ route('product', ['product' => $product]) }}">
+        <a wire:navigate href="{{ route('product', ['product' => $sku->product]) }}">
             <h5 class="mb-2 text-normal tracking-tight text-gray-900 dark:text-white">
-                {{ \Illuminate\Support\Str::limit($product->name, 35, $end = '..') }}
+                {{ \Illuminate\Support\Str::limit($sku->product->name, 35, $end = '..') }}
             </h5>
         </a>
         <div class="mb-2 flex justify-between">
             <div>
                 @auth
-                    <x-product.price :product="$product" />
+                    <x-product.price :product="$sku->product" />
                 @else
                     <span class="text-yellow-600">মূল্য দেখতে লগইন করুন</span>
                 @endauth
             </div>
-            <div>{{ $product->category->name }}</div>
+            <div> {{ $sku->product->category->name }}</div>
         </div>
         <div style="--col-span-default: span 1 / span 1;" class="col-[--col-span-default] flex-1 w-full">
 
@@ -45,8 +46,8 @@
                     <div class="fi-ta-image">
                         <div class="flex items-center gap-x-2.5">
                             <div class="flex -space-x-2 flex-wrap">
-                                @foreach ($product->skus as $sku)
-                                    @if ($image = $sku->getMedia('sharees')?->first()?->getUrl('thumb'))
+                                @foreach ($sku->getMedia('sharees') as $media)
+                                    @if ($image = $media->getUrl('thumb'))
                                         <img src="{{ $image }}" style="height: 2rem; width: 2rem;"
                                             class="max-w-none object-cover object-center rounded-full ring-white dark:ring-gray-900 ring-2">
                                     @endif
