@@ -33,8 +33,7 @@ Route::get('/catalog/{product}', ProductComponent::class)->name('product');
 
 //sitemap
 Route::get('/sitemap', function () {
-    $products = Product::with(['skus.media'])->get();
-    return response()->view('app.sitemap', compact('products'))->header('Content-Type', 'text/xml');
+    return response()->view('app.sitemap')->header('Content-Type', 'text/xml');
 })->name('sitemap');
 
 
