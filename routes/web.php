@@ -5,6 +5,7 @@ use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\PrintOrderLabel;
 use App\Http\Controllers\PrintOrdersCourierLabel;
 use App\Http\Controllers\PrintOrdersLabel;
+use App\Http\Controllers\Sitemap;
 use App\Livewire\Catalog;
 use App\Livewire\Home;
 use App\Livewire\MyCatalog;
@@ -32,9 +33,7 @@ Route::get('/catalog', Catalog::class)->name('catalog');
 Route::get('/catalog/{product}', ProductComponent::class)->name('product');
 
 //sitemap
-Route::get('/sitemap', function () {
-    return response()->view('app.sitemap')->header('Content-Type', 'text/xml');
-})->name('sitemap');
+Route::get('/sitemap', Sitemap::class)->name('sitemap');
 
 
 Route::get('/mail', function () {
