@@ -35,7 +35,9 @@ class Sitemap extends Controller
 
         $xml .= $urls . '</urlset>';
 
-        return response($xml, 200, [
+        file_put_contents(public_path('sitemap.xml'), $xml);
+
+        return response(file_get_contents(public_path('sitemap.xml')), 200, [
             'Content-Type' => 'application/xml'
         ]);
     }
