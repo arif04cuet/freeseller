@@ -55,6 +55,10 @@ class Product extends Model implements HasMedia
     {
         return $query
             ->when(
+                $sort == 'stock_low',
+                fn ($query, $value) => $query->orderBy('skus_sum_quantity', 'asc')
+            )
+            ->when(
                 $sort == 'stock',
                 fn ($query, $value) => $query->orderBy('skus_sum_quantity', 'desc')
             )
@@ -96,6 +100,10 @@ class Product extends Model implements HasMedia
     }
 
     //relations
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 
     public function skus(): HasMany
     {

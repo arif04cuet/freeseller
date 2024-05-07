@@ -51,12 +51,12 @@ class MyCatalog extends Component
         $listId = $this->filters['list'] ? [$this->filters['list']] : array_keys($this->list);
 
         return Sku::query()
-            //->search($this->search)
+            ->search($this->search)
             ->whereHas(
                 'myResellerLists',
                 fn ($q) => $q->whereIn('reseller_list_id', $listId)
             )
-            //->sort($this->sort)
+            ->when($this->filters['cat'], fn ($q) => $q->whereRelation('product', 'category_id', '=', $this->filters['cat']))
             ->with(['media', 'product.category'])
             ->paginate($this->perPage);
     }

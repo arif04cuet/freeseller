@@ -49,6 +49,14 @@
 
                         </li>
                         @auth
+                            <li>
+                                <a href="{{ route('filament.app.auth.login') }}"
+                                    class="block py-2 px-3 hover:bg-blue-700  rounded md:bg-transparent hover:text-white p-2 dark:text-white md:dark:text-blue-500"
+                                    aria-current="page">
+                                    ড্যাশবোর্ড
+                                </a>
+
+                            </li>
                             @if (auth()->user()->isReseller())
                                 <li class="relative flex items-center space-x-1" x-data="{ open: false }"
                                     @mouseenter="open = true" @mouseleave="open = false">
@@ -80,14 +88,7 @@
                                                 class="block py-2 px-3 hover:bg-blue-700 rounded md:bg-transparent hover:text-white p-2 dark:text-white md:dark:text-blue-500"
                                                 aria-current="page"> লিস্টেড প্রোডাক্ট</a>
                                         </li>
-                                        <li>
-                                            <a href="{{ route('filament.app.auth.login') }}"
-                                                class="block py-2 px-3 hover:bg-blue-700  rounded md:bg-transparent hover:text-white p-2 dark:text-white md:dark:text-blue-500"
-                                                aria-current="page">
-                                                ড্যাশবোর্ড
-                                            </a>
 
-                                        </li>
                                     </ul>
                                 </li>
                             @endif

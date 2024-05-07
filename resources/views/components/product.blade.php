@@ -27,8 +27,8 @@
             <a wire:navigate href="{{ route('product', ['product' => $product]) }}">
                 {{ \Illuminate\Support\Str::limit($product->name, 35, $end = '..') }}
             </a>
-            <span>{{ $product->skus_sum_quantity }}</span>
         </h5>
+
         <div class="mb-2 flex justify-between">
             <div>
                 @auth
@@ -38,6 +38,10 @@
                 @endauth
             </div>
             <div>{{ $product->category->name }}</div>
+        </div>
+        <div class="flex justify-between mb-2">
+            <span> Stock: {{ $product->skus_sum_quantity ?? 0 }}</span>
+            <span> Sales: {{ $product->order_items_sum_quantity ?? 0 }}</span>
         </div>
         <div style="--col-span-default: span 1 / span 1;" class="col-[--col-span-default] flex-1 w-full">
 

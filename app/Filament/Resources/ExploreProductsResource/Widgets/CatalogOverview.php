@@ -20,9 +20,9 @@ class CatalogOverview extends BaseWidget
         $categories = Cache::remember('categories_count', 60 * 60 * 24, fn () =>  Category::query()->count());
 
         return [
-            Stat::make('Total Products', $productCount)->extraAttributes(['class' => 'p-4']),
-            Stat::make('Total Stock', $stockCount),
-            Stat::make('Total Catagories', $categories),
+            Stat::make('Products', $productCount)->extraAttributes(['class' => 'p-4']),
+            Stat::make('Stock', $stockCount),
+            Stat::make('Catagories', $categories),
         ];
     }
 }

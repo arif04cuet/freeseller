@@ -36,6 +36,19 @@ class Sku extends Model implements HasMedia
     {
         $builder->whereRelation('product', 'owner_id', auth()->user()->id);
     }
+    public function scopeSearch($query, $searchTerm)
+    {
+        return $query
+            ->when(
+                $searchTerm,
+                fn ($query) => $query->whereHas(
+                    'product',
+                    fn ($q) => $q->where('name', 'like', '%' . $searchTerm . '%')
+                )
+            );
+    }
+
+
 
     //relations
 

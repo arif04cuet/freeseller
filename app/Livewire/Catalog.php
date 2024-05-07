@@ -21,7 +21,7 @@ class Catalog extends Component
     #[Url()]
     public $filters = [
         'cat' => '',
-        'list' => ''
+        'list' => '',
     ];
     #[Url()]
     public $sort = '';
@@ -32,7 +32,7 @@ class Catalog extends Component
     #[Computed]
     public function total(): int
     {
-        return Product::count();
+        return $this->products->total();
     }
 
 
@@ -40,10 +40,12 @@ class Catalog extends Component
     public function products()
     {
         return Product::query()
+            ->select(['id', 'name', 'category_id', 'price', 'offer_price'])
             ->search($this->search)
             ->filter($this->filters)
             ->sort($this->sort)
             ->withSum('skus', 'quantity')
+            ->withSum('orderItems', 'quantity')
             ->with(['media', 'category', 'skus.media'])
             ->paginate($this->perPage);
     }
