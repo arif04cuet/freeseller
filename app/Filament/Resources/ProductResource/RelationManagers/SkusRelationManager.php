@@ -157,8 +157,8 @@ class SkusRelationManager extends RelationManager
 
                         return $record;
                     }),
-                Tables\Actions\DeleteAction::make()
-                    ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner()),
+                // Tables\Actions\DeleteAction::make()
+                //     ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkAction::make('add_to_lilst')
