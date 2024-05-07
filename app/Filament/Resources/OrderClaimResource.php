@@ -62,6 +62,7 @@ class OrderClaimResource extends Resource
                     ->loadingMessage('Searching...')
                     ->noSearchResultsMessage('No order found. please sellect only returned and cancelled order')
                     ->searchDebounce(500)
+                    ->live()
                     ->getSearchResultsUsing(
                         fn (string $search): array => Order::query()
                             ->mine()

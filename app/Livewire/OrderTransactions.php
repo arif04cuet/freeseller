@@ -27,6 +27,7 @@ class OrderTransactions extends Component implements HasForms, HasTable
 
     public function table(Table $table): Table
     {
+        logger($this->order);
         return $table
             ->query(
                 Transaction::query()

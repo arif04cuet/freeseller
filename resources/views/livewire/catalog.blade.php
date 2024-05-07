@@ -15,6 +15,7 @@
 
             <select class=" w-1/2 md:w-auto border text-sm rounded-lg block p-2.5 bg-white " wire:model.live="sort">
                 <option value="">Sort by</option>
+                <option value="stock">Stock quantity</option>
                 <option value="price">Price Low to high</option>
                 <option value="sales">Most sales products</option>
                 <option value="new">New products</option>

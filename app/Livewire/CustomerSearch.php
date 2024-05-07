@@ -19,6 +19,7 @@ class CustomerSearch extends Component
 {
 
     public $mobile = null;
+    public $open = false;
 
     #[Locked]
     public $selectedCustomerId;
@@ -43,6 +44,7 @@ class CustomerSearch extends Component
 
     public function newCustomerModal()
     {
+        $this->open = true;
         $this->newCustomer = [
             'name' => '',
             'mobile' => $this->mobile,
@@ -79,6 +81,7 @@ class CustomerSearch extends Component
         return Address::query()
             ->select(['id', 'name'])
             ->where('type', AddressType::District->value)
+            ->orderBy('name')
             ->get();
     }
     #[Computed()]

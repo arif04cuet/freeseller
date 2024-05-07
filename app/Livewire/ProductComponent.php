@@ -101,6 +101,9 @@ class ProductComponent extends Component
     public function render()
     {
         return view('livewire.product')
-            ->title($this->product->name);
+            ->title($this->product->name)
+            ->layoutData([
+                'description' => strip_tags($this->product->description)
+            ]);
     }
 }

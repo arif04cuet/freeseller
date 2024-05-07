@@ -29,11 +29,17 @@
                                         <div class="flex items-start justify-between">
                                             <div class="flex items-center gap-4">
                                                 <h2 class="text-lg font-medium text-gray-900" id="slide-over-title">
-                                                    Shopping cart
+                                                    {{ $title }}
                                                 </h2>
-                                                <x-filament::icon-button type="button" wire:click="clearCart()"
-                                                    label="Clear cart" icon="heroicon-o-trash"
-                                                    class="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                                @if (!$editOrderId)
+                                                    <x-filament::icon-button type="button" wire:click="clearCart()"
+                                                        label="Clear cart" icon="heroicon-o-trash"
+                                                        class="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                                @else
+                                                    <x-filament::icon-button type="button" wire:click="clearEdit()"
+                                                        label="Discard edit" icon="heroicon-o-trash"
+                                                        class="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                                @endif
                                             </div>
                                             <div class="ml-3 flex h-7 items-center">
                                                 <x-filament::icon-button type="button" wire:click="close"
@@ -75,7 +81,8 @@
                                                 <p>Customer</p>
 
                                                 <div>
-                                                    @livewire('customer-search')
+
+                                                    <livewire:customer-search :key="$customerId" :selectedCustomerId="$customerId" />
                                                     @error('customerId')
                                                         <span class="error">{{ $message }}</span>
                                                     @enderror
@@ -118,13 +125,24 @@
                                             </div>
                                             @if ($cod)
                                                 <div class="flex justify-between text-base font-medium text-gray-900">
-                                                    <p>Profit</p>
-                                                    <p>{{ money((int) $cod - ((int) $total + (int) $brandingCharge + (int) $deliveryCharge)) }}
+                                                    @php
+                                                        $profit =
+                                                            (int) $cod -
+                                                            ((int) $total +
+                                                                (int) $brandingCharge +
+                                                                (int) $deliveryCharge);
+                                                    @endphp
+                                                    <p @class([
+                                                        'text-green-500' => $profit > 0,
+                                                        'text-red-500' => $profit < 0,
+                                                        'text-yellow-500' => $profit == 0,
+                                                    ])>Profit</p>
+                                                    <p>{{ money($profit) }}
                                                     </p>
                                                 </div>
                                             @endif
                                             <div class="mt-2" x-data="{ show: false }">
-                                                <span @click="show=true"
+                                                <span @click="show=!show"
                                                     class="bg-indigo-600 p-1 text-white cursor-pointer rounded">Note?</span>
                                                 <div x-show="show" class="flex-col gap-2 mt-1">
                                                     <textarea wire:model="note_for_wholesaler" class="w-full px-2 text-sm border" placeholder="Note for Wholesaler"></textarea>
@@ -137,7 +155,7 @@
                                                     <x-filament::button type="submit" wire:target="createOrder"
                                                         wire:loading.remove
                                                         class="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700">
-                                                        Place Order
+                                                        {{ $editOrderId ? 'Update Order' : 'Place Order' }}
                                                     </x-filament::button>
                                                     <div wire:target="createOrder" wire:loading class="flex gap-3">
                                                         <span>Please wait .. </span>

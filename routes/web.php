@@ -9,6 +9,7 @@ use App\Http\Controllers\Sitemap;
 use App\Livewire\Catalog;
 use App\Livewire\Home;
 use App\Livewire\MyCatalog;
+use App\Livewire\MyOrders;
 use App\Livewire\ProductComponent;
 use App\Livewire\Team;
 use App\Models\Product;
@@ -31,6 +32,7 @@ Route::get('/team', Team::class)->name('team');
 Route::get('/my-catalog', MyCatalog::class)->name('my.catalog');
 Route::get('/catalog', Catalog::class)->name('catalog');
 Route::get('/catalog/{product}', ProductComponent::class)->name('product');
+Route::get('/my/orders', MyOrders::class)->name('my.orders');
 
 //sitemap
 Route::get('/sitemap', Sitemap::class)->name('sitemap');

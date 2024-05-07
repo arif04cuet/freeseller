@@ -55,6 +55,10 @@ class Product extends Model implements HasMedia
     {
         return $query
             ->when(
+                $sort == 'stock',
+                fn ($query, $value) => $query->orderBy('skus_sum_quantity', 'desc')
+            )
+            ->when(
                 $sort == 'price',
                 fn ($query, $value) => $query
                     ->orderByRaw('CASE WHEN offer_price IS NOT NULL THEN LEAST(offer_price, price) ELSE price END')

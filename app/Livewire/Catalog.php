@@ -43,6 +43,7 @@ class Catalog extends Component
             ->search($this->search)
             ->filter($this->filters)
             ->sort($this->sort)
+            ->withSum('skus', 'quantity')
             ->with(['media', 'category', 'skus.media'])
             ->paginate($this->perPage);
     }
@@ -71,6 +72,10 @@ class Catalog extends Component
 
         return view('livewire.catalog', [
             'products' => $this->products
-        ]);
+        ])
+            ->layoutData([
+                'title' => 'সকল প্রোডাক্ট ',
+                'description' => collect($this->categories)->implode(',')
+            ]);
     }
 }

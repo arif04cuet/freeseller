@@ -23,11 +23,12 @@
 
     </a>
     <div class="p-3 md:p-4">
-        <a wire:navigate href="{{ route('product', ['product' => $product]) }}">
-            <h5 class="mb-2 text-normal tracking-tight text-gray-900 dark:text-white">
+        <h5 class="mb-2 text-normal tracking-tight text-gray-900 dark:text-white flex justify-between">
+            <a wire:navigate href="{{ route('product', ['product' => $product]) }}">
                 {{ \Illuminate\Support\Str::limit($product->name, 35, $end = '..') }}
-            </h5>
-        </a>
+            </a>
+            <span>{{ $product->skus_sum_quantity }}</span>
+        </h5>
         <div class="mb-2 flex justify-between">
             <div>
                 @auth
