@@ -12,6 +12,7 @@ use App\Livewire\MyCatalog;
 use App\Livewire\MyOrders;
 use App\Livewire\ProductComponent;
 use App\Livewire\Team;
+use App\Models\OrderClaim;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
@@ -39,7 +40,10 @@ Route::get('/sitemap', Sitemap::class)->name('sitemap');
 
 
 Route::get('/mail', function () {
-    return Product::with('skus')->find(6);
+    return OrderClaim::query()
+        ->whereJsonContains('wholesalers', ['id' => "80"])
+        ->latest()
+        ->get();
 });
 
 Route::post('/push', function () {

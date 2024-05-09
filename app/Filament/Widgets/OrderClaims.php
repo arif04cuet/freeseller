@@ -32,13 +32,18 @@ class OrderClaims extends BaseWidget
 
     public function table(Table $table): Table
     {
-        $wholesaler = auth()->user()->id;
+        $user = auth()->user()->loadMissing('roles');
+        $isWholesaler = $user->isWholesaler();
+
 
         return $table
             ->deferLoading()
             ->query(
                 OrderClaim::query()
-                    ->whereJsonContains('wholesalers', ['id' => "$wholesaler"])
+                    ->when(
+                        $isWholesaler,
+                        fn ($q) => $q->whereJsonContains('wholesalers', ['id' => "$user->id"])
+                    )
                     ->latest()
             )
             ->columns([
@@ -120,10 +125,22 @@ class OrderClaims extends BaseWidget
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(
-                        function ($record) use ($wholesaler) {
-                            $item = collect($record->wholesalers)->filter(fn ($item) => $item['id'] == $wholesaler)->first();
-                            $status =  $item['paid'] ? 'Paid' : 'Pending';
-                            return $status;
+                        function ($record) use ($user, $isWholesaler) {
+                            $status = collect($record->wholesalers)
+                                ->map(
+                                    function ($item) {
+                                        $wholesaler = User::select(['id', 'name'])->find($item['id']);
+                                        $item['paid'] = $item['paid'] ? 'Paid' : 'Pending';
+                                        $item['id_number'] = $wholesaler->id_number;
+                                        return $item;
+                                    }
+                                )
+                                ->when(
+                                    $isWholesaler,
+                                    fn ($collection) => $collection->filter(fn ($item) => $item['id'] == $user->id)
+                                );
+                            //->pluck('paid', 'id_number');
+                            return $isWholesaler ? $status->first()['paid'] : $status->map(fn ($item) => $item['id_number'] . '=>' . $item['paid'])->implode('<br/>');
                         }
                     ),
             ]);
