@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -51,6 +53,13 @@ class Sku extends Model implements HasMedia
 
 
     //relations
+
+    public function firstMedia(): MorphOne
+    {
+        return $this->morphOne(config('media-library.media_model'), 'model')
+            ->where('collection_name', 'sharees')
+            ->where('order_column', 1);
+    }
 
     public function resellerLists(): BelongsToMany
     {

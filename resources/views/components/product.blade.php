@@ -51,7 +51,7 @@
                         <div class="flex items-center gap-x-2.5">
                             <div class="flex -space-x-2 flex-wrap">
                                 @foreach ($product->skus as $sku)
-                                    @if ($image = $sku->getMedia('sharees')?->first()?->getUrl('thumb'))
+                                    @if ($image = $sku->firstMedia->getUrl('thumb'))
                                         <img src="{{ $image }}" style="height: 2rem; width: 2rem;"
                                             class="max-w-none object-cover object-center rounded-full ring-white dark:ring-gray-900 ring-2">
                                     @endif

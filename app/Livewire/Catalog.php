@@ -24,7 +24,7 @@ class Catalog extends Component
         'list' => '',
     ];
     #[Url()]
-    public $sort = '';
+    public $sort = 'new';
 
     public $perPage = 8;
 
@@ -46,7 +46,7 @@ class Catalog extends Component
             ->sort($this->sort)
             ->withSum('skus', 'quantity')
             ->withSum('orderItems', 'quantity')
-            ->with(['media', 'category', 'skus.media'])
+            ->with(['media', 'category', 'skus.firstMedia'])
             ->paginate($this->perPage);
     }
     #[Computed(persist: true)]
