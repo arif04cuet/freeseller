@@ -34,6 +34,11 @@ class ExploreProductsResource extends Resource
 
     protected static ?string $modelLabel = 'Explore Products';
 
+    public static function canAccess(): bool
+    {
+        return false;
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

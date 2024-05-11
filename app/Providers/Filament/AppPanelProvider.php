@@ -5,10 +5,12 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Auth\Registration;
+use App\Livewire\Catalog;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -57,6 +59,12 @@ class AppPanelProvider extends PanelProvider
                 NavigationGroup::make()
                     ->label('Settings'),
 
+            ])
+            ->navigationItems([
+                NavigationItem::make('Explore Products')
+                    ->url('/catalog')
+                    ->icon('heroicon-o-presentation-chart-line')
+                    ->sort(1)
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

@@ -209,41 +209,41 @@ class SkusRelationManager extends RelationManager
             )
             ->bulkActions([
                 Tables\Actions\ActionGroup::make([
-                    Tables\Actions\BulkAction::make('create_order')
-                        ->label('Create New Order')
-                        ->icon('heroicon-o-plus')
-                        ->color('success')
-                        ->requiresConfirmation()
-                        ->modalSubmitAction(fn (StaticAction $action) => $action->extraAttributes([
-                            'wire:loading.remove' => 'wire:loading.remove'
-                        ]))
-                        ->modalDescription(
-                            function (Collection $records) {
-                                return new HtmlString('
-                                <p>Total Items = ' . $records->count() . '</p>
-                                <hr class="my-4"/>
-                                <ol class="list-decimal mx-auto text-left">
-                                ' . $records->map(fn ($sku, $index) => '<li>' . $index + 1 . '. ' . $sku->name . '</li>')->implode('') . '
-                                </ol>
-                                <div wire:loading class="text-custom-600 mt-2">Working Wait ...</div>
-                                ');
-                            }
-                        )
-                        ->modalCancelAction(false)
-                        ->modalSubmitActionLabel('Yes, Create')
-                        ->action(
-                            function (RelationManager $livewire, Collection $records, array $data) {
-                                $data = [];
-                                $data['list'] = $livewire->getOwnerRecord()->id;
+                    // Tables\Actions\BulkAction::make('create_order')
+                    //     ->label('Create New Order')
+                    //     ->icon('heroicon-o-plus')
+                    //     ->color('success')
+                    //     ->requiresConfirmation()
+                    //     ->modalSubmitAction(fn (StaticAction $action) => $action->extraAttributes([
+                    //         'wire:loading.remove' => 'wire:loading.remove'
+                    //     ]))
+                    //     ->modalDescription(
+                    //         function (Collection $records) {
+                    //             return new HtmlString('
+                    //             <p>Total Items = ' . $records->count() . '</p>
+                    //             <hr class="my-4"/>
+                    //             <ol class="list-decimal mx-auto text-left">
+                    //             ' . $records->map(fn ($sku, $index) => '<li>' . $index + 1 . '. ' . $sku->name . '</li>')->implode('') . '
+                    //             </ol>
+                    //             <div wire:loading class="text-custom-600 mt-2">Working Wait ...</div>
+                    //             ');
+                    //         }
+                    //     )
+                    //     ->modalCancelAction(false)
+                    //     ->modalSubmitActionLabel('Yes, Create')
+                    //     ->action(
+                    //         function (RelationManager $livewire, Collection $records, array $data) {
+                    //             $data = [];
+                    //             $data['list'] = $livewire->getOwnerRecord()->id;
 
-                                $data['skus'] = $records
-                                    ->map(fn ($item) => $item->product->id . '-' . $item->id)
-                                    ->implode(',');
+                    //             $data['skus'] = $records
+                    //                 ->map(fn ($item) => $item->product->id . '-' . $item->id)
+                    //                 ->implode(',');
 
-                                //$qString = Arr::query($data);
-                                return redirect()->route('filament.app.resources.orders.create', $data);
-                            }
-                        ),
+                    //             //$qString = Arr::query($data);
+                    //             return redirect()->route('filament.app.resources.orders.create', $data);
+                    //         }
+                    //     ),
                     Tables\Actions\DetachBulkAction::make(),
                     Tables\Actions\BulkAction::make('export_images')
                         ->label('Download Images')
