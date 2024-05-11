@@ -63,7 +63,10 @@ class OrderResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with('items')->mine()->latest();
+        return parent::getEloquentQuery()
+            ->with(['items', 'fraudCustomer'])
+            ->mine()
+            ->latest();
     }
 
     public static function form(Form $form): Form
@@ -580,9 +583,18 @@ class OrderResource extends Resource
                 //     ->label('Customer Name'),
                 Tables\Columns\TextColumn::make('customer.mobile')
                     ->searchable()
-                    ->formatStateUsing(fn (Order $record, $state) => '<a href="tel:' . $state . '"><u>' . $record->customer->name . '<br/>' . $state . '</u></a>')
+                    ->formatStateUsing(
+                        fn (Order $record, $state) => '<a href="tel:' . $state . '"><u>' . $record->customer->name . '(' . $record->fraudCustomer?->id . ')' . '<br/>' . $state . '</u></a>'
+                    )
                     ->html()
                     ->label('Customer'),
+                Tables\Columns\TextColumn::make('fraudCustomer.id')
+                    ->label('Fraud')
+                    ->color('danger')
+                    ->visible(
+                        fn ($livewire) => $livewire->activeTab == 'Cancelled'
+
+                    )->formatStateUsing(fn ($state) => $state ? 'Yes' : 'No'),
                 // Tables\Columns\TextColumn::make('customer.address')->label('Address'),
                 // Tables\Columns\TextColumn::make('note')
                 //     ->wrap(),
@@ -717,6 +729,31 @@ class OrderResource extends Resource
                         ->modalContent(fn (Model $record) => view('order.transactions', [
                             'order' => $record,
                         ])),
+                    Tables\Actions\Action::make('add_fraud_message')
+                        ->color('success')
+                        ->label('Mark customer as Fraud')
+                        ->icon('heroicon-o-user')
+                        ->visible(
+                            fn (Order $record) => $record->delivered_at && ($record->status == OrderStatus::Cancelled && is_null($record->fraudCustomer))
+                        )
+                        ->form([
+                            Forms\Components\Textarea::make('message')
+                                ->required()
+                        ])
+                        ->action(
+                            function (Order $record, array $data) {
+
+                                $record->reseller->fraudCustomers()->attach($record->customer->id, [
+                                    'message' => $data['message'],
+                                    'order_id' => $record->id
+                                ]);
+
+                                Notification::make()
+                                    ->success()
+                                    ->title('done.')
+                                    ->send();
+                            }
+                        ),
                     Tables\Actions\Action::make('track')
                         ->icon('heroicon-o-eye')
                         ->color('primary')

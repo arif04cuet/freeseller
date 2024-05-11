@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use App\Enum\Courier;
+use App\Enum\OrderStatus;
+use DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Customer extends Model
 {
@@ -41,7 +44,49 @@ class Customer extends Model
             get: fn ($value) => $this->formateAddress($value)
         );
     }
+
+    //functions
+    public function isFraud()
+    {
+
+        return DB::table('fraud_customers')->where('customer_id', $this->id)->exists();
+    }
+
+    // public function history()
+    // {
+
+    //     $this->orders()
+    //         ->whereIn('status', [
+    //             OrderStatus::Delivered->value,
+    //             OrderStatus::Cancelled->value,
+    //         ])
+    //         ->whereNotNull('delivered_at')
+    //         ->select([
+    //             'customer_id',
+    //             DB::raw("
+    //                 CASE
+    //                     WHEN (status == 'cacelled') THEN SUM(cod)
+    //                     WHEN (status == 'delivered' and collected_cod is not null) THEN SUM(collected_cod)
+    //                     ELSE 0
+    //                 END as cod
+    //         ")
+    //         ])
+    //         ->groupBy('customer_id')
+    //         ->get();
+    // }
     //relations
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+    public function fraudMarkedByResellers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'fraud_customers', 'customer_id', 'reseller_id')
+            ->using(FraudCustomer::class)
+            ->withPivot(['message', 'order_id'])
+            ->withTimestamps();
+    }
 
     public function district(): BelongsTo
     {

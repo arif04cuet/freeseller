@@ -1,10 +1,20 @@
 @php
     $customer = $this->customer;
+
 @endphp
 <div class="pl-2">
     @if ($customer)
         <div class="flex gap-2">
-            <span>{{ $customer->name . ' (' . $customer->mobile . '), ' . $customer->address }}</span>
+            <span
+                @class([
+                    'text-red-500' => $customer->isFraud(),
+                ])>{{ $customer->name . ' (' . $customer->mobile . '), ' . $customer->address }}
+            </span>
+            @if ($customer->isFraud())
+                <span><x-filament::icon-button wire:click="fraudList" size="xs" color="danger"
+                        icon="heroicon-c-face-smile" label="Fraud" /></span>
+            @endif
+
             <span><x-filament::icon-button wire:click="newCustomerModal" size="xs" color="primary"
                     icon="heroicon-m-pencil" label="Edit" /></span>
             <span><x-filament::icon-button wire:click="removeCustomer" size="xs" color="danger"
@@ -135,4 +145,28 @@
         </x-filament::modal>
     </div>
 
+    @if ($customer && $customer->isFraud())
+
+        <div x-on:close-modal.window="if($event.detail.id == 'fraud-list') $wire.open = false;">
+            <x-filament::modal id="fraud-list" slide-over>
+
+                <x-slot name="heading">
+                    {{ $customer->name }} ({{ $customer->mobile }})
+                </x-slot>
+
+                <x-slot name="description">
+                    @if ($open)
+
+                        <ul>
+                            @foreach ($this->fraudMessages as $item)
+                                <ol class="mb-2">{{ $item->pivot->message }}</ol>
+                            @endforeach
+                        </ul>
+                    @endif
+                </x-slot>
+
+
+            </x-filament::modal>
+        </div>
+    @endif
 </div>

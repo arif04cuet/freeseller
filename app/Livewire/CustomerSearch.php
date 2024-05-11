@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enum\AddressType;
 use App\Models\Address;
 use App\Models\Customer;
+use DB;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Livewire\Attributes\Computed;
@@ -76,6 +77,12 @@ class CustomerSearch extends Component
     }
 
     #[Computed()]
+    public function fraudMessages()
+    {
+        return $this->customer->loadMissing('fraudMarkedByResellers')->fraudMarkedByResellers;
+    }
+
+    #[Computed()]
     public function districts()
     {
         return Address::query()
@@ -95,6 +102,13 @@ class CustomerSearch extends Component
                 ->get();
 
         return [];
+    }
+
+    public function fraudList()
+    {
+        $this->open = true;
+
+        $this->dispatch('open-modal', id: 'fraud-list');
     }
 
     #[Computed()]

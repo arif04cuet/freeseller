@@ -75,6 +75,16 @@ class Order extends Model
     }
 
     //relations
+    /**
+     * Get the fraudCustomer associated with the Order
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function fraudCustomer(): HasOne
+    {
+        return $this->hasOne(FraudCustomer::class);
+    }
+
     public function cancelledBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
