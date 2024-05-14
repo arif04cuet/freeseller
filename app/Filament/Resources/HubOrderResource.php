@@ -490,7 +490,7 @@ class HubOrderResource extends Resource
                             Forms\Components\TextInput::make('collected_cod')
                                 ->numeric()
                                 ->visible(fn (Get $get) => $get('status') != OrderStatus::Cancelled->value)
-                                ->maxValue(fn (Get $get, Order $record) => $record->cod)
+                                ->maxValue(fn (Get $get, Order $record) => !auth()->user()->isSuperAdmin() ? $record->cod : 10000)
                                 ->required(fn (Get $get) => $get('status') != OrderStatus::Cancelled->value)
                                 ->rules([
                                     function (Order $record, Get $get) {
