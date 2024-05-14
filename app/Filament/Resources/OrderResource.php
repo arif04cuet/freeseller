@@ -584,7 +584,7 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('customer.mobile')
                     ->searchable()
                     ->formatStateUsing(
-                        fn (Order $record, $state) => '<a href="tel:' . $state . '"><u>' . $record->customer->name . '(' . $record->fraudCustomer?->id . ')' . '<br/>' . $state . '</u></a>'
+                        fn (Order $record, $state) => '<a href="tel:' . $state . '"><u>' . $record->customer->name . '<br/>' . $state . '</u></a>'
                     )
                     ->html()
                     ->label('Customer'),
