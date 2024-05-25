@@ -46,12 +46,22 @@ class Order extends Model
     ];
 
     //scopes
+    public function scopeDelivered(Builder $builder): void
+    {
+        $builder->where('status', OrderStatus::Delivered->value);
+    }
+    public function scopePartialDelivered(Builder $builder): void
+    {
+        $builder->where('status', OrderStatus::Partial_Delivered->value);
+    }
+    public function scopeCancelled(Builder $builder): void
+    {
+        $builder->where('status', OrderStatus::Cancelled->value)
+            ->whereNotNull('delivered_at');
+    }
+
     public function scopePending(Builder $builder): void
     {
-        // $pending = [
-        //     OrderStatus::Delivered->value,
-        //     OrderStatus::Cancelled->value,
-        // ];
         $builder->where('status', OrderStatus::HandOveredToCourier->value);
     }
 

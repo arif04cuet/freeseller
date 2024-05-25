@@ -162,8 +162,8 @@ class ResellersResource extends Resource
             ->actions([
                 Impersonate::make()
                     ->redirectTo(route('filament.app.pages.dashboard')),
-                Tables\Actions\ViewAction::make(),
-            ])
+                //                Tables\Actions\ViewAction::make(),
+            ], position: Tables\Enums\ActionsPosition::BeforeColumns)
             ->bulkActions([]);
     }
 

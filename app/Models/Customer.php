@@ -103,7 +103,18 @@ class Customer extends Model
         return $this->belongsToMany(User::class, 'customer_reseller', 'customer_id', 'reseller_id')
             ->withTimestamps();
     }
-
+    //functions
+    public function orderHistory(): Order
+    {
+        return  $this
+            ->orders()
+            ->select(
+                DB::raw('COUNT(*) as total_orders'),
+                DB::raw('SUM(CASE WHEN status = "' . OrderStatus::Delivered->value . '" THEN 1 ELSE 0 END) as delivered_count'),
+                DB::raw('SUM(CASE WHEN status = "' . OrderStatus::Cancelled->value . '" THEN 1 ELSE 0 END) as cancelled_count')
+            )
+            ->first();
+    }
     public function formateAddress($address): string
     {
         if ($this->courier == Courier::Pathao) {

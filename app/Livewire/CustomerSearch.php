@@ -133,7 +133,7 @@ class CustomerSearch extends Component
         $mobile = $this->mobile;
 
         $customers = $mobile ? Customer::query()
-            ->mine()
+            //->mine()
             ->select(['id', 'name', 'mobile'])
             ->where('mobile', 'like', "{$mobile}%")
             ->take(5)

@@ -10,6 +10,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class CatalogOverview extends BaseWidget
 {
+    protected static bool $isLazy = false;
     protected static ?string $pollingInterval = null;
     protected static string $view = 'filament.widgets.explore-products-stats-overview-widget';
 

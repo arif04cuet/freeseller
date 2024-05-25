@@ -26,7 +26,7 @@ class Catalog extends Component
     #[Url()]
     public $sort = 'new';
 
-    public $perPage = 8;
+    public $perPage = 12;
 
 
     #[Computed]
@@ -66,7 +66,7 @@ class Catalog extends Component
 
     public function loadMore()
     {
-        $this->perPage += 8;
+        $this->perPage += 12;
     }
 
     public function render()

@@ -5,11 +5,16 @@
 <div class="pl-2">
     @if ($customer)
         <div class="flex gap-2">
-            <span
-                @class([
-                    'text-red-500' => $customer->isFraud(),
-                ])>{{ $customer->name . ' (' . $customer->mobile . '), ' . $customer->address }}
-            </span>
+            <div @class([
+                'text-red-500' => $customer->isFraud(),
+            ])>
+                <div>{{ $customer->name . ' (' . $customer->mobile . '), ' . $customer->address }}</div>
+                <div class="flex justify-between">
+                    <div class="text-green-400">D: {{ (int) $customer->orderHistory()->delivered_count }}</div>
+                    <div class="text-red-500">C: {{ (int) $customer->orderHistory()->cancelled_count }}</div>
+
+                </div>
+            </div>
             @if ($customer->isFraud())
                 <span><x-filament::icon-button wire:click="fraudList" size="xs" color="danger"
                         icon="heroicon-c-face-smile" label="Fraud" /></span>
