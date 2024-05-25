@@ -49,7 +49,10 @@ class PaymentChannelResource extends Resource
                                 $set('mobile_no', $mobile);
                             })
                     )
-                    ->visible(fn (\Filament\Forms\Get $get) => $get('type') == EnumPaymentChannel::bKash->value),
+                    ->visible(fn (\Filament\Forms\Get $get) => in_array($get('type'), [
+                        EnumPaymentChannel::bKash->value,
+                        EnumPaymentChannel::Nagad->value,
+                    ])),
                 Forms\Components\Grid::make('bank')
                     ->visible(fn (\Filament\Forms\Get $get) => $get('type') == EnumPaymentChannel::Bank->value)
                     ->columns(2)

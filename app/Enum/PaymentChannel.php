@@ -11,4 +11,5 @@ enum PaymentChannel: string
     case Bank = 'bank';
 
     case bKash = 'bkash';
+    case Nagad = 'nagad';
 }
