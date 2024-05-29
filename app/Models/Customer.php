@@ -111,7 +111,7 @@ class Customer extends Model
             ->select(
                 DB::raw('COUNT(*) as total_orders'),
                 DB::raw('SUM(CASE WHEN status = "' . OrderStatus::Delivered->value . '" THEN 1 ELSE 0 END) as delivered_count'),
-                DB::raw('SUM(CASE WHEN status = "' . OrderStatus::Cancelled->value . '" THEN 1 ELSE 0 END) as cancelled_count')
+                DB::raw('SUM(CASE WHEN (status = "' . OrderStatus::Cancelled->value . '" and delivered_at is not null) THEN 1 ELSE 0 END) as cancelled_count')
             )
             ->first();
     }

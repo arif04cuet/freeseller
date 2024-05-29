@@ -761,11 +761,11 @@ class OrderResource extends Resource
                         ->url(fn (Order $record) => $record->tracking_url)
                         ->visible(fn (Order $record) => $record->tracking_code)
                         ->openUrlInNewTab(),
-                    Tables\Actions\EditAction::make()
-                        ->visible(fn (Model $record) => in_array($record->status, [
-                            OrderStatus::WaitingForWholesalerApproval,
-                            OrderStatus::WaitingForHubCollection
-                        ])),
+                    // Tables\Actions\EditAction::make()
+                    //     ->visible(fn (Model $record) => in_array($record->status, [
+                    //         OrderStatus::WaitingForWholesalerApproval,
+                    //         OrderStatus::WaitingForHubCollection
+                    //     ])),
 
                     Tables\Actions\Action::make('show_customer')
                         ->label('Customer')
