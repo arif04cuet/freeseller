@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enum\OrderItemStatus;
 use App\Events\OrderItemApproved;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +28,12 @@ class OrderItem extends Model
         'approved_at' => 'datetime'
     ];
 
+    //scopes
+
+    public function scopeActive(Builder $builder): void
+    {
+        $builder->where('status', '!=', OrderItemStatus::Cancelled->value);
+    }
     //relations
 
     public function order(): BelongsTo

@@ -41,8 +41,7 @@
                         {{ $order->id }}
                     </th>
                     <td class="px-6 py-4">
-                        {{-- {{ $order->customer }} --}}
-                        {{-- {{ '<a href="tel:' . $order->customer->mobile . '"><u>' . $order->customer->name . '<br/>' . $order->customer->mobile . '</u></a>' }} --}}
+                        <x-customer :customer="$order->customer" />
                     </td>
                     <td class="px-6 py-4">
                         {{ $order->status->getLabel() }}
@@ -51,7 +50,10 @@
                         {{ $order->items_count }}
                     </td>
                     <td class="px-6 py-4">
-                        ৳ {{ $order->total_payable }}
+                        <div title="Product price">৳ {{ (int) $order->items_sum_wholesaler_price }}</div>
+                        <div title="Courier charge">৳ {{ $order->courier_charge }} </div>
+                        <div title="Branding charge">৳ {{ $order->packaging_charge }} </div>
+                        <div title="Total Payable">৳ {{ $order->total_payable }}</div>
                     </td>
                     <td class="px-6 py-4">
                         ৳{{ $order->cod }} <br>

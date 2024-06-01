@@ -36,15 +36,9 @@ class MyOrders extends Component
     public function orders()
     {
         return Order::query()
-            ->select(
-                [
-                    'id', 'status', 'total_payable', 'cod', 'collected_cod',
-                    'profit', 'consignment_id', 'created_at', 'customer_id',
-                    'delivered_at'
-                ]
-            )
-            //->with(['customer'])
-            ->withCount('items')
+            ->with(['customer'])
+            ->withCount(['items' => fn ($q) => $q->active()])
+            ->withSum(['items' => fn ($query) => $query->active()], 'wholesaler_price')
             ->mine()
             ->latest()
             ->paginate(10);
