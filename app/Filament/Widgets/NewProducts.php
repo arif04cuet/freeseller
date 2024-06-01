@@ -19,6 +19,11 @@ class NewProducts extends BaseWidget
     protected int | string | array $columnSpan = 2;
     protected static bool $isLazy = false;
 
+    public static function canView(): bool
+    {
+        return false;
+    }
+
     public function table(Table $table): Table
     {
         $date = Carbon::today()->subDays(7);
