@@ -17,6 +17,7 @@ use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Unique;
@@ -48,7 +49,14 @@ class SkusRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with('myResellerLists'))
+            ->modifyQueryUsing(
+                fn (Builder $query) => $query
+                    ->with('myResellerLists')
+                    ->orderBy('deleted_at')
+                    ->withoutGlobalScopes([
+                        SoftDeletingScope::class,
+                    ])
+            )
             ->columns([
                 SpatieMediaLibraryImageColumn::make('image')
                     ->collection('sharees')
@@ -127,9 +135,12 @@ class SkusRelationManager extends RelationManager
                     }),
             ])
             ->actions([
-
+                Tables\Actions\RestoreAction::make(),
                 Tables\Actions\EditAction::make()
-                    ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner())
+                    ->visible(
+                        fn (RelationManager $livewire, Model $record) => $livewire->ownerRecord->isOwner() && !$record->trashed()
+
+                    )
                     ->mutateRecordDataUsing(function (Model $record, array $data): array {
 
                         $data['1'] = $record->getColorAttributeValue()->id;
@@ -157,8 +168,10 @@ class SkusRelationManager extends RelationManager
 
                         return $record;
                     }),
-                // Tables\Actions\DeleteAction::make()
-                //     ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner()),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Archive')
+                    ->modalHeading('Archive it?')
+                    ->visible(fn (RelationManager $livewire) => $livewire->ownerRecord->isOwner()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkAction::make('add_to_lilst')

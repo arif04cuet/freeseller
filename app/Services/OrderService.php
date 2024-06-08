@@ -11,7 +11,6 @@ use Filament\Resources\Resource;
 final class OrderService
 {
     public static $resource;
-    public $orders = null;
 
     public static function resource($resource): static
     {
@@ -22,20 +21,16 @@ final class OrderService
 
     public static function tabs(SystemRole $role = null): array
     {
-        $orders = self::$resource::getEloquentQuery()
-            ->select(['id', 'status', 'delivered_at'])
-            ->setEagerLoads([])
-            ->get();
 
         return [
             'All' => Tab::make()
-                ->badge($orders->count())
+                ->badge(self::$resource::getEloquentQuery()->count())
                 ->query(
                     fn ($query) => $query
                 ),
             OrderStatus::WaitingForWholesalerApproval->name => Tab::make()
                 ->badge(
-                    $orders
+                    self::$resource::getEloquentQuery()
                         ->whereIn('status', [
                             OrderStatus::WaitingForWholesalerApproval,
                             OrderStatus::Processing,
@@ -50,7 +45,7 @@ final class OrderService
 
             OrderStatus::WaitingForHubCollection->name => Tab::make()
                 ->badge(
-                    $orders
+                    self::$resource::getEloquentQuery()
                         ->where('status', OrderStatus::WaitingForHubCollection)
                         ->count()
                 )
@@ -59,7 +54,7 @@ final class OrderService
                 ),
             OrderStatus::ProcessingForHandOverToCourier->getLabel() => Tab::make()
                 ->badge(
-                    $orders
+                    self::$resource::getEloquentQuery()
                         ->where('status', OrderStatus::ProcessingForHandOverToCourier)
                         ->count()
                 )
@@ -68,7 +63,7 @@ final class OrderService
                 ),
             OrderStatus::HandOveredToCourier->name => Tab::make()
                 ->badge(
-                    $orders
+                    self::$resource::getEloquentQuery()
                         ->where('status', OrderStatus::HandOveredToCourier)
                         ->count()
                 )
@@ -78,7 +73,7 @@ final class OrderService
 
             OrderStatus::Cancelled->name => Tab::make()
                 ->badge(
-                    $orders
+                    self::$resource::getEloquentQuery()
                         ->where('status', OrderStatus::Cancelled)
                         ->whereNotNull('delivered_at')
                         ->count()
@@ -90,7 +85,7 @@ final class OrderService
                 ),
             OrderStatus::Partial_Delivered->name => Tab::make()
                 ->badge(
-                    $orders
+                    self::$resource::getEloquentQuery()
                         ->where('status', OrderStatus::Partial_Delivered)
                         ->count()
                 )
@@ -100,7 +95,7 @@ final class OrderService
                 ),
             OrderStatus::Delivered->name => Tab::make()
                 ->badge(
-                    $orders
+                    self::$resource::getEloquentQuery()
                         ->where('status', OrderStatus::Delivered)
                         ->count()
                 )

@@ -28,8 +28,8 @@
     @else
         <div class="flex items-center">
             <x-filament::loading-indicator class="h-5 w-5" wire:loading wire:loading.target="mobile" />
-            <input type="text" placeholder="Search by Mobile" class="border w-44 px-2" wire:model.live="mobile"
-                required>
+            <input type="text" placeholder="Search by Mobile" class="border w-44 px-2"
+                wire:model.live.debounce.500ms="mobile" required>
         </div>
     @endif
 

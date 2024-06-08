@@ -41,6 +41,7 @@ class Catalog extends Component
     {
         return Product::query()
             ->select(['id', 'name', 'category_id', 'price', 'offer_price'])
+            ->has('skus')
             ->search($this->search)
             ->filter($this->filters)
             ->sort($this->sort)

@@ -87,6 +87,7 @@ class SkusResource extends Resource
                     //QuantityUpdate::make('update_quantity')
                     Tables\Columns\TextInputColumn::make('quantity')
                         ->type('number')
+                        ->disabled(fn (Model $record) => $record->trashed())
                         ->rules(['required', 'numeric', 'min:0'])
                         ->updateStateUsing(function (Model $record, $state) {
 
@@ -129,9 +130,20 @@ class SkusResource extends Resource
                     ->preload()
                     ->searchable(),
 
+                Tables\Filters\TrashedFilter::make()
+                    ->label(__('Archive Filter'))
+                    ->placeholder(__('Only Active products'))
+                    ->trueLabel(__('Active and archive products'))
+                    ->falseLabel(__('Only Archive products'))
+
             ], layout: FiltersLayout::AboveContent)
             ->actions([
-                //Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Archive')
+                    ->modalHeading('Archive this product?')
+                    ->iconButton(),
+                Tables\Actions\RestoreAction::make()
+                    ->modalHeading('Restore this product?'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
