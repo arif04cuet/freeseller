@@ -7,9 +7,9 @@ use Filament\Notifications\Livewire\DatabaseNotifications;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentView;
-use Illuminate\Support\HtmlString;
 use Illuminate\Support\ServiceProvider;
 use Filament\Tables\Table;
+use Illuminate\View\View;
 
 class FilamentServiceProvider extends ServiceProvider
 {
@@ -37,14 +37,10 @@ class FilamentServiceProvider extends ServiceProvider
             ]);
 
             FilamentView::registerRenderHook(
-                'panels::head.start',
-                fn (): string => new HtmlString('<link rel="manifest" href="/manifest.json" />')
+                'panels::auth.login.form.before',
+                fn (): View => view('app.login-instruction'),
             );
 
-            // FilamentView::registerRenderHook(
-            //     'panels::head.start',
-            //     fn (): View => view('app.pacejs'),
-            // );
 
             // Filament::pushMeta([
             //     new HtmlString('<link rel="manifest" href="/manifest.json" />'),

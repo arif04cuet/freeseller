@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enum\OrderStatus;
 use App\Models\Order;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
@@ -22,6 +23,7 @@ class MyOrders extends Component
 
     public $isModalOpen = false;
     public $transactionOrder = null;
+    public $search = null;
 
 
     public function transactions($orderId)
@@ -35,10 +37,32 @@ class MyOrders extends Component
     #[Computed()]
     public function orders()
     {
+        $search = $this->search;
         return Order::query()
             ->with(['customer'])
-            ->withCount(['items' => fn ($q) => $q->active()])
-            ->withSum(['items' => fn ($query) => $query->active()], 'wholesaler_price')
+            ->when(
+                $search,
+                fn ($q) => $q->where(
+                    fn ($q) => $q->where('id', $search)->orWhereHas(
+                        'customer',
+                        fn ($q) => $q->where('mobile', $search)
+                    )
+                )
+            )
+            ->whereIn('status', [
+                OrderStatus::WaitingForWholesalerApproval->value,
+                OrderStatus::Processing->value,
+                OrderStatus::WaitingForHubCollection->value,
+                OrderStatus::HandOveredToCourier->value,
+            ])
+            ->withSum(
+                ['items' => fn ($q) => $q->active()],
+                'quantity'
+            )
+            ->withSum(
+                ['items' => fn ($query) => $query->active()],
+                'wholesaler_price'
+            )
             ->mine()
             ->latest()
             ->paginate(10);
@@ -50,7 +74,7 @@ class MyOrders extends Component
     }
     public function render()
     {
-
+        logger($this->search);
         return view('livewire.my-orders');
     }
 }

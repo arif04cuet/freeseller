@@ -1,5 +1,12 @@
 <div class="relative overflow-x-auto ">
 
+
+    <div class="flex items-center px-2 md:px-0 md:w-1/2">
+        <x-filament::loading-indicator class="h-5 w-5" wire:loading wire:loading.target="mobile" />
+        <input type="search" placeholder="Search by Order# / Mobile" class=" w-full border  p-2 mb-2"
+            wire:model.live.debounce.500ms="search">
+    </div>
+
     <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
@@ -47,7 +54,7 @@
                         {{ $order->status->getLabel() }}
                     </td>
                     <td class="px-6 py-4">
-                        {{ $order->items_count }}
+                        {{ $order->items_sum_quantity }}
                     </td>
                     <td class="px-6 py-4">
                         <div title="Product price">৳ {{ (int) $order->items_sum_wholesaler_price }}</div>

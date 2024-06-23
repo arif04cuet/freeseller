@@ -2,8 +2,10 @@
 
 namespace App\Livewire;
 
+use App\Enum\SystemRole;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -22,6 +24,7 @@ class Catalog extends Component
     public $filters = [
         'cat' => '',
         'list' => '',
+        'wholesaler' => '',
     ];
     #[Url()]
     public $sort = 'new';
@@ -49,6 +52,26 @@ class Catalog extends Component
             ->withSum('orderItems', 'quantity')
             ->with(['media', 'category', 'skus.firstMedia'])
             ->paginate($this->perPage);
+    }
+    #[Computed()]
+    public function canSeeWholesalers()
+    {
+        return auth()->user()->loadMissing('roles')
+            ->roles->filter(fn ($role) => in_array($role->name, [
+                SystemRole::HubManager->value,
+                SystemRole::HubMember->value,
+            ]))->count();
+    }
+    #[Computed(persist: true)]
+    public function wholesalers()
+    {
+        return User::query()
+            ->role(SystemRole::Wholesaler->value)
+            //->withCount('products')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->toArray();
     }
     #[Computed(persist: true)]
     public function categories()

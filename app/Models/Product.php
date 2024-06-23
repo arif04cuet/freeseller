@@ -49,6 +49,7 @@ class Product extends Model implements HasMedia
     public function scopeFilter($query, array $filters)
     {
         return $query
+            ->when($filters['wholesaler'], fn ($query, $wholesaler) => $query->where('owner_id', $wholesaler))
             ->when($filters['cat'], fn ($query, $cat) => $query->where('category_id', $cat));
     }
     public function scopeSort($query, $sort)
