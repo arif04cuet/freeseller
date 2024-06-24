@@ -1,8 +1,17 @@
-<div class="py-8" x-data="{ selectedImg: @entangle('selectedImg') }">
+@php
+    $m = 0;
+    $s = 0;
+    $product = $this->product;
+@endphp
 
-
+<div class="py-4" x-data="{ selectedImg: @entangle('selectedImg') }">
 
     <div class="mx-auto px-4 sm:px-6 lg:px-2">
+        <div class="mb-2">
+
+            @include('app.breadcrums', ['name' => $product->name])
+        </div>
+
         <div class="flex flex-col md:flex-row -mx-4">
             <div class="md:flex-1 px-4 mb-4">
 
@@ -17,11 +26,7 @@
 
                     <div wire:ignore class="grid grid-cols-5 md:grid-cols-7 gap-2" wire:ignore>
 
-                        @php
-                            $m = 0;
-                            $s = 0;
-                            $product = $this->product;
-                        @endphp
+
                         @foreach ($product->skus as $sku)
                             @foreach ($sku->getMedia('sharees') as $media)
                                 @php
@@ -45,9 +50,33 @@
                 </div>
             </div>
             <div class="md:flex-1 px-4">
-                <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">
-                    {{ $product->name }}
+                <h2 x-data="{
+                    copied: false,
+                    animation: {
+                        ['x-transition:enter']: 'transition duration-200 ease-in',
+                        ['x-transition:enter-start']: 'opacity-0',
+                        ['x-transition:enter-end']: 'opacity-100',
+                        ['x-transition:leave']: 'transition duration-0',
+                        ['x-transition:leave-start']: 'opacity-100',
+                        ['x-transition:leave-end']: 'opacity-0',
+                    }
+                }"
+                    class="flex items-center gap-2 text-2xl font-bold text-gray-800 dark:text-white mb-2">
+                    <div>{{ $product->name }}</div>
+                    <x-filament::icon-button x-show="!copied"
+                        @click="navigator.clipboard.writeText(window.location.href),copied=true,setTimeout(() => copied = false, 2000)"
+                        icon="heroicon-o-link" label="Copy Link" />
+                    <x-filament::icon-button x-show="copied"
+                        @click="navigator.clipboard.writeText(window.location.href)" icon="heroicon-m-check-circle"
+                        color="success" label="Copy Link" x-bind="animation" />
                 </h2>
+
+                <div class="flex gap-4 mb-2">
+                    <div>{{ $product->category->name }}</div>
+                    @if ($this->canSeeWholesalers)
+                        <div>{{ $product->owner->business->name }} ({{ $product->owner->id_number }})</div>
+                    @endif
+                </div>
                 <div class="flex items-center justify-between">
 
                     @if (auth()->check() && auth()->user()->canPlaceOrder() && $this->lists)
@@ -62,11 +91,13 @@
                             </select>
                         </div>
                     @endif
-                    <x-share-buttons :url="$currentUrl" />
+                    {{-- <x-share-buttons :url="$currentUrl" /> --}}
                 </div>
-                <p class="text-gray-600 dark:text-gray-300 text-sm mb-4">
+                <div class="text-gray-600 dark:text-gray-300 text-sm mb-4" x-data
+                    @click="navigator.clipboard.writeText($el.textContent)" title="Click to copy"
+                    class="cursor-pointer">
                     {!! $product->description !!}
-                </p>
+                </div>
                 <div class="flex mb-4 mt-4 gap-8">
                     <div class="mr-4 flex gap-4">
                         <span class="font-bold text-gray-700 dark:text-gray-300">দাম:</span>
@@ -115,7 +146,14 @@
                 @else
                     <span class="text-yellow-600">মূল্য দেখতে লগইন করুন</span>
                 @endauth
+
+
             </div>
         </div>
+
+
+        @livewire('similar-products', ['product' => $product], key($product->id))
     </div>
+
+
 </div>

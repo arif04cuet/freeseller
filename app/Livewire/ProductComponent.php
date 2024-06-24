@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enum\SystemRole;
 use App\Models\Product;
 use App\Models\ResellerList;
 use App\Models\Sku;
@@ -67,7 +68,11 @@ class ProductComponent extends Component
     #[Computed(persist: true)]
     public function product()
     {
-        return Product::with(['skus.media'])->find($this->productId);
+        return Product::with([
+            'category:id,name',
+            'owner.business',
+            'skus.media'
+        ])->find($this->productId);
     }
 
     public function selectedSku()
@@ -77,6 +82,16 @@ class ProductComponent extends Component
             ->filter(fn ($sku) => $sku->id == $this->sku_id)
             ->first();
     }
+    #[Computed()]
+    public function canSeeWholesalers()
+    {
+        return auth()->user()->loadMissing('roles')
+            ->roles->filter(fn ($role) => in_array($role->name, [
+                SystemRole::HubManager->value,
+                SystemRole::HubMember->value,
+            ]))->count();
+    }
+
 
     public function loadImg($sku_id, $mediaId)
     {

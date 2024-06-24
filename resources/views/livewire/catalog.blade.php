@@ -56,8 +56,5 @@
             <x-filament::loading-indicator class="h-8 w-8 mx-auto" />
         </div>
     @endif
-    {{-- <div class="my-2">
 
-        {{ $products->links() }}
-    </div> --}}
 </div>
