@@ -85,7 +85,11 @@ class ProductComponent extends Component
     #[Computed()]
     public function canSeeWholesalers()
     {
-        return auth()->user()->loadMissing('roles')
+        $user = auth()->user();
+        if (!$user)
+            return false;
+
+        return $user->loadMissing('roles')
             ->roles->filter(fn ($role) => in_array($role->name, [
                 SystemRole::HubManager->value,
                 SystemRole::HubMember->value,

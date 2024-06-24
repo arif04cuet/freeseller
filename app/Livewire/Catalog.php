@@ -56,6 +56,10 @@ class Catalog extends Component
     #[Computed()]
     public function canSeeWholesalers()
     {
+        $user = auth()->user();
+        if (!$user)
+            return false;
+
         return auth()->user()->loadMissing('roles')
             ->roles->filter(fn ($role) => in_array($role->name, [
                 SystemRole::HubManager->value,
