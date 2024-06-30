@@ -23,7 +23,7 @@
                     Items
                 </th>
                 <th scope="col" class="px-6 py-3">
-                    Payable
+                    P.p/C.c/B.c/T.p
                 </th>
                 <th scope="col" class="px-6 py-3">
                     Cod/C.Cod/Profit

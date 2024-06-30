@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enum\OrderStatus;
 use App\Models\Order;
+use App\Models\OrderItem;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -49,6 +50,12 @@ class MyOrders extends Component
                     )
                 )
             )
+            ->addSelect([
+                'items_sum_wholesaler_price' => OrderItem::query()
+                    ->whereColumn('order_id', 'orders.id')
+                    ->active()
+                    ->selectRaw('SUM(wholesaler_price * quantity) as total_wholesale')
+            ])
             ->whereIn('status', [
                 OrderStatus::WaitingForWholesalerApproval->value,
                 OrderStatus::Processing->value,
@@ -59,10 +66,7 @@ class MyOrders extends Component
                 ['items' => fn ($q) => $q->active()],
                 'quantity'
             )
-            ->withSum(
-                ['items' => fn ($query) => $query->active()],
-                'wholesaler_price'
-            )
+
             ->mine()
             ->latest()
             ->paginate(10);
