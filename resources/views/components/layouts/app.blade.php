@@ -131,6 +131,12 @@
             initFlowbite();
         })
     </script>
+    <script>
+        localStorage.theme = 'light';
+        tailwind.config = {
+            darkMode: "false"
+        };
+    </script>
 </body>
 
 </html>
