@@ -22,6 +22,7 @@ class FundWithdrawRequest extends Model implements HasMedia
 
     protected $casts = [
         'status' => WalletRechargeRequestStatus::class,
+        'close_account' => 'boolean'
     ];
 
     //relations
@@ -109,6 +110,11 @@ class FundWithdrawRequest extends Model implements HasMedia
                 title: 'Your fund withdrawal request has been approved with id = ' . $this->id,
                 url: route('filament.app.resources.fund-withdraw-requests.index', ['tableSearch' => $this->id]),
             );
+
+            //close account deactivate reseller
+            if ($this->close_account) {
+                $user->markAsInActive();
+            }
         });
     }
 }

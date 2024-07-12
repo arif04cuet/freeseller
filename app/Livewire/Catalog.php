@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enum\SystemRole;
+use App\Models\AttributeValue;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
@@ -25,6 +26,7 @@ class Catalog extends Component
         'cat' => '',
         'list' => '',
         'wholesaler' => '',
+        'color' => ''
     ];
     #[Url()]
     public $sort = 'new';
@@ -87,6 +89,18 @@ class Catalog extends Component
             ->pluck('name', 'id')
             ->toArray();
     }
+
+    #[Computed(persist: true)]
+    public function colors()
+    {
+        return AttributeValue::query()
+            ->whereHas('attribute', function ($query) {
+                return $query->whereName('Color');
+            })
+            ->pluck('label', 'id')
+            ->toArray();
+    }
+
     public function resetAll()
     {
         $this->reset();

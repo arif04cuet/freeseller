@@ -8,6 +8,7 @@ use App\Enum\AddressType;
 use App\Enum\BusinessType;
 use App\Enum\SystemRole;
 use App\Notifications\AccountActivationNotification;
+use App\Notifications\AccountDeactivationNotification;
 use App\Notifications\EmailNotification;
 use App\Notifications\PushMessage;
 use Bavix\Wallet\Interfaces\Wallet;
@@ -394,6 +395,7 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
     {
         $this->is_active = 0;
         $this->save();
+        $this->notify(new AccountDeactivationNotification());
     }
 
     public function toggleUser($state)

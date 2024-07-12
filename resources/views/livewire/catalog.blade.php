@@ -18,8 +18,16 @@
                 @endif
                 <select class="w-1/3  md:w-auto border text-sm rounded-lg block p-2.5 bg-white"
                     wire:model.live="filters.cat">
-                    <option value="">Select Category</option>
+                    <option value="">Category</option>
                     @foreach ($this->categories as $id => $name)
+                        <option value="{{ $id }}">{{ $name }}</option>
+                    @endforeach
+                </select>
+
+                <select class="w-1/3  md:w-auto border text-sm rounded-lg block p-2.5 bg-white"
+                    wire:model.live="filters.color">
+                    <option value="">Color</option>
+                    @foreach ($this->colors as $id => $name)
                         <option value="{{ $id }}">{{ $name }}</option>
                     @endforeach
                 </select>

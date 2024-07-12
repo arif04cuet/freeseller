@@ -39,10 +39,16 @@ class FundWithdrawRequestResource extends Resource
     public static function form(Form $form): Form
     {
         $minimumBalance = self::minimumBalance();
+        $active_balance = auth()->user()->active_balance;
 
         return $form
             ->schema([
-
+                Forms\Components\Checkbox::make('close_account')
+                    ->label('Close My Account')
+                    ->columnSpanFull()
+                    ->live()
+                    ->afterStateUpdated(fn (Set $set, $state) => $state ? $set('amount', $active_balance) : $set('amount', 0))
+                    ->inline(),
                 Forms\Components\Select::make('type')
                     ->label('Channel')
                     ->options(PaymentChannel::array())
@@ -62,22 +68,35 @@ class FundWithdrawRequestResource extends Resource
                 Forms\Components\TextInput::make('amount')
                     ->numeric()
                     ->helperText(
-                        function (?Model $record, $operation) use ($minimumBalance) {
+                        function (?Model $record, $operation, $get) use ($minimumBalance, $active_balance) {
                             $limit = (int) ($operation == 'edit' ?
                                 (auth()->user()->active_balance + $record->lockAmount->amount - $minimumBalance) : (auth()->user()->active_balance - $minimumBalance)
                             );
                             $limit = $limit > 0 ? $limit : 0;
 
+                            if ($get('close_account'))
+                                $limit = $active_balance;
+
                             return new HtmlString(
-                                'Available Balance: <b>' . auth()->user()->active_balance . '</b> | ' .
+                                'Available Balance: <b>' . $active_balance . '</b> | ' .
                                     'Max withdrwable amount: <b>' . $limit . '</b>'
                             );
                         }
                     )
                     ->maxValue(
-                        fn (?Model $record, $operation) => (int) ($operation == 'edit' ?
-                            (auth()->user()->active_balance + $record->lockAmount->amount - $minimumBalance) : (auth()->user()->active_balance - $minimumBalance)
-                        )
+                        function (?Model $record, $operation, $get) use ($minimumBalance, $active_balance) {
+
+                            $limit =  (int) ($operation == 'edit' ?
+                                (auth()->user()->active_balance + $record->lockAmount->amount - $minimumBalance) : (auth()->user()->active_balance - $minimumBalance)
+                            );
+
+                            $limit = $limit > 0 ? $limit : 0;
+
+                            if ($get('close_account'))
+                                $limit = $active_balance;
+
+                            return $limit;
+                        }
                     )
                     ->minValue(100)
                     ->required(),
@@ -108,6 +127,7 @@ class FundWithdrawRequestResource extends Resource
     {
         return $table
             ->columns([
+
                 Tables\Columns\TextColumn::make('id')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('user.business.name')
@@ -134,7 +154,11 @@ class FundWithdrawRequestResource extends Resource
                     ->colors([
                         'warning' => WalletRechargeRequestStatus::Pending->value,
                         'success' => WalletRechargeRequestStatus::Approved->value,
-                    ]),
+                    ])
+                    ->description(
+                        fn ($record): string => $record->close_account ? 'Account Close Request' : '',
+                        position: 'below'
+                    ),
                 // SpatieMediaLibraryImageColumn::make('image')
                 //     ->label('Transfer recept')
                 //     ->action()
@@ -192,8 +216,8 @@ class FundWithdrawRequestResource extends Resource
                         ),
                     Tables\Actions\EditAction::make()
                         ->visible(
-                            fn (Model $record) => $record->status == WalletRechargeRequestStatus::Pending &&
-                                $record->user->is(auth()->user())
+                            fn (Model $record) => ($record->status == WalletRechargeRequestStatus::Pending &&
+                                $record->user->is(auth()->user())) && !$record->close_account
                         ),
                     Tables\Actions\DeleteAction::make()
                         ->visible(
@@ -261,7 +285,7 @@ class FundWithdrawRequestResource extends Resource
                         ])
                         ->action(fn (Model $record) => $record->markAsApproved()),
                 ])
-            ])
+            ], position: Tables\Enums\ActionsPosition::BeforeColumns)
             ->bulkActions([
                 //Tables\Actions\DeleteBulkAction::make(),
             ]);
