@@ -8,6 +8,7 @@ use App\Filament\Resources\WalletRechargeRequestResource\Pages;
 use App\Filament\Resources\WalletRechargeRequestResource\Widgets\WhereToPayment;
 use App\Models\User;
 use App\Models\WalletRechargeRequest;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
@@ -15,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\Summarizers\Sum;
+use Filament\Tables\Filters\Indicator;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -98,9 +100,11 @@ class WalletRechargeRequestResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('bank')
                     ->label('Channel')
+                    ->multiple()
                     ->options(PaymentChannel::class),
 
                 Tables\Filters\SelectFilter::make('status')
+                    ->default(WalletRechargeRequestStatus::Pending->value)
                     ->options(WalletRechargeRequestStatus::class),
 
                 Tables\Filters\Filter::make('action_taken_at')
@@ -118,6 +122,21 @@ class WalletRechargeRequestResource extends Resource
                                 $data['to'],
                                 fn (Builder $query, $date): Builder => $query->whereDate('action_taken_at', '<=', $date),
                             );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if ($data['from'] ?? null) {
+                            $indicators[] = Indicator::make('From ' . Carbon::parse($data['from'])->toFormattedDateString())
+                                ->removeField('from');
+                        }
+
+                        if ($data['to'] ?? null) {
+                            $indicators[] = Indicator::make('To ' . Carbon::parse($data['to'])->toFormattedDateString())
+                                ->removeField('to');
+                        }
+
+                        return $indicators;
                     })
             ])
             ->actions([

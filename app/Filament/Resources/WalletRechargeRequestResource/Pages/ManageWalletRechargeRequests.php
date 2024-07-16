@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ManageWalletRechargeRequests extends ManageRecords
 {
-    use UseSimplePagination;
+    //use UseSimplePagination;
     use RecordCountTrait;
 
     protected static string $resource = WalletRechargeRequestResource::class;
