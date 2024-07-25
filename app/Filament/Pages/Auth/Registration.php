@@ -144,6 +144,7 @@ class Registration extends Register
                             ->label('Password')
                             ->required()
                             ->password()
+                            ->revealable()
                             ->dehydrateStateUsing(fn ($state) => Hash::make($state))
                             ->rules([
                                 'required',
@@ -153,6 +154,7 @@ class Registration extends Register
                             ->label('Confirm')
                             ->required()
                             ->password()
+                            ->revealable()
                             ->same('password'),
                         Forms\Components\TextInput::make('mobile')
                             ->label('Mobile')

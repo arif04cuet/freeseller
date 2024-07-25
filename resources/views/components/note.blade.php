@@ -1,3 +1,6 @@
+@php
+    $cn = $cn ?? '';
+@endphp
 <div class="pb-2">
     <div class="flex">
         <p>{{ $time }}</p>
@@ -7,14 +10,22 @@
         </span>
 
 
-        <div x-data="{ coppied: false }">
-            <button
-                @click.prevent="navigator.clipboard.writeText('{{ $note }}'),coppied = true, setTimeout(() => coppied = false, 1000)"
-                title="Copy note">
-                <x-filament::icon icon="heroicon-m-clipboard" class="h-5 w-5 text-gray-500 dark:text-gray-400" />
-            </button>
-            <span x-show="coppied" class="text-primary-400 text-sm">Coppied to Clipboard</span>
-        </div>
+        @if (!auth()->user()->isReseller() && $status == 'pending')
+            <div x-data="{
+                coppied: false,
+                copyAndRedirect() {
+                    this.coppied = false;
+                    window.open('https://steadfast.com.bd/user/edit-parcel/{{ $cn }}', '_blank');
+                }
+            }">
+                <button
+                    @click.prevent="navigator.clipboard.writeText('{{ $note }}'),coppied = true, setTimeout(() => copyAndRedirect(), 1000)"
+                    title="Copy note">
+                    <x-filament::icon icon="heroicon-m-clipboard" class="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                </button>
+                <span x-show="coppied" class="text-primary-400 text-sm">Coppied to Clipboard</span>
+            </div>
+        @endif
 
     </div>
 

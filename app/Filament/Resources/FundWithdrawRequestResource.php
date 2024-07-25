@@ -180,7 +180,7 @@ class FundWithdrawRequestResource extends Resource
                     ),
 
                 Tables\Filters\SelectFilter::make('status')
-                    ->default(WalletRechargeRequestStatus::Pending->value)
+                    ->default(fn () => auth()->user()->isSuperAdmin() ? WalletRechargeRequestStatus::Pending->value : null)
                     ->options(WalletRechargeRequestStatus::class),
                 Tables\Filters\Filter::make('approved_at')
                     ->form([

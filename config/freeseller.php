@@ -18,4 +18,5 @@ return [
     'default_courier' => Courier::SteadFast->value,
     'add_parcel_manually' => 0,
     'fund_transfer_fee' => 0,
+    'chirkot_sku_id' => 0
 ];

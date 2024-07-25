@@ -9,6 +9,6 @@
 
 @if ($record->notes)
     @foreach ($record->notes as $note)
-        <x-note :time="$record->created_at->format('d/m/Y H:i:s')" :status="$note['status'] ?? 'pending'" :note="$note['text']" />
+        <x-note :cn="$record->consignment_id" :time="$record->created_at->format('d/m/Y H:i:s')" :status="$note['status'] ?? 'pending'" :note="$note['text']" />
     @endforeach
 @endif

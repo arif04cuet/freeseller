@@ -12,6 +12,7 @@ use App\Livewire\MyCatalog;
 use App\Livewire\MyOrders;
 use App\Livewire\ProductComponent;
 use App\Livewire\Team;
+use App\Livewire\Wishlists;
 use App\Models\OrderClaim;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +35,7 @@ Route::get('/my-catalog', MyCatalog::class)->name('my.catalog');
 Route::get('/catalog', Catalog::class)->name('catalog');
 Route::get('/catalog/{product}', ProductComponent::class)->name('product');
 Route::get('/my/orders', MyOrders::class)->name('my.orders');
+Route::get('/my/wishlists', Wishlists::class)->name('my.wishlist');
 
 //sitemap
 Route::get('/sitemap', Sitemap::class)->name('sitemap');

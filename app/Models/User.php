@@ -169,11 +169,11 @@ class User extends Authenticatable implements HasName, MustVerifyEmail, Wallet, 
 
     //relations
 
-    /**
-     * The fraudCustomers that belong to the User
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class, 'reseller_id');
+    }
+
     public function fraudCustomers(): BelongsToMany
     {
         return $this->belongsToMany(Customer::class, 'fraud_customers', 'reseller_id', 'customer_id')

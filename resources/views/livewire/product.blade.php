@@ -69,6 +69,17 @@
                     <x-filament::icon-button x-show="copied"
                         @click="navigator.clipboard.writeText(window.location.href)" icon="heroicon-m-check-circle"
                         color="success" label="Copy Link" x-bind="animation" />
+
+                    @if (auth()->user()->isReseller())
+                        @if ($isWishListed)
+                            <x-filament::icon-button wire:click="removeFromWishList" icon="heroicon-m-x-mark"
+                                color="success" label="Remove from wishlist" x-bind="animation" />
+                        @else
+                            <x-filament::icon-button wire:click="addToWishList" icon="heroicon-m-check-circle"
+                                color="success" label="Add to wishlist" x-bind="animation" />
+                        @endif
+                    @endif
+
                 </h2>
 
                 <div class="flex gap-4 mb-2">

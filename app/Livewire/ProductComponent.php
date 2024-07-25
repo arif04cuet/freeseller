@@ -21,6 +21,7 @@ class ProductComponent extends Component
     public int $stock = 0;
 
     public $listId = null;
+    public bool $isWishListed = false;
 
     public ?string $selectedImg = null;
     public ?string $selectedThumb = null;
@@ -101,6 +102,9 @@ class ProductComponent extends Component
     {
         $this->sku_id = $sku_id;
         $sku = $this->selectedSku();
+
+        //check wishlist
+        $this->isWishListed = auth()->user()->wishlists()->where(['sku_id' => $sku->id])->exists();
         $this->listId = $sku->loadMissing('myResellerLists:id')->myResellerLists?->first()?->id;
         $this->stock = $sku->quantity;
         $media = $sku->media->filter(fn ($media) => $media->id == $mediaId)->first();
@@ -115,6 +119,26 @@ class ProductComponent extends Component
             Busket::add($sku->id, $this->product->name, $sku->price, $this->quantity, ['image' => $this->selectedThumb]);
         }
     }
+
+    public function addToWishList()
+    {
+        $sku = $this->selectedSku();
+        if ($sku) {
+            auth()->user()->wishlists()->updateOrCreate(['sku_id' => $sku->id]);
+            $this->dispatch('success', message: "Product added to wishlist successfully!");
+        }
+        $this->isWishListed = true;
+    }
+    public function removeFromWishList()
+    {
+        $sku = $this->selectedSku();
+        if ($sku) {
+            auth()->user()->wishlists()->where(['sku_id' => $sku->id])->delete();
+            $this->dispatch('success', message: "Product removed from wishlist successfully!");
+        }
+        $this->isWishListed = false;
+    }
+
 
     #[On('showMessage')]
     public function render()

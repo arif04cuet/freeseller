@@ -61,4 +61,7 @@
             </div>
         </div>
     </div>
+    <div>
+        {{ $actions ?? '' }}
+    </div>
 </div>

@@ -44,6 +44,10 @@ class OrderClaims extends BaseWidget
                         $isWholesaler,
                         fn ($q) => $q->whereJsonContains('wholesalers', ['id' => "$user->id"])
                     )
+                    ->when(
+                        !$isWholesaler,
+                        fn ($q) => $q->where('status', OrderClaimStatus::Pending->value)
+                    )
                     ->latest()
             )
             ->columns([

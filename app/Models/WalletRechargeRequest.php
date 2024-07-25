@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\PaymentChannel;
 use App\Enum\WalletRechargeRequestStatus;
 use Bavix\Wallet\Models\Wallet;
 use Illuminate\Database\Eloquent\Builder;
@@ -59,7 +60,8 @@ class WalletRechargeRequest extends Model implements HasMedia
 
     public function markAsApproved()
     {
-        DB::transaction(function () {
+        $channel = $this->bank;
+        DB::transaction(function () use ($channel) {
             $this->forceFill([
                 'status' => WalletRechargeRequestStatus::Approved->value,
                 'action_taken_at' => now(),
@@ -72,17 +74,33 @@ class WalletRechargeRequest extends Model implements HasMedia
 
             $amount = $floatFn($this->amount);
 
+            $rechargeId = $this->id;
             // diposit to platform account
             $platform->depositFloat($amount, [
                 'description' => 'Wallet recharged by ' . $reseller->business->name,
-                'wallet_recharge' => $this->id
+                'wallet_recharge' => $rechargeId
             ]);
 
             //transfer account to reseller
             $platform->forceTransferFloat($reseller, $amount, [
                 'description' => 'Wallet recharged',
-                'wallet_recharge' => $this->id
+                'wallet_recharge' => $rechargeId
             ]);
+
+            //deduct 2% MFS cashout charge if case of bKash/Nagad
+            if (in_array($channel, [
+                PaymentChannel::bKash->value,
+                PaymentChannel::Nagad->value,
+            ])) {
+
+                $percentageFn = fn ($amount, $percentage) => $floatFn((($percentage / 100) * $amount));
+                $recharge_fee = $percentageFn($amount, 2);
+
+                $reseller->forceTransferFloat($platform, $recharge_fee, [
+                    'description' => 'Wallet recharged Fee',
+                    'wallet_recharge_fee' => $rechargeId
+                ]);
+            }
 
             //send notification
             $tnxId = $this->tnx_id;

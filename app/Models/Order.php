@@ -311,6 +311,7 @@ class Order extends Model
 
         $quantity = $items
             ->filter(fn ($item) => !empty($item['sku']) && !empty($item['quantity']))
+            ->filter(fn ($item) => $item['sku'] != config('freeseller.chirkot_sku_id'))
             ->sum('quantity');
 
         if (empty($quantity)) {

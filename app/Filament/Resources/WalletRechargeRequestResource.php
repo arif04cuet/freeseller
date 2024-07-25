@@ -72,6 +72,7 @@ class WalletRechargeRequestResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')->searchable(),
                 Tables\Columns\TextColumn::make('created_at')->since(),
                 Tables\Columns\TextColumn::make('user.business.name'),
                 Tables\Columns\TextColumn::make('amount')->summarize(Sum::make()),
@@ -104,7 +105,7 @@ class WalletRechargeRequestResource extends Resource
                     ->options(PaymentChannel::class),
 
                 Tables\Filters\SelectFilter::make('status')
-                    ->default(WalletRechargeRequestStatus::Pending->value)
+                    ->default(fn () => auth()->user()->isSuperAdmin() ? WalletRechargeRequestStatus::Pending->value : null)
                     ->options(WalletRechargeRequestStatus::class),
 
                 Tables\Filters\Filter::make('action_taken_at')

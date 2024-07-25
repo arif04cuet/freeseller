@@ -30,6 +30,11 @@ class ListResource extends Resource
 
     protected static ?string $pluralModelLabel = 'List';
 
+    public static function canAccess(): bool
+    {
+        return false;
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

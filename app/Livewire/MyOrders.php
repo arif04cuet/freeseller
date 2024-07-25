@@ -78,7 +78,7 @@ class MyOrders extends Component
     }
     public function render()
     {
-        logger($this->search);
+        //logger($this->search);
         return view('livewire.my-orders');
     }
 }
