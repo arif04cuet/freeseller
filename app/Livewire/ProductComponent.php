@@ -104,7 +104,9 @@ class ProductComponent extends Component
         $sku = $this->selectedSku();
 
         //check wishlist
-        $this->isWishListed = auth()->user()->wishlists()->where(['sku_id' => $sku->id])->exists();
+        if (auth()->check())
+            $this->isWishListed = auth()->user()->wishlists()->where(['sku_id' => $sku->id])->exists();
+
         $this->listId = $sku->loadMissing('myResellerLists:id')->myResellerLists?->first()?->id;
         $this->stock = $sku->quantity;
         $media = $sku->media->filter(fn ($media) => $media->id == $mediaId)->first();
