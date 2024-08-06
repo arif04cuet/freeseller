@@ -19,7 +19,7 @@
                 }
             }">
                 <button
-                    @click.prevent="navigator.clipboard.writeText('{{ $note }}'),coppied = true, setTimeout(() => copyAndRedirect(), 1000)"
+                    @click.prevent="navigator.clipboard.writeText('{{ str_replace("'", '', $note) }}'),coppied = true, setTimeout(() => copyAndRedirect(), 1000)"
                     title="Copy note">
                     <x-filament::icon icon="heroicon-m-clipboard" class="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 </button>

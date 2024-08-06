@@ -19,6 +19,11 @@
                             <div x-data="{ show: false }" class="flex -mx-2 mb-4">
 
                                 <div class="w-full px-4" x-show="!show">
+                                    <input type="checkbox" wire:model="deleteSku" value="{{ $sku->id }}" checked>
+                                    Keep it after
+                                    add
+                                    to cart.
+
                                     <button
                                         @click="$dispatch('productAddedToCart');show = true;setTimeout(() => show = false, 5000)"
                                         wire:click="addToCart({{ $sku->id }})"

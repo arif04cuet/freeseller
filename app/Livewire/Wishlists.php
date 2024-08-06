@@ -25,6 +25,7 @@ use Busket;
 class Wishlists extends Component
 {
 
+    public $deleteSku = [];
     #[Computed()]
     public function items()
     {
@@ -39,13 +40,15 @@ class Wishlists extends Component
 
     public function addToCart($skuId): void
     {
+
         $sku = Sku::with(['product', 'media'])->find($skuId);
         $thumb = $sku->media->first()->getUrl('thumb');
 
         if ($sku) {
             Busket::add($sku->id, $sku->product->name, $sku->price, 1, ['image' => $thumb]);
         }
-        auth()->user()->wishlists()->where(['sku_id' => $sku->id])->delete();
+        if (!in_array($sku->id, $this->deleteSku))
+            auth()->user()->wishlists()->where(['sku_id' => $sku->id])->delete();
     }
 
 
